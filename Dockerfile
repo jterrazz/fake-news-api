@@ -2,11 +2,7 @@ FROM node:20.12-alpine
 
 WORKDIR /home
 
-RUN apk add --no-cache --upgrade make bash
-
-# Create db directory for persistent storage
-RUN mkdir -p /home/db && \
-    chown -R node:node /home/db
+RUN apk add --no-cache --upgrade make bash curl
 
 # Step 1: Install Dependencies Only (used for cache)
 COPY package*.json ./
@@ -26,6 +22,10 @@ USER node
 
 # Expose port (optional, good practice)
 EXPOSE 3000
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
 
 # Start the application
 CMD ["npm", "start"]

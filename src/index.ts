@@ -72,7 +72,7 @@ const init = async () => {
     }
 };
 
-app.get('/', (c) => c.text('Fake News API Running'));
+app.get('/', (c) => c.text('OK'));
 
 app.get('/articles', async (c) => {
     try {
