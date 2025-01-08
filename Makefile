@@ -9,7 +9,7 @@ INFRASTRUCTURE := $(PROJECT)-database $(PROJECT)-database-migration
 # Targets (application)
 DOCKER_ENVIRONMENT := ENVIRONMENT=docker source ./scripts/environment.sh
 DOCKER_COMPOSE := $(DOCKER_ENVIRONMENT) && docker compose -p $(PROJECT) -f $(BASEDIR)/scripts/docker/docker-compose.yml
-DOCKER_VOLUMES := -v "$(BASEDIR)/src:/home/src" -v "$(BASEDIR)/tests:/home/__tests__" -v "$(BASEDIR)/prisma:/home/prisma"
+DOCKER_VOLUMES := -v "$(BASEDIR)/src:/home/src" -v "$(BASEDIR)/tests:/home/__tests__" -v "$(BASEDIR)/prisma:/home/prisma" -v "$(BASEDIR)/db:/home/db"
 
 build:
 	docker build . -t $(APPLICATION)

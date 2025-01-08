@@ -13,3 +13,6 @@ src/configuration/values/local.yml
 # NodeJS
 node_modules/
 dist
+
+# Database
+database/

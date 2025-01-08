@@ -1,30 +1,38 @@
 {
-    "name": "fake-news-api",
-    "version": "1.0.0",
-    "author": "Jean-Baptiste Terrazzoni <jterrazzoni@gmail.com>",
-    "type": "module",
-    "engines": {
-        "node": "20.12.x"
-    },
-    "scripts": {
-        "build": "swc-compile",
-        "start": "node dist/index.js",
-        "start-dev": "swc-watch",
-        "test": "jest",
-        "lint-type": "tsc --noEmit",
-        "lint-code": "eslint .",
-        "lint-style": "prettier ."
-    },
-    "devDependencies": {
-        "@jterrazz/package-typescript": "^1.8.1",
-        "@jterrazz/package-typescript-quality": "^1.5.0",
-        "@jterrazz/package-typescript-test": "^1.2.1",
-        "@types/config": "^3.3.5",
-        "@types/node": "^22.10.5"
-    },
-    "dependencies": {
-        "@hono/node-server": "^1.13.7",
-        "hono": "^4.6.16",
-        "zod": "^3.24.1"
-    }
+  "name": "fake-news-api",
+  "version": "1.0.0",
+  "author": "Jean-Baptiste Terrazzoni <jterrazzoni@gmail.com>",
+  "type": "module",
+  "engines": {
+    "node": "20.12.x"
+  },
+  "scripts": {
+    "build": "swc-compile",
+    "start": "node dist/index.js",
+    "start-dev": "swc-watch",
+    "test": "jest",
+    "lint-type": "tsc --noEmit",
+    "lint-code": "eslint .",
+    "lint-style": "prettier ."
+  },
+  "devDependencies": {
+    "@jterrazz/package-typescript": "^1.8.1",
+    "@jterrazz/package-typescript-quality": "^1.5.0",
+    "@jterrazz/package-typescript-test": "^1.2.1",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/config": "^3.3.5",
+    "@types/node": "^22.10.5",
+    "@types/node-cron": "^3.0.11"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@hono/node-server": "^1.13.7",
+    "@libsql/client": "^0.14.0",
+    "better-sqlite3": "^11.7.2",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.38.3",
+    "hono": "^4.6.16",
+    "node-cron": "^3.0.3",
+    "zod": "^3.24.1"
+  }
 }
