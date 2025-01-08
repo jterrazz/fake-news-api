@@ -1,13 +1,22 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = resolve(__dirname, '../../database/fake-news.db');
+const ensureDatabaseFolder = () => {
+    const dbDir = path.join(process.cwd(), 'db');
+    if (!fs.existsSync(dbDir)) {
+        console.log('Creating database directory');
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+    return dbDir;
+};
 
 export const setupDatabase = () => {
-    const sqlite = new Database(DB_PATH);
+    const dbDir = ensureDatabaseFolder();
+    const dbPath = path.join(dbDir, 'sqlite.db');
+
+    const sqlite = new Database(dbPath);
     const db = drizzle(sqlite);
 
     // Create tables if they don't exist

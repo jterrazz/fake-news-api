@@ -1,8 +1,6 @@
 import { serve } from '@hono/node-server';
 import { desc } from 'drizzle-orm';
 import { Hono } from 'hono';
-import fs from 'node:fs';
-import path from 'node:path';
 import cron from 'node-cron';
 
 import { setupDatabase } from './db/index.js';
@@ -57,21 +55,10 @@ const generateDailyArticles = async () => {
     }
 };
 
-const ensureDatabaseFolder = () => {
-    const dbDir = path.join(process.cwd(), 'db');
-    if (!fs.existsSync(dbDir)) {
-        console.log('Creating database directory');
-        fs.mkdirSync(dbDir, { recursive: true });
-    }
-};
-
 // Initialize database and start cron job
 const init = async () => {
     try {
         console.log('Initializing');
-
-        // Ensure database folder exists
-        ensureDatabaseFolder();
 
         // Check and generate articles immediately if needed
         await generateDailyArticles();
