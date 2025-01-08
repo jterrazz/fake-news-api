@@ -1,0 +1,15 @@
+# IDEs
+.idea/
+.vscode/
+.vscode-test
+
+# MacOS
+.DS_Store
+
+# Configuration
+src/configuration/values/local.yml
+.env
+
+# NodeJS
+node_modules/
+dist
