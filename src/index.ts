@@ -49,7 +49,9 @@ const generateDailyArticles = async () => {
 
         await Promise.all(newArticles.map((article) => db.insert(articles).values(article)));
 
-        console.log('Generated and saved 5 new articles');
+        console.log(`Generated and saved ${newArticles.length} articles (${
+            newArticles.filter((a) => !a.isFake).length
+        } real, ${newArticles.filter((a) => a.isFake).length} fake)`);
     } catch (error) {
         console.error('Failed to generate daily articles:', error);
     }

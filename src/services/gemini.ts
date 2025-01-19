@@ -4,41 +4,106 @@ import { z } from 'zod';
 import { env } from '../config/env.js';
 import { Article, ArticleSchema } from '../types/article.js';
 
+import { fetchRealNews } from './world-news.js';
+
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
-const GeneratedArticleSchema = z.array(ArticleSchema.omit({ createdAt: true, id: true })).length(5);
+const GeneratedArticleSchema = z.array(ArticleSchema.omit({ createdAt: true, id: true }));
 
-const ARTICLE_PROMPT = `Generate 5 news articles in a JSON array format. The response MUST BE A VALID JSON and MATCH EXACTLY THIS FORMAT:
+const generateRealNewsPrompt = (
+    newsItems: Array<{ title: string; summary: string | null }>,
+) => `Based on these real news headlines, generate detailed news articles that expand on each story. Each article should be approximately 100 words long. The response MUST BE A VALID JSON and MATCH THIS FORMAT:
 [
   {
-    "headline": "Brief, engaging headline for article 1",
-    "article": "A detailed paragraph about the topic",
+    "headline": "Exact headline from input",
+    "article": "A detailed ~100 word article expanding on the story",
     "category": "One of: SCIENCE, TECHNOLOGY, HEALTH, ENVIRONMENT, SPACE",
-    "isFake": boolean indicating if this is a fictional story
-  },
-  // ... 4 more articles with the same structure
+    "summary": "A concise 1-2 sentence summary of the article",
+    "isFake": false
+  }
 ]
 
-Important: Ensure the response is a valid JSON array containing exactly 5 articles. Do not format this in markdown, just return the JSON array.`;
+Here are the headlines to expand:
+${newsItems.map((item, i) => `${i + 1}. "${item.title}"${item.summary ? ` (Context: ${item.summary})` : ''}`).join('\n')}
+
+Important: Keep the headlines exactly as provided and ensure each article is around 100 words. Return only valid JSON`;
+
+const generateFakeNewsPrompt = (
+    realNewsItems: Array<{ title: string; summary: string }>,
+) => `Based on these real news items, generate fictional but plausible news articles that could have happened in a parallel universe. Each article should be approximately 100 words long. Each fake article should be related to one of the real articles but clearly different.
+
+Real news for context:
+${realNewsItems.map((item, i) => `${i + 1}. ${item.title} - ${item.summary}`).join('\n')}
+
+The response MUST BE A VALID JSON and MATCH THIS FORMAT:
+[
+  {
+    "headline": "Brief, engaging headline",
+    "article": "A detailed ~100 word article about the topic",
+    "category": "One of: SCIENCE, TECHNOLOGY, HEALTH, ENVIRONMENT, SPACE",
+    "summary": "A concise 1-2 sentence summary of the article",
+    "isFake": true
+  }
+]
+
+Important: Make each article related to one of the real news items but clearly different. Ensure each article is around 100 words. Return only valid JSON`;
+
+const generateArticleFromPrompt = async (
+    model: any,
+    prompt: string,
+    publishDate?: string,
+): Promise<Article[]> => {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    if (!text) return [];
+
+    const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1);
+
+    console.log(text);
+
+    const articles = GeneratedArticleSchema.parse(JSON.parse(json));
+    return articles.map((article) => ({
+        ...article,
+        createdAt: publishDate ? new Date(publishDate) : new Date(),
+        id: crypto.randomUUID(),
+    }));
+};
 
 export const generateArticles = async (): Promise<Article[]> => {
     try {
-        // gemini-1.5-pro - gemini-pro
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-        const result = await model.generateContent(ARTICLE_PROMPT);
-        console.log(result);
-        console.log(JSON.stringify(result, null, 2));
-        const text = result.response.text();
+        const realNews = await fetchRealNews();
+        const articles: Article[] = [];
 
-        if (!text) throw new Error('Failed to generate articles');
+        // Take first 5 news items for processing
+        const newsToProcess = realNews.slice(0, 5);
 
-        const parsedArticles = GeneratedArticleSchema.parse(JSON.parse(text));
+        // Generate all real articles in one batch
+        const realArticles = await generateArticleFromPrompt(
+            model,
+            generateRealNewsPrompt(
+                newsToProcess.map((news) => ({
+                    summary: news.summary ?? null,
+                    title: news.title,
+                })),
+            ),
+            newsToProcess[0].publish_date, // Use first article's date
+        );
+        articles.push(...realArticles);
 
-        return parsedArticles.map((article) => ({
-            ...article,
-            createdAt: new Date(),
-            id: crypto.randomUUID(),
-        }));
+        // Generate all fake articles in one batch
+        const fakeArticles = await generateArticleFromPrompt(
+            model,
+            generateFakeNewsPrompt(
+                realArticles.map((article) => ({
+                    summary: article.summary,
+                    title: article.headline,
+                })),
+            ),
+        );
+        articles.push(...fakeArticles);
+
+        return articles;
     } catch (error) {
         console.error('Failed to generate articles:', error);
         throw error;

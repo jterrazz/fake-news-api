@@ -27,7 +27,8 @@ export const setupDatabase = () => {
             article TEXT NOT NULL,
             category TEXT NOT NULL CHECK(category IN ('SCIENCE', 'TECHNOLOGY', 'HEALTH', 'ENVIRONMENT', 'SPACE')),
             created_at INTEGER NOT NULL,
-            is_fake INTEGER NOT NULL CHECK(is_fake IN (0, 1))
+            is_fake INTEGER NOT NULL CHECK(is_fake IN (0, 1)),
+            summary TEXT NOT NULL DEFAULT ''
         )
     `);
 

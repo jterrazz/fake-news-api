@@ -6,7 +6,8 @@ export const ArticleSchema = z.object({
   createdAt: z.date(),
   headline: z.string(),
   id: z.string(),
-  isFake: z.boolean()
+  isFake: z.boolean(),
+  summary: z.string()
 });
 
 export type Article = z.infer<typeof ArticleSchema>; 

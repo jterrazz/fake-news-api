@@ -9,6 +9,7 @@ export const articles = sqliteTable('articles', {
     headline: text('headline').notNull(),
     id: text('id').primaryKey(),
     isFake: integer('is_fake', { mode: 'boolean' }).notNull(),
+    summary: text('summary').notNull(),
 });
 
 export type Article = typeof articles.$inferSelect;
