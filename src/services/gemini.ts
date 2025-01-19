@@ -73,10 +73,12 @@ export const generateArticles = async (): Promise<Article[]> => {
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
         const realNews = await fetchRealNews();
-        const articles: Article[] = [];
+
+        // Shuffle the real news array
+        const shuffledNews = [...realNews].sort(() => Math.random() - 0.5);
 
         // Take first 5 news items for processing
-        const newsToProcess = realNews.slice(0, 5);
+        const newsToProcess = shuffledNews.slice(0, 5);
 
         // Generate all real articles in one batch
         const realArticles = await generateArticleFromPrompt(
@@ -87,9 +89,8 @@ export const generateArticles = async (): Promise<Article[]> => {
                     title: news.title,
                 })),
             ),
-            newsToProcess[0].publish_date, // Use first article's date
+            newsToProcess[0].publish_date,
         );
-        articles.push(...realArticles);
 
         // Generate all fake articles in one batch
         const fakeArticles = await generateArticleFromPrompt(
@@ -101,9 +102,9 @@ export const generateArticles = async (): Promise<Article[]> => {
                 })),
             ),
         );
-        articles.push(...fakeArticles);
 
-        return articles;
+        // Combine and shuffle all articles
+        return [...realArticles, ...fakeArticles].sort(() => Math.random() - 0.5);
     } catch (error) {
         console.error('Failed to generate articles:', error);
         throw error;
