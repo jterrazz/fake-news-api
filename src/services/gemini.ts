@@ -73,7 +73,7 @@ For REAL articles:
 - Keep the tone light but informative
 - Include surprising but true facts when possible
 
-For FICTIONAL articles:
+For FICTIONAL articles (generate at least 2 fake articles):
 - Create headlines that are 8-12 words long, clever and intriguing, but not obviously fake
 - Write in the same language as real articles (${language === 'fr' ? 'French' : 'English'})
 - Mix plausible elements with slightly unusual twists
@@ -82,7 +82,7 @@ For FICTIONAL articles:
 - Create stories that make players think "Wait... could this be real?"
 - Include a clear but subtle reason why the article is fake (logical inconsistencies, improbable events, etc.)
 
-The response MUST BE A VALID JSON and MATCH THIS FORMAT:
+The response MUST BE A VALID JSON and MATCH THIS FORMAT, with AT LEAST 2 FAKE ARTICLES (isFake: true):
 [
   {
     "headline": "A clear, concise headline of around 8-12 words",
