@@ -31,31 +31,44 @@ const formatRecentArticles = (items: Array<{ headline: string; summary: string }
 const generateMixedNewsPrompt = (
     newsItems: Array<{ title: string; summary: string | null }>,
     recentArticles: Array<{ headline: string; summary: string }>,
-) => `Based on these real news headlines, generate a mix of real and fictional news articles. For real articles, expand on the given headlines. For fictional articles, create plausible stories that could have happened in a parallel universe, related to the themes of the real news. Each article should be approximately 70 words long.
+) => `You're creating content for an engaging "Spot the Fake News" game where players try to identify which news articles are real and which are fictional. Make it fun and challenging!
+
+For REAL articles:
+- Use the exact headlines provided
+- Add interesting but factual details that make the story engaging
+- Keep the tone light but informative
+- Include surprising but true facts when possible
+
+For FICTIONAL articles:
+- Create headlines that are clever and intriguing, but not obviously fake
+- Mix plausible elements with slightly unusual twists
+- Use humor subtly - avoid over-the-top or absurd content
+- Make them related to current themes but with unexpected angles
+- Create stories that make players think "Wait... could this be real?"
 
 The response MUST BE A VALID JSON and MATCH THIS FORMAT:
 [
   {
-    "headline": "The headline (use exact headline for real news)",
-    "article": "A detailed ~70 word article about the topic",
+    "headline": "The headline (exact headline for real news)",
+    "article": "An engaging ~70 word article that keeps players guessing",
     "category": "One of: WORLD, POLITICS, BUSINESS, TECHNOLOGY, SCIENCE, HEALTH, SPORTS, ENTERTAINMENT, LIFESTYLE, OTHER",
-    "summary": "A concise 1-2 sentence summary of the article",
+    "summary": "A catchy 1-2 sentence summary that makes players want to read more",
     "isFake": boolean
   }
 ]
 
-Here are the real headlines for context:
+Real headlines to work with:
 ${formatNewsItems(newsItems)}
 
-Here are recently generated articles to AVOID duplicating (last 2 weeks):
+Recently generated articles to avoid duplicating:
 ${formatRecentArticles(recentArticles)}
 
-Important:
-- Create a natural mix of real and fictional articles
-- For real articles, keep the headlines exactly as provided
-- For fictional articles, create related but clearly different headlines
-- Ensure each article is around 70 words
-- DO NOT generate articles similar to the recent ones listed above
+Important guidelines:
+- Create a balanced mix of real and fictional articles
+- Make both real and fake articles equally engaging
+- Use a conversational, modern writing style
+- Include relevant details that make players think critically
+- Avoid obvious tells that give away whether an article is real or fake
 - Return only valid JSON`;
 
 type GenerateArticleParams = {
@@ -74,15 +87,26 @@ const generateArticleFromPrompt = async ({
     if (!text) return [];
 
     const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1);
-
-    console.log(text);
-
     const articles = GeneratedArticleSchema.parse(JSON.parse(json));
-    return articles.map((article) => ({
-        ...article,
-        createdAt: publishDate ? new Date(publishDate) : new Date(),
-        id: crypto.randomUUID(),
-    }));
+
+    // Base date from publishDate or current time
+    const baseDate = publishDate ? new Date(publishDate) : new Date();
+
+    // Shuffle articles to randomize real/fake order
+    const shuffledArticles = [...articles].sort(() => Math.random() - 0.5);
+
+    // Add a small time increment for each article to ensure uniqueness
+    return shuffledArticles.map((article, index) => {
+        const uniqueDate = new Date(baseDate);
+        // Add index * 1 second to ensure unique timestamps
+        uniqueDate.setSeconds(uniqueDate.getSeconds() + index);
+
+        return {
+            ...article,
+            createdAt: uniqueDate,
+            id: crypto.randomUUID(),
+        };
+    });
 };
 
 export const generateArticles = async (): Promise<Article[]> => {
@@ -104,10 +128,9 @@ export const generateArticles = async (): Promise<Article[]> => {
             .orderBy(desc(articles.createdAt))
             .all();
 
-        // Shuffle the real news array and take first 7 items
+        // Shuffle and take a random selection of real news
         const newsToProcess = [...realNews].sort(() => Math.random() - 0.5).slice(0, 7);
 
-        // Generate mixed articles in one batch
         const prompt = generateMixedNewsPrompt(
             newsToProcess.map((news) => ({
                 summary: news.summary ?? null,
@@ -116,11 +139,20 @@ export const generateArticles = async (): Promise<Article[]> => {
             recentArticles,
         );
 
-        return await generateArticleFromPrompt({
+        const generatedArticles = await generateArticleFromPrompt({
             model,
             prompt,
             publishDate: newsToProcess[0].publish_date,
         });
+
+        // Log generation stats for monitoring
+        const realCount = generatedArticles.filter((a) => !a.isFake).length;
+        const fakeCount = generatedArticles.filter((a) => a.isFake).length;
+        console.log(
+            `Generated ${generatedArticles.length} articles (${realCount} real, ${fakeCount} fake)`,
+        );
+
+        return generatedArticles;
     } catch (error) {
         console.error('Failed to generate articles:', error);
         throw error;

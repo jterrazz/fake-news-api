@@ -1,13 +1,17 @@
 import { serve } from '@hono/node-server';
-import { desc } from 'drizzle-orm';
+import { and, desc, eq, lt, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import cron from 'node-cron';
+import { z } from 'zod';
 
 import { setupDatabase } from './db/index.js';
 import { articles } from './db/schema.js';
 import { generateArticles } from './services/gemini.js';
 
 import './config/env.js';
+
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
 
 const app = new Hono();
 const db = setupDatabase();
@@ -49,9 +53,11 @@ const generateDailyArticles = async () => {
 
         await Promise.all(newArticles.map((article) => db.insert(articles).values(article)));
 
-        console.log(`Generated and saved ${newArticles.length} articles (${
-            newArticles.filter((a) => !a.isFake).length
-        } real, ${newArticles.filter((a) => a.isFake).length} fake)`);
+        console.log(
+            `Generated and saved ${newArticles.length} articles (${
+                newArticles.filter((a) => !a.isFake).length
+            } real, ${newArticles.filter((a) => a.isFake).length} fake)`,
+        );
     } catch (error) {
         console.error('Failed to generate daily articles:', error);
     }
@@ -74,12 +80,103 @@ const init = async () => {
     }
 };
 
+const paginationSchema = z.object({
+    category: z
+        .enum([
+            'WORLD',
+            'POLITICS',
+            'BUSINESS',
+            'TECHNOLOGY',
+            'SCIENCE',
+            'HEALTH',
+            'SPORTS',
+            'ENTERTAINMENT',
+            'LIFESTYLE',
+            'OTHER',
+        ])
+        .optional(),
+    cursor: z.string().optional(),
+    limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
+});
+
+type PaginatedResponse<T> = {
+    items: T[];
+    nextCursor: string | null;
+    total: number;
+};
+
 app.get('/', (c) => c.text('OK'));
 
 app.get('/articles', async (c) => {
     try {
-        const results = await db.select().from(articles).all();
-        return c.json(results);
+        const query = c.req.query();
+        const validatedParams = paginationSchema.safeParse({
+            category: query.category,
+            cursor: query.cursor,
+            limit: query.limit,
+        });
+
+        if (!validatedParams.success)
+            return c.json({ error: 'Invalid pagination parameters' }, 400);
+
+        const { cursor, limit, category } = validatedParams.data;
+
+        // Decode cursor if provided
+        let cursorDate: Date | undefined;
+        if (cursor) {
+            try {
+                const timestamp = Number(atob(cursor));
+                if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
+                cursorDate = new Date(timestamp);
+            } catch {
+                return c.json({ error: 'Invalid cursor' }, 400);
+            }
+        }
+
+        // Build query conditions
+        const conditions = [];
+        if (cursorDate) {
+            conditions.push(lt(articles.createdAt, cursorDate));
+        }
+        if (category) {
+            conditions.push(eq(articles.category, category));
+        }
+
+        // Get total count for the category
+        const totalQuery = category
+            ? db
+                  .select({ count: sql<number>`count(*)` })
+                  .from(articles)
+                  .where(eq(articles.category, category))
+            : db.select({ count: sql<number>`count(*)` }).from(articles);
+
+        const [{ count }] = await totalQuery.all();
+
+        // Fetch items
+        const items = await db
+            .select()
+            .from(articles)
+            .where(conditions.length ? and(...conditions) : undefined)
+            .orderBy(desc(articles.createdAt))
+            .limit(limit + 1)
+            .all();
+
+        // Check if there are more items
+        const hasMore = items.length > limit;
+        const results = items.slice(0, limit);
+
+        // Generate next cursor
+        const nextCursor = hasMore
+            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString('base64')
+            : null;
+
+        const response: PaginatedResponse<(typeof results)[0]> = {
+            items: results,
+            nextCursor,
+            total: Number(count),
+        };
+
+        return c.json(response);
     } catch (error) {
         console.error('Failed to fetch articles:', error);
         return c.json({ error: 'Failed to fetch articles' }, 500);

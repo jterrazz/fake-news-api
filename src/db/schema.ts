@@ -16,7 +16,7 @@ export const articles = sqliteTable('articles', {
             'OTHER',
         ],
     }).notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().unique(),
     headline: text('headline').notNull(),
     id: text('id').primaryKey(),
     isFake: integer('is_fake', { mode: 'boolean' }).notNull(),
