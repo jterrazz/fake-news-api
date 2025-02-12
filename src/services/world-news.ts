@@ -5,6 +5,22 @@ import { env } from '../config/env.js';
 
 const CACHE_PATH_TEMPLATE = '/tmp/world-news-cache-{lang}.json';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
+
+let lastRequestTime = 0;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const enforceRateLimit = async () => {
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+
+    if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+        await delay(RATE_LIMIT_DELAY - timeSinceLastRequest);
+    }
+
+    lastRequestTime = Date.now();
+};
 
 const WorldNewsArticleSchema = z
     .object({
@@ -98,6 +114,8 @@ export const fetchRealNews = async (
         }
 
         console.log(`Fetching fresh news data for ${language}`);
+        await enforceRateLimit();
+
         const today = new Date().toISOString().split('T')[0];
         const url = new URL('https://api.worldnewsapi.com/top-news');
 
