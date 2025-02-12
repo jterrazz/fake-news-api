@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ensureDatabaseFolder = () => {
-    const dbDir = path.join(process.cwd(), 'db');
+    // Use environment variable to allow overriding the database path
+    const dbDir = process.env.DB_PATH || path.join(process.cwd(), 'db');
     if (!fs.existsSync(dbDir)) {
         console.log('Creating database directory');
         fs.mkdirSync(dbDir, { recursive: true });

@@ -4,6 +4,9 @@ WORKDIR /home
 
 RUN apk add --no-cache --upgrade make bash curl
 
+# Create directory for SQLite database with proper permissions
+RUN mkdir -p /data/db && chown -R node:node /data/db
+
 # Step 1: Install Dependencies Only (used for cache)
 COPY package*.json ./
 RUN npm ci
@@ -19,6 +22,9 @@ RUN chown -R node:node /home
 
 # Switch to non-root user
 USER node
+
+# Create volume for SQLite database
+VOLUME ["/data/db"]
 
 # Expose port (optional, good practice)
 EXPOSE 3000
