@@ -21,10 +21,13 @@ export const articles = sqliteTable('articles', {
     createdAt: integer('created_at', { mode: 'timestamp' })
         .notNull()
         .default(sql`CURRENT_TIMESTAMP`),
+    fakeReason: text('fake_reason'),
     headline: text('headline').notNull(),
     id: text('id').primaryKey(),
     isFake: integer('is_fake', { mode: 'boolean' }).notNull(),
-    language: text('language', { enum: ['en', 'fr'] }).notNull().default('en'),
+    language: text('language', { enum: ['en', 'fr'] })
+        .notNull()
+        .default('en'),
     summary: text('summary').notNull(),
 });
 

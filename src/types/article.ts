@@ -16,6 +16,7 @@ export const ArticleSchema = z.object({
     ]),
     country: z.enum(['us', 'fr']),
     createdAt: z.date(),
+    fakeReason: z.string().nullable(),
     headline: z.string(),
     id: z.string(),
     isFake: z.boolean(),

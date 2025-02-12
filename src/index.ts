@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import cron from 'node-cron';
 import { z } from 'zod';
 
-import { setupDatabase } from './db/index.js';
+import { Database, setupDatabase } from './db/index.js';
 import { articles } from './db/schema.js';
 import { generateArticles } from './services/gemini.js';
 
@@ -14,7 +14,7 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
 const app = new Hono();
-const db = setupDatabase();
+let db: Database;
 
 const shouldGenerateArticles = async () => {
     // Get the latest article
@@ -75,6 +75,7 @@ const generateDailyArticles = async () => {
 const init = async () => {
     try {
         console.log('Initializing');
+        db = await setupDatabase();
 
         // Check and generate articles immediately if needed
         await generateDailyArticles();

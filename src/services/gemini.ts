@@ -10,7 +10,12 @@ import { Article, ArticleSchema } from '../types/article.js';
 import { fetchRealNews } from './world-news.js';
 
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
-const db = setupDatabase();
+let db: Awaited<ReturnType<typeof setupDatabase>>;
+
+// Initialize db
+setupDatabase().then((database) => {
+    db = database;
+});
 
 const GeneratedArticleSchema = z.array(
     ArticleSchema.omit({
@@ -55,6 +60,7 @@ For FICTIONAL articles:
 - Use humor subtly - avoid over-the-top or absurd content
 - Make them related to current themes but with unexpected angles
 - Create stories that make players think "Wait... could this be real?"
+- Include a clear but subtle reason why the article is fake (logical inconsistencies, improbable events, etc.)
 
 The response MUST BE A VALID JSON and MATCH THIS FORMAT:
 [
@@ -63,7 +69,8 @@ The response MUST BE A VALID JSON and MATCH THIS FORMAT:
     "article": "An engaging ~70 word article that keeps players guessing",
     "category": "One of: WORLD, POLITICS, BUSINESS, TECHNOLOGY, SCIENCE, HEALTH, SPORTS, ENTERTAINMENT, LIFESTYLE, OTHER",
     "summary": "A catchy 1-2 sentence summary that makes players want to read more",
-    "isFake": boolean
+    "isFake": boolean,
+    "fakeReason": "For fake articles only: A brief explanation of why this article is fake (logical flaws, improbable events, etc.). Set to null for real articles."
   }
 ]
 
@@ -80,6 +87,8 @@ Important guidelines:
 - Write all content in ${language === 'fr' ? 'French' : 'English'}
 - Use a conversational, modern writing style
 - Include relevant details that make players think critically
+- For fake articles, include subtle but identifiable inconsistencies
+- For fake articles, provide a clear explanation of why it's fake
 - Avoid obvious tells that give away whether an article is real or fake
 - Return only valid JSON`;
 

@@ -13,42 +13,37 @@ const ensureDatabaseFolder = () => {
     return dbDir;
 };
 
-export const setupDatabase = () => {
-    const dbDir = ensureDatabaseFolder();
-    const dbPath = path.join(dbDir, 'sqlite.db');
+export const setupDatabase = async () => {
+    try {
+        const dbDir = ensureDatabaseFolder();
+        const dbPath = path.join(dbDir, 'sqlite.db');
 
-    const sqlite = new Database(dbPath);
-    const db = drizzle(sqlite);
+        const sqlite = new Database(dbPath);
+        const db = drizzle(sqlite);
 
-    // Create tables if they don't exist
-    db.run(`
-        CREATE TABLE IF NOT EXISTS articles (
-            id TEXT PRIMARY KEY,
-            headline TEXT NOT NULL,
-            article TEXT NOT NULL,
-            category TEXT NOT NULL CHECK(category IN (
-                'WORLD',
-                'POLITICS',
-                'BUSINESS',
-                'TECHNOLOGY',
-                'SCIENCE',
-                'HEALTH',
-                'SPORTS',
-                'ENTERTAINMENT',
-                'LIFESTYLE',
-                'OTHER'
-            )),
-            country TEXT NOT NULL CHECK(country IN ('us', 'fr')),
-            created_at INTEGER NOT NULL,
-            is_fake INTEGER NOT NULL CHECK(is_fake IN (0, 1)),
-            language TEXT NOT NULL CHECK(language IN ('en', 'fr')) DEFAULT 'en',
-            summary TEXT NOT NULL DEFAULT ''
-        )
-    `);
+        // Create tables directly
+        console.log('Creating tables...');
+        sqlite.exec(`
+            CREATE TABLE IF NOT EXISTS articles (
+                id TEXT PRIMARY KEY,
+                article TEXT NOT NULL,
+                category TEXT NOT NULL CHECK(category IN ('WORLD', 'POLITICS', 'BUSINESS', 'TECHNOLOGY', 'SCIENCE', 'HEALTH', 'SPORTS', 'ENTERTAINMENT', 'LIFESTYLE', 'OTHER')),
+                country TEXT NOT NULL CHECK(country IN ('us', 'fr')),
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                fake_reason TEXT,
+                headline TEXT NOT NULL,
+                is_fake BOOLEAN NOT NULL,
+                language TEXT NOT NULL DEFAULT 'en' CHECK(language IN ('en', 'fr')),
+                summary TEXT NOT NULL
+            );
+        `);
+        console.log('Tables created successfully');
 
-    console.log('Database initialized');
-
-    return db;
+        return db;
+    } catch (error) {
+        console.error('Failed to setup database:', error);
+        throw error;
+    }
 };
 
-export type Database = ReturnType<typeof setupDatabase>;
+export type Database = Awaited<ReturnType<typeof setupDatabase>>;
