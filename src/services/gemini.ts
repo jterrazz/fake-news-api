@@ -42,14 +42,14 @@ const generateMixedNewsPrompt = (
 ) => `You're creating content for an engaging "Spot the Fake News" game where players try to identify which news articles are real and which are fictional. Make it fun and challenging!
 
 For REAL articles:
-- Use the exact headlines provided
+- Use headlines that capture the essence of the original but rephrase them to be around 8-12 words
 - Keep the original language (${language === 'fr' ? 'French' : 'English'}) of the headlines and content
 - Add interesting but factual details that make the story engaging
 - Keep the tone light but informative
 - Include surprising but true facts when possible
 
 For FICTIONAL articles:
-- Create headlines that are clever and intriguing, but not obviously fake
+- Create headlines that are 8-12 words long, clever and intriguing, but not obviously fake
 - Write in the same language as real articles (${language === 'fr' ? 'French' : 'English'})
 - Mix plausible elements with slightly unusual twists
 - Use humor subtly - avoid over-the-top or absurd content
@@ -59,7 +59,7 @@ For FICTIONAL articles:
 The response MUST BE A VALID JSON and MATCH THIS FORMAT:
 [
   {
-    "headline": "The headline (exact headline for real news)",
+    "headline": "A clear, concise headline of around 8-12 words",
     "article": "An engaging ~70 word article that keeps players guessing",
     "category": "One of: WORLD, POLITICS, BUSINESS, TECHNOLOGY, SCIENCE, HEALTH, SPORTS, ENTERTAINMENT, LIFESTYLE, OTHER",
     "summary": "A catchy 1-2 sentence summary that makes players want to read more",
@@ -67,14 +67,15 @@ The response MUST BE A VALID JSON and MATCH THIS FORMAT:
   }
 ]
 
-Real headlines to work with:
+Original headlines to draw inspiration from:
 ${formatNewsItems(newsItems)}
 
 Recently generated articles to avoid duplicating:
 ${formatRecentArticles(recentArticles)}
 
 Important guidelines:
-- Create a balanced mix of real and fictional articles
+- Create headlines that are different from both original and recent articles
+- Headlines should be clear and around 8-12 words long
 - Make both real and fake articles equally engaging
 - Write all content in ${language === 'fr' ? 'French' : 'English'}
 - Use a conversational, modern writing style
