@@ -64,33 +64,36 @@ const generateMixedNewsPrompt = (
     newsItems: Array<{ title: string; summary: string | null }>,
     recentArticles: Array<{ headline: string; summary: string }>,
     language: 'en' | 'fr',
-) => `You're creating content for an engaging "Spot the Fake News" game where players try to identify which news articles are real and which are fictional. Make it fun and challenging!
+) => `You're creating content for a sophisticated "Spot the Fake News" game where players need sharp critical thinking to distinguish real from fictional news. The fake news should be highly believable and grounded in current events.
 
 For REAL articles:
 - Use headlines that capture the essence of the original but rephrase them to be around 8-12 words
 - Keep the original language (${language === 'fr' ? 'French' : 'English'}) of the headlines and content
 - Add interesting but factual details that make the story engaging
-- Keep the tone light but informative
-- Include surprising but true facts when possible
+- Keep the tone professional and journalistic
+- Include relevant context and factual background
 
 For FICTIONAL articles (generate at least 2 fake articles):
-- Create headlines that are 8-12 words long, clever and intriguing, but not obviously fake
-- Write in the same language as real articles (${language === 'fr' ? 'French' : 'English'})
-- Mix plausible elements with slightly unusual twists
-- Use humor subtly - avoid over-the-top or absurd content
-- Make them related to current themes but with unexpected angles
-- Create stories that make players think "Wait... could this be real?"
-- Include a clear but subtle reason why the article is fake (logical inconsistencies, improbable events, etc.)
+- Base fake stories on current real events and trends from the original headlines
+- Use the same journalistic style and tone as real news sources
+- Include accurate names of real organizations, places, and public figures
+- Create plausible extensions or developments of real current events
+- Add subtle twists that require fact-checking to disprove
+- Mix in accurate background details with the fictional elements
+- Make the fictional elements logically consistent with current reality
+- Avoid sensational or outlandish claims that would immediately raise suspicion
+- Use realistic quotes and statistics that seem credible
+- Keep the story within the realm of possibility given the current context
 
 The response MUST BE A VALID JSON and MATCH THIS FORMAT, with AT LEAST 2 FAKE ARTICLES (isFake: true):
 [
   {
-    "headline": "A clear, concise headline of around 8-12 words",
-    "article": "An engaging ~70 word article that keeps players guessing",
+    "headline": "A clear, professional headline of around 8-12 words",
+    "article": "A well-crafted ~70 word article that reads like genuine news",
     "category": "One of: WORLD, POLITICS, BUSINESS, TECHNOLOGY, SCIENCE, HEALTH, SPORTS, ENTERTAINMENT, LIFESTYLE, OTHER",
-    "summary": "A catchy 1-2 sentence summary that makes players want to read more",
+    "summary": "A professional 1-2 sentence summary in journalistic style",
     "isFake": boolean,
-    "fakeReason": "For fake articles only: A brief explanation of why this article is fake (logical flaws, improbable events, etc.). Set to null for real articles."
+    "fakeReason": "For fake articles only: A clear explanation of the subtle fictional elements and how they deviate from reality. Set to null for real articles."
   }
 ]
 
@@ -101,15 +104,15 @@ Recently generated articles to avoid duplicating:
 ${formatRecentArticles(recentArticles)}
 
 Important guidelines:
-- Create headlines that are different from both original and recent articles
+- Create unique headlines different from both original and recent articles
 - Headlines should be clear and around 8-12 words long
-- Make both real and fake articles equally engaging
+- Maintain consistent professional tone across all articles
 - Write all content in ${language === 'fr' ? 'French' : 'English'}
-- Use a conversational, modern writing style
-- Include relevant details that make players think critically
-- For fake articles, include subtle but identifiable inconsistencies
-- For fake articles, provide a clear explanation of why it's fake
-- Avoid obvious tells that give away whether an article is real or fake
+- Use proper journalistic style and structure
+- Include relevant context and background information
+- For fake articles, ensure the fictional elements are subtle and plausible
+- Make fact-checking necessary to distinguish real from fake
+- Avoid obvious patterns that could give away fake articles
 - Return only valid JSON`;
 
 type GenerateArticleParams = {
