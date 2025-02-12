@@ -17,12 +17,32 @@ setupDatabase().then((database) => {
     db = database;
 });
 
+const NewsCategory = {
+    BUSINESS: 'BUSINESS',
+    ENTERTAINMENT: 'ENTERTAINMENT',
+    HEALTH: 'HEALTH',
+    LIFESTYLE: 'LIFESTYLE',
+    OTHER: 'OTHER',
+    POLITICS: 'POLITICS',
+    SCIENCE: 'SCIENCE',
+    SPORTS: 'SPORTS',
+    TECHNOLOGY: 'TECHNOLOGY',
+    WORLD: 'WORLD',
+} as const;
+
+type NewsCategory = (typeof NewsCategory)[keyof typeof NewsCategory];
+
 const GeneratedArticleSchema = z.array(
     ArticleSchema.omit({
         country: true,
         createdAt: true,
         id: true,
         language: true,
+    }).extend({
+        category: z.string().transform((val): NewsCategory => {
+            const normalized = val.toUpperCase();
+            return normalized in NewsCategory ? (normalized as NewsCategory) : NewsCategory.OTHER;
+        }),
     }),
 );
 
