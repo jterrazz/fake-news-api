@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const articles = sqliteTable('articles', {
@@ -16,10 +17,14 @@ export const articles = sqliteTable('articles', {
             'OTHER',
         ],
     }).notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().unique(),
+    country: text('country', { enum: ['us', 'fr'] }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+        .notNull()
+        .default(sql`CURRENT_TIMESTAMP`),
     headline: text('headline').notNull(),
     id: text('id').primaryKey(),
     isFake: integer('is_fake', { mode: 'boolean' }).notNull(),
+    language: text('language', { enum: ['en', 'fr'] }).notNull().default('en'),
     summary: text('summary').notNull(),
 });
 

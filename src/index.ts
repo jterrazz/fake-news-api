@@ -47,16 +47,24 @@ const generateDailyArticles = async () => {
         }
         console.log('Generating articles');
 
-        const newArticles = await generateArticles();
+        // Generate articles for both languages
+        const [enArticles, frArticles] = await Promise.all([
+            generateArticles('en'),
+            generateArticles('fr'),
+        ]);
 
-        console.log('New articles:', newArticles);
-
-        await Promise.all(newArticles.map((article) => db.insert(articles).values(article)));
+        // Save all articles
+        const allArticles = [...enArticles, ...frArticles];
+        await Promise.all(allArticles.map((article) => db.insert(articles).values(article)));
 
         console.log(
-            `Generated and saved ${newArticles.length} articles (${
-                newArticles.filter((a) => !a.isFake).length
-            } real, ${newArticles.filter((a) => a.isFake).length} fake)`,
+            `Generated and saved ${allArticles.length} articles:
+            - EN: ${enArticles.length} (${enArticles.filter((a) => !a.isFake).length} real, ${
+                enArticles.filter((a) => a.isFake).length
+            } fake)
+            - FR: ${frArticles.length} (${frArticles.filter((a) => !a.isFake).length} real, ${
+                frArticles.filter((a) => a.isFake).length
+            } fake)`,
         );
     } catch (error) {
         console.error('Failed to generate daily articles:', error);
@@ -95,7 +103,9 @@ const paginationSchema = z.object({
             'OTHER',
         ])
         .optional(),
+    country: z.enum(['us', 'fr']).optional(),
     cursor: z.string().optional(),
+    language: z.enum(['en', 'fr']).default('en'),
     limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
 });
 
@@ -112,14 +122,16 @@ app.get('/articles', async (c) => {
         const query = c.req.query();
         const validatedParams = paginationSchema.safeParse({
             category: query.category,
+            country: query.country,
             cursor: query.cursor,
+            language: query.language,
             limit: query.limit,
         });
 
         if (!validatedParams.success)
             return c.json({ error: 'Invalid pagination parameters' }, 400);
 
-        const { cursor, limit, category } = validatedParams.data;
+        const { cursor, limit, category, language, country } = validatedParams.data;
 
         // Decode cursor if provided
         let cursorDate: Date | undefined;
@@ -134,21 +146,22 @@ app.get('/articles', async (c) => {
         }
 
         // Build query conditions
-        const conditions = [];
+        const conditions = [eq(articles.language, language)];
         if (cursorDate) {
             conditions.push(lt(articles.createdAt, cursorDate));
         }
         if (category) {
             conditions.push(eq(articles.category, category));
         }
+        if (country) {
+            conditions.push(eq(articles.country, country));
+        }
 
-        // Get total count for the category
-        const totalQuery = category
-            ? db
-                  .select({ count: sql<number>`count(*)` })
-                  .from(articles)
-                  .where(eq(articles.category, category))
-            : db.select({ count: sql<number>`count(*)` }).from(articles);
+        // Get total count for the category and language
+        const totalQuery = db
+            .select({ count: sql<number>`count(*)` })
+            .from(articles)
+            .where(and(...conditions));
 
         const [{ count }] = await totalQuery.all();
 
@@ -156,7 +169,7 @@ app.get('/articles', async (c) => {
         const items = await db
             .select()
             .from(articles)
-            .where(conditions.length ? and(...conditions) : undefined)
+            .where(and(...conditions))
             .orderBy(desc(articles.createdAt))
             .limit(limit + 1)
             .all();
@@ -167,7 +180,9 @@ app.get('/articles', async (c) => {
 
         // Generate next cursor
         const nextCursor = hasMore
-            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString('base64')
+            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString(
+                  'base64',
+              )
             : null;
 
         const response: PaginatedResponse<(typeof results)[0]> = {

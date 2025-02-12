@@ -1,5 +1,5 @@
 import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
-import { desc, gte } from 'drizzle-orm';
+import { and, desc, eq, gte } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { env } from '../config/env.js';
@@ -12,7 +12,14 @@ import { fetchRealNews } from './world-news.js';
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const db = setupDatabase();
 
-const GeneratedArticleSchema = z.array(ArticleSchema.omit({ createdAt: true, id: true }));
+const GeneratedArticleSchema = z.array(
+    ArticleSchema.omit({
+        country: true,
+        createdAt: true,
+        id: true,
+        language: true,
+    }),
+);
 
 const formatNewsItem = (index: number, title: string, summary: string | null): string => {
     const baseText = `${index + 1}. "${title}"`;
@@ -31,16 +38,19 @@ const formatRecentArticles = (items: Array<{ headline: string; summary: string }
 const generateMixedNewsPrompt = (
     newsItems: Array<{ title: string; summary: string | null }>,
     recentArticles: Array<{ headline: string; summary: string }>,
+    language: 'en' | 'fr',
 ) => `You're creating content for an engaging "Spot the Fake News" game where players try to identify which news articles are real and which are fictional. Make it fun and challenging!
 
 For REAL articles:
 - Use the exact headlines provided
+- Keep the original language (${language === 'fr' ? 'French' : 'English'}) of the headlines and content
 - Add interesting but factual details that make the story engaging
 - Keep the tone light but informative
 - Include surprising but true facts when possible
 
 For FICTIONAL articles:
 - Create headlines that are clever and intriguing, but not obviously fake
+- Write in the same language as real articles (${language === 'fr' ? 'French' : 'English'})
 - Mix plausible elements with slightly unusual twists
 - Use humor subtly - avoid over-the-top or absurd content
 - Make them related to current themes but with unexpected angles
@@ -66,21 +76,26 @@ ${formatRecentArticles(recentArticles)}
 Important guidelines:
 - Create a balanced mix of real and fictional articles
 - Make both real and fake articles equally engaging
+- Write all content in ${language === 'fr' ? 'French' : 'English'}
 - Use a conversational, modern writing style
 - Include relevant details that make players think critically
 - Avoid obvious tells that give away whether an article is real or fake
 - Return only valid JSON`;
 
 type GenerateArticleParams = {
+    language: 'en' | 'fr';
     model: GenerativeModel;
     prompt: string;
     publishDate?: string;
+    sourceCountry: 'us' | 'fr';
 };
 
 const generateArticleFromPrompt = async ({
+    language,
     model,
     prompt,
     publishDate,
+    sourceCountry,
 }: GenerateArticleParams): Promise<Article[]> => {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
@@ -95,7 +110,7 @@ const generateArticleFromPrompt = async ({
     // Shuffle articles to randomize real/fake order
     const shuffledArticles = [...articles].sort(() => Math.random() - 0.5);
 
-    // Add a small time increment for each article to ensure uniqueness
+    // Add metadata to each article
     return shuffledArticles.map((article, index) => {
         const uniqueDate = new Date(baseDate);
         // Add index * 1 second to ensure unique timestamps
@@ -103,16 +118,22 @@ const generateArticleFromPrompt = async ({
 
         return {
             ...article,
+            country: sourceCountry,
             createdAt: uniqueDate,
             id: crypto.randomUUID(),
+            language,
         };
     });
 };
 
-export const generateArticles = async (): Promise<Article[]> => {
+export const generateArticles = async (language: 'en' | 'fr' = 'en'): Promise<Article[]> => {
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-        const realNews = await fetchRealNews();
+        const sourceCountry: 'us' | 'fr' = language === 'en' ? 'us' : 'fr';
+        const realNews = await fetchRealNews({
+            language,
+            sourceCountry,
+        });
 
         // Get articles from the last 2 weeks to avoid duplication
         const twoWeeksAgo = new Date();
@@ -124,7 +145,13 @@ export const generateArticles = async (): Promise<Article[]> => {
                 summary: articles.summary,
             })
             .from(articles)
-            .where(gte(articles.createdAt, twoWeeksAgo))
+            .where(
+                and(
+                    gte(articles.createdAt, twoWeeksAgo),
+                    eq(articles.language, language),
+                    eq(articles.country, sourceCountry),
+                ),
+            )
             .orderBy(desc(articles.createdAt))
             .all();
 
@@ -137,24 +164,27 @@ export const generateArticles = async (): Promise<Article[]> => {
                 title: news.title,
             })),
             recentArticles,
+            language,
         );
 
         const generatedArticles = await generateArticleFromPrompt({
+            language,
             model,
             prompt,
             publishDate: newsToProcess[0].publish_date,
+            sourceCountry,
         });
 
         // Log generation stats for monitoring
         const realCount = generatedArticles.filter((a) => !a.isFake).length;
         const fakeCount = generatedArticles.filter((a) => a.isFake).length;
         console.log(
-            `Generated ${generatedArticles.length} articles (${realCount} real, ${fakeCount} fake)`,
+            `Generated ${generatedArticles.length} ${language} articles from ${sourceCountry} (${realCount} real, ${fakeCount} fake)`,
         );
 
         return generatedArticles;
     } catch (error) {
-        console.error('Failed to generate articles:', error);
+        console.error(`Failed to generate ${language} articles:`, error);
         throw error;
     }
 };

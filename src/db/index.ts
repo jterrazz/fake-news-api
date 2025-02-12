@@ -37,8 +37,10 @@ export const setupDatabase = () => {
                 'LIFESTYLE',
                 'OTHER'
             )),
+            country TEXT NOT NULL CHECK(country IN ('us', 'fr')),
             created_at INTEGER NOT NULL,
             is_fake INTEGER NOT NULL CHECK(is_fake IN (0, 1)),
+            language TEXT NOT NULL CHECK(language IN ('en', 'fr')) DEFAULT 'en',
             summary TEXT NOT NULL DEFAULT ''
         )
     `);
