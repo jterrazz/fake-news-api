@@ -9,7 +9,7 @@
   "scripts": {
     "build": "swc-compile",
     "start": "node dist/index.js",
-    "start-dev": "swc-watch",
+    "dev": "swc-watch",
     "test": "jest",
     "lint-type": "tsc --noEmit",
     "lint-code": "eslint .",

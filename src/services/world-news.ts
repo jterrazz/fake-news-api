@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { env } from '../config/env.js';
 
 const CACHE_PATH = '/tmp/world-news-cache.json';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_TTL = 15 * 60 * 1000; // 5 minutes in milliseconds
 
 const WorldNewsArticleSchema = z
     .object({

@@ -3,7 +3,18 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 export const articles = sqliteTable('articles', {
     article: text('article').notNull(),
     category: text('category', {
-        enum: ['SCIENCE', 'TECHNOLOGY', 'HEALTH', 'ENVIRONMENT', 'SPACE'],
+        enum: [
+            'WORLD',
+            'POLITICS',
+            'BUSINESS',
+            'TECHNOLOGY',
+            'SCIENCE',
+            'HEALTH',
+            'SPORTS',
+            'ENTERTAINMENT',
+            'LIFESTYLE',
+            'OTHER',
+        ],
     }).notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
     headline: text('headline').notNull(),

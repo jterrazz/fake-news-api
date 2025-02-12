@@ -17,10 +17,10 @@ build:
 start:
 	$(DOCKER_COMPOSE) run $(APPLICATION) npm run start
 
-start-dev:
-	$(DOCKER_COMPOSE) run $(DOCKER_VOLUMES) $(APPLICATION) npm run start-dev
+dev:
+	$(DOCKER_COMPOSE) run $(DOCKER_VOLUMES) $(APPLICATION) npm run dev
 
-start-infra:
+infra:
 	$(DOCKER_COMPOSE) up $(INFRASTRUCTURE)
 
 test:
