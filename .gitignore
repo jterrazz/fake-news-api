@@ -14,6 +14,5 @@ src/configuration/values/local.yml
 node_modules/
 dist
 
-# Database
-database/
-db/
+# Database from root
+/database/

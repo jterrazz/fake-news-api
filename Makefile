@@ -2,7 +2,7 @@ SHELL := /bin/bash
 BASEDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # Settings
-PROJECT := life-captain
+PROJECT := fake-news
 APPLICATION := $(PROJECT)-api
 INFRASTRUCTURE := $(PROJECT)-database $(PROJECT)-database-migration
 

@@ -1,6 +1,6 @@
 FROM node:20.12-alpine
 
-WORKDIR /home
+WORKDIR /data
 
 RUN apk add --no-cache --upgrade make bash curl
 
@@ -24,7 +24,7 @@ RUN chown -R node:node /home
 USER node
 
 # Create volume for SQLite database
-VOLUME ["/data/db"]
+VOLUME ["/data/database"]
 
 # Expose port (optional, good practice)
 EXPOSE 3000
