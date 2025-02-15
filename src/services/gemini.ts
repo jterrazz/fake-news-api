@@ -168,6 +168,12 @@ export const generateArticles = async (language: 'en' | 'fr' = 'en'): Promise<Ar
             sourceCountry,
         });
 
+        // Early return if no real news is available
+        if (!realNews?.length) {
+            console.warn(`No real news available for ${language} from ${sourceCountry}`);
+            return [];
+        }
+
         // Get articles from the last 2 weeks to avoid duplication
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
@@ -191,6 +197,13 @@ export const generateArticles = async (language: 'en' | 'fr' = 'en'): Promise<Ar
         // Shuffle and take a random selection of real news
         const newsToProcess = [...realNews].sort(() => Math.random() - 0.5).slice(0, 7);
 
+        // Get the most recent publish date from available news items
+        const publishDate = newsToProcess.reduce((latest, news) => {
+            if (!news.publish_date) return latest;
+            const date = new Date(news.publish_date);
+            return !latest || date > latest ? date : latest;
+        }, new Date());
+
         const prompt = generateMixedNewsPrompt(
             newsToProcess.map((news) => ({
                 summary: news.summary ?? null,
@@ -204,7 +217,7 @@ export const generateArticles = async (language: 'en' | 'fr' = 'en'): Promise<Ar
             language,
             model,
             prompt,
-            publishDate: newsToProcess[0].publish_date,
+            publishDate: publishDate.toISOString(),
             sourceCountry,
         });
 
