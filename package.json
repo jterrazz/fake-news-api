@@ -19,7 +19,7 @@
     "@jterrazz/package-typescript": "^1.8.1",
     "@jterrazz/package-typescript-quality": "^1.5.0",
     "@jterrazz/package-typescript-test": "^1.2.1",
-    "@types/node": "^22.10.5",
+    "@types/node": "^22.13.4",
     "@types/node-cron": "^3.0.11"
   },
   "dependencies": {
