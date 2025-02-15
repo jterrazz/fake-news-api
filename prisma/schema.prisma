@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database/main.sqlite"
+}
+
+enum Country {
+  us
+  fr
+}
+
+enum Language {
+  en
+  fr
+}
+
+enum Category {
+  WORLD
+  POLITICS
+  BUSINESS
+  TECHNOLOGY
+  SCIENCE
+  HEALTH
+  SPORTS
+  ENTERTAINMENT
+  LIFESTYLE
+  OTHER
+}
+
+model Article {
+  id         String    @id @default(uuid())
+  headline   String
+  article    String
+  summary    String
+  category   Category
+  isFake     Boolean
+  fakeReason String?
+  country    Country
+  language   Language
+  createdAt  DateTime  @default(now())
+
+  @@index([language, country])
+  @@index([createdAt])
+}

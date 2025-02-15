@@ -7,9 +7,9 @@
     "node": "20.12.x"
   },
   "scripts": {
-    "build": "swc-compile",
-    "start": "node dist/index.js",
-    "dev": "swc-watch",
+    "build": "prisma generate && swc-compile",
+    "start": "prisma migrate deploy && node dist/index.js",
+    "dev": "prisma migrate deploy && swc-watch",
     "test": "jest",
     "lint-type": "tsc --noEmit",
     "lint-code": "eslint .",
@@ -19,20 +19,17 @@
     "@jterrazz/package-typescript": "^1.8.1",
     "@jterrazz/package-typescript-quality": "^1.5.0",
     "@jterrazz/package-typescript-test": "^1.2.1",
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/config": "^3.3.5",
     "@types/node": "^22.10.5",
     "@types/node-cron": "^3.0.11"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@hono/node-server": "^1.13.7",
-    "@libsql/client": "^0.14.0",
-    "better-sqlite3": "^11.7.2",
+    "@prisma/client": "^6.3.1",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.38.3",
     "hono": "^4.6.16",
     "node-cron": "^3.0.3",
+    "prisma": "^6.3.1",
     "zod": "^3.24.1"
   }
 }

@@ -1,3 +1,4 @@
+import { type Country, type Language } from '@prisma/client';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { z } from 'zod';
 
@@ -93,24 +94,36 @@ const writeCache = (data: z.infer<typeof WorldNewsResponseSchema>, language: str
     }
 };
 
-type FetchRealNewsOptions = {
-    language: 'en' | 'fr';
-    sourceCountry: 'us' | 'fr';
+type FetchNewsParams = {
+    language: Language;
+    sourceCountry: Country;
 };
 
-export const fetchRealNews = async (
-    { language = 'en', sourceCountry = 'us' }: FetchRealNewsOptions = {
-        language: 'en',
-        sourceCountry: 'us',
-    },
-): Promise<z.infer<typeof WorldNewsArticleSchema>[]> => {
+export const fetchRealNews = async ({
+    language = 'en',
+    sourceCountry = 'us',
+}: FetchNewsParams): Promise<
+    Array<{
+        publish_date: string;
+        summary: string | null;
+        title: string;
+        url: string;
+    }>
+> => {
     try {
         // Try to read from cache first
         const cache = readCache(language);
         if (cache) {
             console.log(`Using cached news data for ${language}`);
             // Take only the first news article from each section
-            return cache.data.top_news.map((section) => section.news[0]);
+            return cache.data.top_news
+                .map((section) => section.news[0])
+                .map((article) => ({
+                    publish_date: article.publish_date,
+                    summary: article.summary ?? article.text,
+                    title: article.title,
+                    url: article.url ?? '',
+                }));
         }
 
         console.log(`Fetching fresh news data for ${language}`);
@@ -127,7 +140,10 @@ export const fetchRealNews = async (
 
         const response = await fetch(url.toString());
 
-        if (!response.ok) throw new Error(`API request failed: ${response.statusText}`);
+        if (!response.ok) {
+            console.error('Failed to fetch news:', response.statusText);
+            return [];
+        }
 
         const data = await response.json();
         const parsed = WorldNewsResponseSchema.parse(data);
@@ -135,10 +151,17 @@ export const fetchRealNews = async (
         // Cache the response
         writeCache(parsed, language);
 
-        // Take only the first news article from each section
-        return parsed.top_news.map((section) => section.news[0]);
+        // Take only the first news article from each section and map to required format
+        return parsed.top_news
+            .map((section) => section.news[0])
+            .map((article) => ({
+                publish_date: article.publish_date,
+                summary: article.summary ?? article.text,
+                title: article.title,
+                url: article.url ?? '',
+            }));
     } catch (error) {
-        console.error(`Failed to fetch ${language} news:`, JSON.stringify(error, null, 2));
-        throw error;
+        console.error(`Failed to fetch ${language} news:`, error);
+        return [];
     }
 };

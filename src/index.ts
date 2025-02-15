@@ -1,11 +1,10 @@
 import { serve } from '@hono/node-server';
-import { and, desc, eq, lt, sql } from 'drizzle-orm';
+import type { Article } from '@prisma/client';
 import { Hono } from 'hono';
 import cron from 'node-cron';
 import { z } from 'zod';
 
-import { Database, setupDatabase } from './db/index.js';
-import { articles } from './db/schema.js';
+import { prisma } from './db/client.js';
 import { generateArticles } from './services/gemini.js';
 
 import './config/env.js';
@@ -14,16 +13,14 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
 const app = new Hono();
-let db: Database;
 
 const shouldGenerateArticles = async () => {
     // Get the latest article
-    const lastGen = await db
-        .select()
-        .from(articles)
-        .orderBy(desc(articles.createdAt))
-        .limit(1)
-        .get();
+    const lastGen = await prisma.article.findFirst({
+        orderBy: {
+            createdAt: 'desc',
+        },
+    });
 
     if (!lastGen) return true;
 
@@ -55,7 +52,9 @@ const generateDailyArticles = async () => {
 
         // Save all articles
         const allArticles = [...enArticles, ...frArticles];
-        await Promise.all(allArticles.map((article) => db.insert(articles).values(article)));
+        await prisma.article.createMany({
+            data: allArticles,
+        });
 
         console.log(
             `Generated and saved ${allArticles.length} articles:
@@ -71,11 +70,10 @@ const generateDailyArticles = async () => {
     }
 };
 
-// Initialize database and start cron job
+// Initialize and start cron job
 const init = async () => {
     try {
         console.log('Initializing');
-        db = await setupDatabase();
 
         // Check and generate articles immediately if needed
         await generateDailyArticles();
@@ -126,7 +124,7 @@ app.get('/articles', async (c) => {
             country: query.country,
             cursor: query.cursor,
             language: query.language,
-            limit: query.limit,
+            limit: Number(query.limit),
         });
 
         if (!validatedParams.success)
@@ -146,34 +144,27 @@ app.get('/articles', async (c) => {
             }
         }
 
-        // Build query conditions
-        const conditions = [eq(articles.language, language)];
-        if (cursorDate) {
-            conditions.push(lt(articles.createdAt, cursorDate));
-        }
-        if (category) {
-            conditions.push(eq(articles.category, category));
-        }
-        if (country) {
-            conditions.push(eq(articles.country, country));
-        }
+        // Build where conditions
+        const where = {
+            AND: [
+                { language },
+                ...(cursorDate ? [{ createdAt: { lt: cursorDate } }] : []),
+                ...(category ? [{ category }] : []),
+                ...(country ? [{ country }] : []),
+            ],
+        };
 
-        // Get total count for the category and language
-        const totalQuery = db
-            .select({ count: sql<number>`count(*)` })
-            .from(articles)
-            .where(and(...conditions));
-
-        const [{ count }] = await totalQuery.all();
+        // Get total count
+        const total = await prisma.article.count({ where });
 
         // Fetch items
-        const items = await db
-            .select()
-            .from(articles)
-            .where(and(...conditions))
-            .orderBy(desc(articles.createdAt))
-            .limit(limit + 1)
-            .all();
+        const items = await prisma.article.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+            take: limit + 1,
+            where,
+        });
 
         // Check if there are more items
         const hasMore = items.length > limit;
@@ -186,10 +177,10 @@ app.get('/articles', async (c) => {
               )
             : null;
 
-        const response: PaginatedResponse<(typeof results)[0]> = {
+        const response: PaginatedResponse<Article> = {
             items: results,
             nextCursor,
-            total: Number(count),
+            total,
         };
 
         return c.json(response);
@@ -203,7 +194,6 @@ app.get('/articles', async (c) => {
 const startServer = async () => {
     console.log('Starting server');
     try {
-        console.log('Starting server');
         await init();
         serve(app, (info) => {
             console.log(`Server is running on port ${info.port}`);
