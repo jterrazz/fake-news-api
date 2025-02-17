@@ -78,9 +78,9 @@ const init = async () => {
         // Check and generate articles immediately if needed
         await generateDailyArticles();
 
-        // Schedule next generation for midnight
-        cron.schedule('0 0 * * *', generateDailyArticles);
-        console.log('Cron job scheduled');
+        // Schedule next generation for 11 AM
+        cron.schedule('0 11 * * *', generateDailyArticles);
+        console.log('Cron job scheduled for 11 AM daily');
     } catch (error) {
         console.error('Failed to initialize:', error);
         process.exit(1);
