@@ -124,7 +124,7 @@ app.get('/articles', async (c) => {
             country: query.country,
             cursor: query.cursor,
             language: query.language,
-            limit: Number(query.limit),
+            limit: query.limit ? Number(query.limit) : DEFAULT_PAGE_SIZE,
         });
 
         if (!validatedParams.success)
