@@ -17,7 +17,11 @@ const configurationSchema = z.object({
     }),
     app: z.object({
         env: z.enum(['development', 'production', 'test']),
+        host: z.string(),
         port: z.number(),
+    }),
+    logging: z.object({
+        level: z.enum(['debug', 'info', 'warn', 'error']),
     }),
 });
 
@@ -38,6 +42,9 @@ export class NodeConfigAdapter implements ConfigurationPort {
     }
 
     public getAppConfiguration(): AppConfiguration {
-        return this.configuration.app;
+        return {
+            ...this.configuration.app,
+            logging: this.configuration.logging,
+        };
     }
 }

@@ -10,7 +10,11 @@ describe('Node Config Adapter', () => {
         },
         app: {
             env: 'development',
+            host: 'localhost',
             port: 3000,
+        },
+        logging: {
+            level: 'info',
         },
     };
 
@@ -18,7 +22,10 @@ describe('Node Config Adapter', () => {
         const configAdapter = new NodeConfigAdapter(validConfig);
 
         expect(configAdapter.getApiConfiguration()).toEqual(validConfig.api);
-        expect(configAdapter.getAppConfiguration()).toEqual(validConfig.app);
+        expect(configAdapter.getAppConfiguration()).toEqual({
+            ...validConfig.app,
+            logging: validConfig.logging,
+        });
     });
 
     it('should fail with invalid environment', () => {
@@ -51,6 +58,29 @@ describe('Node Config Adapter', () => {
             app: {
                 ...validConfig.app,
                 port: 'invalid-port',
+            },
+        };
+
+        expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
+    });
+
+    it('should fail with invalid log level', () => {
+        const invalidConfig = {
+            ...validConfig,
+            logging: {
+                level: 'invalid-level',
+            },
+        };
+
+        expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
+    });
+
+    it('should fail with missing host', () => {
+        const invalidConfig = {
+            ...validConfig,
+            app: {
+                env: 'development',
+                port: 3000,
             },
         };
 

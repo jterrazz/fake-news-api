@@ -1,7 +1,11 @@
 {
   "app": {
     "env": "NODE_ENV",
-    "port": "PORT"
+    "port": "PORT",
+    "host": "HOST"
+  },
+  "logging": {
+    "level": "LOG_LEVEL"
   },
   "api": {
     "gemini": {

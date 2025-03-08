@@ -5,9 +5,9 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 
 import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
 import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
-import type { DatabasePort } from '../application/ports/outbound/external/database.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
+import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
@@ -27,15 +27,9 @@ const configurationFactory = Injectable(
     () => new NodeConfigAdapter(nodeConfiguration),
 );
 
-const httpServerFactory = Injectable(
-    'HttpServer',
-    () => new HonoServerAdapter(),
-);
+const httpServerFactory = Injectable('HttpServer', () => new HonoServerAdapter());
 
-const jobRunnerFactory = Injectable(
-    'JobRunner',
-    () => new NodeCronAdapter(),
-);
+const jobRunnerFactory = Injectable('JobRunner', () => new NodeCronAdapter());
 
 /**
  * Outbound adapters
@@ -44,8 +38,9 @@ const databaseFactory = Injectable('Database', () => databaseAdapter);
 
 const loggerFactory = Injectable(
     'Logger',
-    () =>
-        new PinoLoggerAdapter({
+    ['Configuration'] as const,
+    (config: ConfigurationPort) =>
+        new PinoLoggerAdapter(config, {
             formatters: {
                 level: (label) => ({ level: label }),
             },

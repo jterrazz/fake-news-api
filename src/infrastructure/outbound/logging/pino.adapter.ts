@@ -1,13 +1,19 @@
 import pino from 'pino';
 
-import type { LoggerPort } from '../../../../application/outbound/ports/services/logger.port.js';
+import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
+
+import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 export class PinoLoggerAdapter implements LoggerPort {
     private logger: pino.Logger;
+    private config: ConfigurationPort;
 
-    constructor(options?: pino.LoggerOptions) {
+    constructor(config: ConfigurationPort, options?: pino.LoggerOptions) {
+        this.config = config;
+        const appConfig = config.getAppConfiguration();
+
         this.logger = pino({
-            level: process.env.LOG_LEVEL || 'info',
+            level: appConfig.logging.level,
             ...options,
         });
     }
@@ -16,14 +22,8 @@ export class PinoLoggerAdapter implements LoggerPort {
         this.logger.info(context, message);
     }
 
-    error(message: string, error?: Error, context?: Record<string, unknown>): void {
-        this.logger.error(
-            {
-                ...context,
-                error: error ? { message: error.message, stack: error.stack } : undefined,
-            },
-            message,
-        );
+    error(message: string, context?: Record<string, unknown>): void {
+        this.logger.error(context, message);
     }
 
     warn(message: string, context?: Record<string, unknown>): void {
@@ -35,7 +35,7 @@ export class PinoLoggerAdapter implements LoggerPort {
     }
 
     child(bindings: Record<string, unknown>): LoggerPort {
-        const childLogger = new PinoLoggerAdapter();
+        const childLogger = new PinoLoggerAdapter(this.config);
         childLogger.logger = this.logger.child(bindings);
         return childLogger;
     }

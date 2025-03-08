@@ -11,6 +11,9 @@ export interface AppConfiguration {
     env: 'development' | 'production' | 'test';
     port: number;
     host: string;
+    logging: {
+        level: 'debug' | 'info' | 'warn' | 'error';
+    };
 }
 
 /**
