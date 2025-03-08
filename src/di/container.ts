@@ -10,6 +10,7 @@ import type { NewsPort } from '../application/ports/outbound/data-sources/news.p
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
 import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
+import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
@@ -76,21 +77,29 @@ const articleRepositoryFactory = Injectable(
 );
 
 /**
+ * Use case factories
+ */
+const generateArticlesUseCaseFactory = Injectable(
+    'GenerateArticles',
+    ['ArticleRepository', 'Logger', 'News'] as const,
+    (articleRepository: ArticleRepository, logger: LoggerPort, newsService: NewsPort) =>
+        new GenerateArticlesUseCase({
+            articleRepository,
+            logger,
+            newsService,
+        }),
+);
+
+/**
  * Job factories
  */
 const jobsFactory = Injectable(
     'Jobs',
-    ['ArticleRepository', 'Logger', 'News'] as const,
-    (
-        articleRepository: ArticleRepository,
-        logger: LoggerPort,
-        newsService: NewsPort,
-    ): Job[] => {
+    ['GenerateArticles'] as const,
+    (generateArticles: GenerateArticlesUseCase): Job[] => {
         return [
             createArticleGenerationJob({
-                articleRepository,
-                logger,
-                newsService,
+                generateArticles,
             }),
             // Add more jobs here
         ];
@@ -110,6 +119,8 @@ export const container = Container
     .provides(newsFactory)
     // Repository adapters
     .provides(articleRepositoryFactory)
+    // Use cases
+    .provides(generateArticlesUseCaseFactory)
     // Jobs
     .provides(jobsFactory)
     .provides(jobRunnerFactory);
