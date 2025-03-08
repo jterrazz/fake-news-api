@@ -4,12 +4,14 @@ import { default as nodeConfiguration } from 'config';
 import type { ConfigurationPort } from '../application/ports/inbound/configuration.port.js';
 
 import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
+import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
 import type { DatabasePort } from '../application/ports/outbound/external/database.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
+import { NodeCronAdapter } from '../infrastructure/inbound/jobs/node-cron.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
 import {
     databaseAdapter,
@@ -28,6 +30,11 @@ const configurationFactory = Injectable(
 const httpServerFactory = Injectable(
     'HttpServer',
     () => new HonoServerAdapter(),
+);
+
+const jobRunnerFactory = Injectable(
+    'JobRunner',
+    () => new NodeCronAdapter(),
 );
 
 /**
@@ -62,6 +69,7 @@ export const container = Container
     // Inbound adapters
     .provides(configurationFactory)
     .provides(httpServerFactory)
+    .provides(jobRunnerFactory)
     // Outbound adapters
     .provides(databaseFactory)
     .provides(loggerFactory)
@@ -89,4 +97,8 @@ export const getDatabase = (): DatabasePort => {
 
 export const getHttpServer = (): HttpServerPort => {
     return container.get('HttpServer');
+};
+
+export const getJobRunner = (): JobRunnerPort => {
+    return container.get('JobRunner');
 };

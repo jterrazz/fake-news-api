@@ -1,6 +1,4 @@
-import { initializeScheduler } from './infrastructure/inbound/jobs/scheduler.js';
-
-import { getConfiguration, getHttpServer } from './di/container.js';
+import { getConfiguration, getHttpServer, getJobRunner } from './di/container.js';
 
 import './config/env.js';
 
@@ -9,10 +7,11 @@ const start = async () => {
     try {
         const config = getConfiguration();
         const httpServer = getHttpServer();
+        const jobRunner = getJobRunner();
         const appConfig = config.getAppConfiguration();
 
-        // Initialize job scheduler
-        await initializeScheduler();
+        // Initialize jobs
+        await jobRunner.initialize();
 
         // Start HTTP server
         await httpServer.start({
