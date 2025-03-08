@@ -1,4 +1,3 @@
-import { default as nodeConfiguration } from 'config';
 import { z } from 'zod';
 
 const configurationSchema = z.object({
@@ -19,11 +18,10 @@ const configurationSchema = z.object({
 export type Configuration = z.infer<typeof configurationSchema>;
 
 export class ConfigurationService {
-    private configuration: Configuration;
+    private readonly configuration: Configuration;
 
-    constructor(configurationInput?: unknown) {
-        // TODO: Fallback to be removed after container is implemented
-        this.configuration = configurationSchema.parse(configurationInput ?? nodeConfiguration);
+    constructor(configurationInput: unknown) {
+        this.configuration = configurationSchema.parse(configurationInput);
     }
 
     public getConfiguration(): Configuration {
@@ -38,6 +36,3 @@ export class ConfigurationService {
         return this.configuration.app;
     }
 }
-
-// Export a function to create new instances
-export const createConfigurationService = (config?: unknown) => new ConfigurationService(config);

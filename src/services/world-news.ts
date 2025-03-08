@@ -2,9 +2,9 @@ import { type Country, type Language } from '@prisma/client';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { z } from 'zod';
 
-import { createConfigurationService } from '../application/services/configuration.service.js';
+import { getConfigurationService } from '../di/container.js';
 
-const config = createConfigurationService();
+const config = getConfigurationService();
 
 const CACHE_PATH_TEMPLATE = '/tmp/world-news-cache-{lang}.json';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
