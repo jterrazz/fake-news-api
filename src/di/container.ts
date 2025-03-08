@@ -13,6 +13,7 @@ import type { DatabasePort } from '../application/ports/outbound/persistence/dat
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/jobs/node-cron.adapter.js';
+import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
 import {
@@ -52,8 +53,11 @@ const loggerFactory = Injectable(
 
 const newsFactory = Injectable(
     'News',
-    ['Configuration'] as const,
-    (config: ConfigurationPort) => new WorldNewsAdapter(config),
+    ['Configuration', 'Logger'] as const,
+    (config: ConfigurationPort, logger: LoggerPort) => {
+        const newsAdapter = new WorldNewsAdapter(config);
+        return new CachedNewsAdapter(newsAdapter, logger);
+    },
 );
 
 /**
