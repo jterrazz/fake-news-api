@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import cron from 'node-cron';
 import { z } from 'zod';
 
-import { prisma } from './db/client.js';
+import { PrismaArticleRepository } from './infra/repositories/prisma-article.repository.js';
 import { generateArticles } from './services/gemini.js';
 
 import './config/env.js';
@@ -13,15 +13,10 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
 const app = new Hono();
+const articleRepository = new PrismaArticleRepository();
 
 const shouldGenerateArticles = async () => {
-    // Get the latest article
-    const lastGen = await prisma.article.findFirst({
-        orderBy: {
-            createdAt: 'desc',
-        },
-    });
-
+    const lastGen = await articleRepository.findLatest();
     if (!lastGen) return true;
 
     const lastDate = new Date(lastGen.createdAt);
@@ -52,9 +47,7 @@ const generateDailyArticles = async () => {
 
         // Save all articles
         const allArticles = [...enArticles, ...frArticles];
-        await prisma.article.createMany({
-            data: allArticles,
-        });
+        await articleRepository.createMany(allArticles);
 
         console.log(
             `Generated and saved ${allArticles.length} articles:
@@ -144,26 +137,12 @@ app.get('/articles', async (c) => {
             }
         }
 
-        // Build where conditions
-        const where = {
-            AND: [
-                { language },
-                ...(cursorDate ? [{ createdAt: { lt: cursorDate } }] : []),
-                ...(category ? [{ category }] : []),
-                ...(country ? [{ country }] : []),
-            ],
-        };
-
-        // Get total count
-        const total = await prisma.article.count({ where });
-
-        // Fetch items
-        const items = await prisma.article.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
-            take: limit + 1,
-            where,
+        const { items, total } = await articleRepository.findMany({
+            category,
+            country,
+            cursor: cursorDate,
+            language,
+            limit,
         });
 
         // Check if there are more items
