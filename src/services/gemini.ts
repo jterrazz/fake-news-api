@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { createConfigurationService } from '../application/services/configuration.service.js';
 
-import { prisma } from '../db/client.js';
+import { createArticleRepository } from '../infra/repositories/factory.js';
 import { Article, ArticleSchema } from '../types/article.js';
 
 import { fetchRealNews } from './world-news.js';
@@ -158,21 +158,11 @@ export const generateArticles = async (language: Language = Language.en): Promis
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-        const recentArticles = await prisma.article.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
-            select: {
-                headline: true,
-                summary: true,
-            },
-            where: {
-                AND: [
-                    { createdAt: { gte: twoWeeksAgo } },
-                    { language },
-                    { country: sourceCountry },
-                ],
-            },
+        const articleRepository = createArticleRepository();
+        const recentArticles = await articleRepository.findRecentArticles({
+            country: sourceCountry,
+            language,
+            since: twoWeeksAgo,
         });
 
         // Shuffle and take a random selection of real news

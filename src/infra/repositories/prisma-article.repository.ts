@@ -67,4 +67,27 @@ export class PrismaArticleRepository implements ArticleRepository {
             total,
         };
     }
+
+    async findRecentArticles(params: {
+        language: Language;
+        country: Country;
+        since: Date;
+    }): Promise<Array<{ headline: string; summary: string }>> {
+        return prisma.article.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+            select: {
+                headline: true,
+                summary: true,
+            },
+            where: {
+                AND: [
+                    { createdAt: { gte: params.since } },
+                    { language: params.language },
+                    { country: params.country },
+                ],
+            },
+        });
+    }
 }
