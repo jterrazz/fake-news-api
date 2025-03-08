@@ -4,12 +4,11 @@ import { z } from 'zod';
 
 import { Article, ArticleSchema } from '../domain/entities/article.js';
 
-import { getArticleRepository, getConfigurationService } from '../di/container.js';
+import { getArticleRepository, getConfiguration, getLogger, getNews } from '../di/container.js';
 
-import { fetchRealNews } from './world-news.js';
-
-const config = getConfigurationService();
+const config = getConfiguration();
 const genAI = new GoogleGenerativeAI(config.getApiConfiguration().gemini.apiKey);
+const logger = getLogger();
 
 const GeneratedArticleSchema = z.array(
     ArticleSchema.omit({
@@ -142,14 +141,17 @@ export const generateArticles = async (language: Language = Language.en): Promis
     try {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
         const sourceCountry: Country = language === Language.en ? 'us' : 'fr';
-        const realNews = await fetchRealNews({
+        const newsService = getNews();
+
+        // Fetch real news articles
+        const realNews = await newsService.fetchNews({
             language,
             sourceCountry,
         });
 
         // Early return if no real news is available
         if (!realNews?.length) {
-            console.warn(`No real news available for ${language} from ${sourceCountry}`);
+            logger.warn('No real news available', { language, sourceCountry });
             return [];
         }
 
@@ -169,14 +171,14 @@ export const generateArticles = async (language: Language = Language.en): Promis
 
         // Get the most recent publish date from available news items
         const publishDate = newsToProcess.reduce((latest, news) => {
-            if (!news.publish_date) return latest;
-            const date = new Date(news.publish_date);
+            if (!news.publishDate) return latest;
+            const date = new Date(news.publishDate);
             return !latest || date > latest ? date : latest;
         }, new Date());
 
         const prompt = generateMixedNewsPrompt(
             newsToProcess.map((news) => ({
-                summary: news.summary ?? null,
+                summary: news.summary,
                 title: news.title,
             })),
             recentArticles,
@@ -194,13 +196,17 @@ export const generateArticles = async (language: Language = Language.en): Promis
         // Log generation stats for monitoring
         const realCount = generatedArticles.filter((a) => !a.isFake).length;
         const fakeCount = generatedArticles.filter((a) => a.isFake).length;
-        console.log(
-            `Generated ${generatedArticles.length} ${language} articles from ${sourceCountry} (${realCount} real, ${fakeCount} fake)`,
-        );
+        logger.info('Generated articles', {
+            fakeCount,
+            language,
+            realCount,
+            sourceCountry,
+            total: generatedArticles.length,
+        });
 
         return generatedArticles;
     } catch (error) {
-        console.error(`Failed to generate ${language} articles:`, error);
+        logger.error('Failed to generate articles', { error, language });
         throw error;
     }
 };

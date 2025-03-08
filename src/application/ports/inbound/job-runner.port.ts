@@ -2,8 +2,25 @@
  * Represents a job that can be scheduled and executed
  */
 export interface Job {
+    /**
+     * Unique name of the job
+     */
     name: string;
-    schedule: string; // Cron expression
+
+    /**
+     * Cron expression defining when the job should run
+     */
+    schedule: string;
+
+    /**
+     * Whether the job should be executed immediately on startup
+     * @default false
+     */
+    executeOnStartup?: boolean;
+
+    /**
+     * The function to execute when the job runs
+     */
     execute: () => Promise<void>;
 }
 

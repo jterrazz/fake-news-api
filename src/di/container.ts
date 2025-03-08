@@ -5,6 +5,7 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 
 import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
 import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
+import { type Job } from '../application/ports/inbound/job-runner.port.js';
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
@@ -12,7 +13,8 @@ import type { DatabasePort } from '../application/ports/outbound/persistence/dat
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
-import { NodeCronAdapter } from '../infrastructure/inbound/jobs/node-cron.adapter.js';
+import { createArticleGenerationJob } from '../infrastructure/inbound/job-runner/articles/article-generation.job.js';
+import { NodeCronAdapter } from '../infrastructure/inbound/job-runner/node-cron.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
@@ -32,7 +34,11 @@ const configurationFactory = Injectable(
 
 const httpServerFactory = Injectable('HttpServer', () => new HonoServerAdapter());
 
-const jobRunnerFactory = Injectable('JobRunner', () => new NodeCronAdapter());
+const jobRunnerFactory = Injectable(
+    'JobRunner',
+    ['Logger', 'Jobs'] as const,
+    (logger: LoggerPort, jobs: Job[]): JobRunnerPort => new NodeCronAdapter(logger, jobs),
+);
 
 /**
  * Outbound adapters
@@ -70,19 +76,43 @@ const articleRepositoryFactory = Injectable(
 );
 
 /**
+ * Job factories
+ */
+const jobsFactory = Injectable(
+    'Jobs',
+    ['ArticleRepository', 'Logger', 'News'] as const,
+    (
+        articleRepository: ArticleRepository,
+        logger: LoggerPort,
+        newsService: NewsPort,
+    ): Job[] => {
+        return [
+            createArticleGenerationJob({
+                articleRepository,
+                logger,
+                newsService,
+            }),
+            // Add more jobs here
+        ];
+    },
+);
+
+/**
  * Application container configuration
  */
 export const container = Container
     // Inbound adapters
     .provides(configurationFactory)
     .provides(httpServerFactory)
-    .provides(jobRunnerFactory)
     // Outbound adapters
     .provides(databaseFactory)
     .provides(loggerFactory)
     .provides(newsFactory)
     // Repository adapters
-    .provides(articleRepositoryFactory);
+    .provides(articleRepositoryFactory)
+    // Jobs
+    .provides(jobsFactory)
+    .provides(jobRunnerFactory);
 
 /**
  * Type-safe dependency accessors
@@ -113,4 +143,8 @@ export const getJobRunner = (): JobRunnerPort => {
 
 export const getNews = (): NewsPort => {
     return container.get('News');
+};
+
+export const getJobs = (): Job[] => {
+    return container.get('Jobs');
 };
