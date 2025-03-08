@@ -2,11 +2,13 @@ import type { Article, Category, Country, Language, Prisma } from '@prisma/clien
 
 import type { ArticleRepository } from '../../domain/repositories/article.repository.js';
 
-import { prisma } from '../../db/client.js';
+import type { DatabaseClient } from '../database/client.js';
 
 export class PrismaArticleRepository implements ArticleRepository {
+    constructor(private readonly db: DatabaseClient) {}
+
     async findLatest(): Promise<Article | null> {
-        return prisma.article.findFirst({
+        return this.db.prisma.article.findFirst({
             orderBy: {
                 createdAt: 'desc',
             },
@@ -14,12 +16,12 @@ export class PrismaArticleRepository implements ArticleRepository {
     }
 
     async createMany(articles: Omit<Article, 'id' | 'createdAt'>[]): Promise<Article[]> {
-        await prisma.article.createMany({
+        await this.db.prisma.article.createMany({
             data: articles,
         });
 
         // Fetch the created articles to return them
-        return prisma.article.findMany({
+        return this.db.prisma.article.findMany({
             where: {
                 article: {
                     in: articles.map((a) => a.article),
@@ -51,10 +53,10 @@ export class PrismaArticleRepository implements ArticleRepository {
         };
 
         // Get total count
-        const total = await prisma.article.count({ where });
+        const total = await this.db.prisma.article.count({ where });
 
         // Fetch items
-        const items = await prisma.article.findMany({
+        const items = await this.db.prisma.article.findMany({
             orderBy: {
                 createdAt: 'desc',
             },
@@ -73,7 +75,7 @@ export class PrismaArticleRepository implements ArticleRepository {
         country: Country;
         since: Date;
     }): Promise<Array<{ headline: string; summary: string }>> {
-        return prisma.article.findMany({
+        return this.db.prisma.article.findMany({
             orderBy: {
                 createdAt: 'desc',
             },

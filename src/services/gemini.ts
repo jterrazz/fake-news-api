@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { createConfigurationService } from '../application/services/configuration.service.js';
 
-import { createArticleRepository } from '../infra/repositories/factory.js';
+import { getArticleRepository } from '../di/container.js';
 import { Article, ArticleSchema } from '../types/article.js';
 
 import { fetchRealNews } from './world-news.js';
@@ -158,7 +158,7 @@ export const generateArticles = async (language: Language = Language.en): Promis
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-        const articleRepository = createArticleRepository();
+        const articleRepository = getArticleRepository();
         const recentArticles = await articleRepository.findRecentArticles({
             country: sourceCountry,
             language,

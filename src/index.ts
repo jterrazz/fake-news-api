@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import cron from 'node-cron';
 import { z } from 'zod';
 
-import { PrismaArticleRepository } from './infra/repositories/prisma-article.repository.js';
+import { getArticleRepository } from './di/container.js';
 import { generateArticles } from './services/gemini.js';
 
 import './config/env.js';
@@ -13,7 +13,7 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
 const app = new Hono();
-const articleRepository = new PrismaArticleRepository();
+const articleRepository = getArticleRepository();
 
 const shouldGenerateArticles = async () => {
     const lastGen = await articleRepository.findLatest();
