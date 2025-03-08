@@ -16,4 +16,4 @@ export const initializeScheduler = async () => {
         console.error('Failed to initialize job scheduler:', error);
         throw error; // Re-throw to let the caller handle it
     }
-}; 
+};

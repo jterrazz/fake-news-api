@@ -1,7 +1,9 @@
 import { getArticleRepository } from '../../di/container.js';
 import { generateArticles } from '../../services/gemini.js';
 
-const shouldGenerateArticles = async (articleRepository: ReturnType<typeof getArticleRepository>) => {
+const shouldGenerateArticles = async (
+    articleRepository: ReturnType<typeof getArticleRepository>,
+) => {
     const lastGen = await articleRepository.findLatest();
     if (!lastGen) return true;
 
@@ -49,4 +51,4 @@ export const generateDailyArticles = async () => {
     } catch (error) {
         console.error('Failed to generate daily articles:', error);
     }
-}; 
+};

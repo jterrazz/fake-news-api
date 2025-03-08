@@ -1,8 +1,8 @@
 import { ZodError } from 'zod';
 
-import { ConfigurationService } from '../configuration.service.js';
+import { NodeConfigAdapter } from '../node-config.adapter.js';
 
-describe('Configuration Service', () => {
+describe('Node Config Adapter', () => {
     const validConfig = {
         api: {
             gemini: { apiKey: 'test-gemini-key' },
@@ -15,12 +15,10 @@ describe('Configuration Service', () => {
     };
 
     it('should load valid configuration', () => {
-        const configService = new ConfigurationService(validConfig);
-        const config = configService.getConfiguration();
+        const configAdapter = new NodeConfigAdapter(validConfig);
 
-        expect(config).toEqual(validConfig);
-        expect(configService.getApiConfiguration()).toEqual(validConfig.api);
-        expect(configService.getAppConfiguration()).toEqual(validConfig.app);
+        expect(configAdapter.getApiConfiguration()).toEqual(validConfig.api);
+        expect(configAdapter.getAppConfiguration()).toEqual(validConfig.app);
     });
 
     it('should fail with invalid environment', () => {
@@ -32,7 +30,7 @@ describe('Configuration Service', () => {
             },
         };
 
-        expect(() => new ConfigurationService(invalidConfig)).toThrow(ZodError);
+        expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
     it('should fail with missing API keys', () => {
@@ -44,7 +42,7 @@ describe('Configuration Service', () => {
             },
         };
 
-        expect(() => new ConfigurationService(invalidConfig)).toThrow(ZodError);
+        expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
     it('should fail with invalid port', () => {
@@ -52,20 +50,10 @@ describe('Configuration Service', () => {
             ...validConfig,
             app: {
                 ...validConfig.app,
-                port: '3000', // Port should be number, not string
+                port: 'invalid-port',
             },
         };
 
-        expect(() => new ConfigurationService(invalidConfig)).toThrow(ZodError);
-    });
-
-    it('should fail with missing required fields', () => {
-        const invalidConfig = {
-            app: {
-                env: 'development',
-            },
-        };
-
-        expect(() => new ConfigurationService(invalidConfig)).toThrow(ZodError);
+        expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 });

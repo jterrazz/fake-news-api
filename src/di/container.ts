@@ -1,54 +1,92 @@
 import { Container, Injectable } from '@snap/ts-inject';
 import { default as nodeConfiguration } from 'config';
 
-import { ConfigurationService } from '../application/services/configuration.service.js';
+import type { ConfigurationPort } from '../application/ports/inbound/configuration.port.js';
 
-import type { ArticleRepository } from '../domain/repositories/article.repository.js';
+import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
+import type { DatabasePort } from '../application/ports/outbound/external/database.port.js';
+import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
+import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
 
-import type { DatabaseClient } from '../infra/database/client.js';
-import { databaseClient } from '../infra/database/client.js';
-import { PrismaArticleRepository } from '../infra/repositories/prisma-article.repository.js';
+import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
+import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
+import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
+import {
+    databaseAdapter,
+    PrismaAdapter,
+} from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
+import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
 
 /**
- * Service dependencies
+ * Inbound adapters
  */
-const configurationServiceFactory = Injectable(
-    'ConfigurationService',
-    () => new ConfigurationService(nodeConfiguration),
+const configurationFactory = Injectable(
+    'Configuration',
+    () => new NodeConfigAdapter(nodeConfiguration),
+);
+
+const httpServerFactory = Injectable(
+    'HttpServer',
+    () => new HonoServerAdapter(),
 );
 
 /**
- * Infrastructure dependencies
+ * Outbound adapters
  */
-const databaseClientFactory = Injectable('DatabaseClient', () => databaseClient);
+const databaseFactory = Injectable('Database', () => databaseAdapter);
+
+const loggerFactory = Injectable(
+    'Logger',
+    () =>
+        new PinoLoggerAdapter({
+            formatters: {
+                level: (label) => ({ level: label }),
+            },
+            name: 'app',
+        }),
+);
 
 /**
- * Repository dependencies
+ * Repository adapters
  */
 const articleRepositoryFactory = Injectable(
     'ArticleRepository',
-    ['DatabaseClient'] as const,
-    (db: DatabaseClient) => new PrismaArticleRepository(db),
+    ['Database'] as const,
+    (db: PrismaAdapter) => new PrismaArticleRepository(db),
 );
 
 /**
  * Application container configuration
  */
 export const container = Container
-    // Services
-    .provides(configurationServiceFactory)
-    // Infrastructure
-    .provides(databaseClientFactory)
-    // Repositories
+    // Inbound adapters
+    .provides(configurationFactory)
+    .provides(httpServerFactory)
+    // Outbound adapters
+    .provides(databaseFactory)
+    .provides(loggerFactory)
+    // Repository adapters
     .provides(articleRepositoryFactory);
 
 /**
  * Type-safe dependency accessors
  */
+export const getConfiguration = (): ConfigurationPort => {
+    return container.get('Configuration');
+};
+
 export const getArticleRepository = (): ArticleRepository => {
     return container.get('ArticleRepository');
 };
 
-export const getConfigurationService = (): ConfigurationService => {
-    return container.get('ConfigurationService');
+export const getLogger = (): LoggerPort => {
+    return container.get('Logger');
+};
+
+export const getDatabase = (): DatabasePort => {
+    return container.get('Database');
+};
+
+export const getHttpServer = (): HttpServerPort => {
+    return container.get('HttpServer');
 };

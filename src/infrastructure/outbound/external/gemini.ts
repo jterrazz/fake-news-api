@@ -2,7 +2,7 @@ import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 import { Category, type Country, Language } from '@prisma/client';
 import { z } from 'zod';
 
-import { Article, ArticleSchema } from '../domain/article.js';
+import { Article, ArticleSchema } from '../domain/entities/article.js';
 
 import { getArticleRepository, getConfigurationService } from '../di/container.js';
 

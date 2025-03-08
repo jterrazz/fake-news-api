@@ -14,5 +14,7 @@ src/configuration/values/local.yml
 node_modules/
 dist
 
+# Test files
+/coverage/
 # Database from root
 /database/
