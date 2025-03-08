@@ -1,0 +1,14 @@
+{
+  "app": {
+    "env": "development",
+    "port": 3000
+  },
+  "api": {
+    "gemini": {
+      "apiKey": ""
+    },
+    "worldNews": {
+      "apiKey": ""
+    }
+  }
+}

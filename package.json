@@ -19,6 +19,7 @@
     "@jterrazz/package-typescript": "^1.8.1",
     "@jterrazz/package-typescript-quality": "^1.5.0",
     "@jterrazz/package-typescript-test": "^1.2.1",
+    "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",
     "@types/node-cron": "^3.0.11"
   },
@@ -26,6 +27,7 @@
     "@google/generative-ai": "^0.21.0",
     "@hono/node-server": "^1.13.7",
     "@prisma/client": "^6.3.1",
+    "config": "^3.3.12",
     "dotenv": "^16.4.7",
     "hono": "^4.6.16",
     "node-cron": "^3.0.3",
