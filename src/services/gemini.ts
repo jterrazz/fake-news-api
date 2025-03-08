@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { createConfigurationService } from '../application/services/configuration.service.js';
 
 import { getArticleRepository } from '../di/container.js';
-import { Article, ArticleSchema } from '../types/article.js';
+import { Article, ArticleSchema } from '../domain/article.js';
 
 import { fetchRealNews } from './world-news.js';
 
