@@ -5,6 +5,7 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 
 import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
 import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
+import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
 import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
@@ -12,6 +13,7 @@ import type { DatabasePort } from '../application/ports/outbound/persistence/dat
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/jobs/node-cron.adapter.js';
+import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
 import {
     databaseAdapter,
@@ -48,6 +50,12 @@ const loggerFactory = Injectable(
         }),
 );
 
+const newsFactory = Injectable(
+    'News',
+    ['Configuration'] as const,
+    (config: ConfigurationPort) => new WorldNewsAdapter(config),
+);
+
 /**
  * Repository adapters
  */
@@ -68,6 +76,7 @@ export const container = Container
     // Outbound adapters
     .provides(databaseFactory)
     .provides(loggerFactory)
+    .provides(newsFactory)
     // Repository adapters
     .provides(articleRepositoryFactory);
 
@@ -96,4 +105,8 @@ export const getHttpServer = (): HttpServerPort => {
 
 export const getJobRunner = (): JobRunnerPort => {
     return container.get('JobRunner');
+};
+
+export const getNews = (): NewsPort => {
+    return container.get('News');
 };
