@@ -1,6 +1,6 @@
 import { ZodError } from 'zod';
 
-import { ConfigurationService } from '../configuration.js';
+import { ConfigurationService } from '../configuration.service.js';
 
 describe('Configuration Service', () => {
     const validConfig = {

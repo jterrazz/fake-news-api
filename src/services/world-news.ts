@@ -2,7 +2,9 @@ import { type Country, type Language } from '@prisma/client';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { z } from 'zod';
 
-import { env } from '../config/env.js';
+import { createConfigurationService } from '../application/services/configuration.service.js';
+
+const config = createConfigurationService();
 
 const CACHE_PATH_TEMPLATE = '/tmp/world-news-cache-{lang}.json';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
@@ -133,7 +135,7 @@ export const fetchRealNews = async ({
         const url = new URL('https://api.worldnewsapi.com/top-news');
 
         // Add all query parameters
-        url.searchParams.append('api-key', env.WORLD_NEWS_API_KEY);
+        url.searchParams.append('api-key', config.getApiConfiguration().worldNews.apiKey);
         url.searchParams.append('source-country', sourceCountry);
         url.searchParams.append('language', language);
         url.searchParams.append('date', today);

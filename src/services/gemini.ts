@@ -2,13 +2,15 @@ import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 import { Category, type Country, Language } from '@prisma/client';
 import { z } from 'zod';
 
-import { env } from '../config/env.js';
+import { createConfigurationService } from '../application/services/configuration.service.js';
+
 import { prisma } from '../db/client.js';
 import { Article, ArticleSchema } from '../types/article.js';
 
 import { fetchRealNews } from './world-news.js';
 
-const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+const config = createConfigurationService();
+const genAI = new GoogleGenerativeAI(config.getApiConfiguration().gemini.apiKey);
 
 const GeneratedArticleSchema = z.array(
     ArticleSchema.omit({
