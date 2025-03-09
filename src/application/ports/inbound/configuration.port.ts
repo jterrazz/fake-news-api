@@ -18,9 +18,15 @@ export interface AppConfiguration {
 
 /**
  * Configuration port - defines how the application can be configured
- * This is an inbound port because configuration drives application behavior
  */
 export interface ConfigurationPort {
+    /**
+     * Get the API configuration
+     */
     getApiConfiguration(): ApiConfiguration;
+
+    /**
+     * Get the application configuration
+     */
     getAppConfiguration(): AppConfiguration;
 }

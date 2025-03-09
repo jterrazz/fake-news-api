@@ -26,7 +26,6 @@ export interface Job {
 
 /**
  * JobRunner port - defines how background jobs can be scheduled and managed
- * This is an inbound port because scheduled jobs drive application behavior
  */
 export interface JobRunnerPort {
     /**

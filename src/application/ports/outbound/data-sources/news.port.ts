@@ -1,5 +1,8 @@
 import { type Country, type Language } from '@prisma/client';
 
+/**
+ * Represents a news article
+ */
 export interface NewsArticle {
     publishDate: string;
     summary: string | null;
@@ -7,6 +10,9 @@ export interface NewsArticle {
     url: string;
 }
 
+/**
+ * Options for fetching news articles
+ */
 export interface FetchNewsOptions {
     language: Language;
     sourceCountry: Country;

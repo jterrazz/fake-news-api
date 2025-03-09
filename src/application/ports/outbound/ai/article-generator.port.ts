@@ -1,4 +1,4 @@
-import { type Country,type Language } from '@prisma/client';
+import { type Country, type Language } from '@prisma/client';
 
 import { type Article } from '../../../../domain/entities/article.js';
 
@@ -7,6 +7,9 @@ type NewsArticle = {
     summary: string | null;
 };
 
+/**
+ * Parameters for generating articles
+ */
 export type GenerateArticlesParams = {
     sourceArticles: NewsArticle[];
     recentArticles: Article[];
@@ -24,4 +27,4 @@ export interface ArticleGeneratorPort {
      * @returns Generated articles with metadata
      */
     generateArticles(params: GenerateArticlesParams): Promise<Article[]>;
-} 
+}
