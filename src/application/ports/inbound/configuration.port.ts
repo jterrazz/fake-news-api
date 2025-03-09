@@ -1,3 +1,6 @@
+/**
+ * API configuration
+ */
 export interface ApiConfiguration {
     gemini: {
         apiKey: string;
@@ -7,6 +10,9 @@ export interface ApiConfiguration {
     };
 }
 
+/**
+ * App configuration
+ */
 export interface AppConfiguration {
     env: 'development' | 'production' | 'test';
     port: number;

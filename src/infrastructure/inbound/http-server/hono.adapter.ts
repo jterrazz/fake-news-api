@@ -17,7 +17,7 @@ export class HonoServerAdapter implements HttpServerPort {
         this.app = new Hono();
     }
 
-    public registerRoutes(): void {
+    private registerRoutes(): void {
         // Mount all HTTP routers
         this.app.route('/', createRootRouter());
         this.app.route('/articles', createArticlesRouter());

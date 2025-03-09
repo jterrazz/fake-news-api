@@ -16,8 +16,8 @@
     "lint-style": "prettier ."
   },
   "devDependencies": {
-    "@jterrazz/package-typescript": "^1.8.1",
-    "@jterrazz/package-typescript-quality": "^1.5.0",
+    "@jterrazz/typescript": "^1.9.2",
+    "@jterrazz/quality": "^1.6.0",
     "@jterrazz/package-typescript-test": "^1.2.1",
     "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",

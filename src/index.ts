@@ -12,17 +12,17 @@ const start = async () => {
         const config = getConfiguration();
         const httpServer = getHttpServer();
         const jobRunner = getJobRunner();
-        const appConfig = config.getAppConfiguration();
+        const { host, port } = config.getAppConfiguration();
 
         // Initialize jobs
         logger.info('Initializing job runner...');
         await jobRunner.initialize();
 
         // Start HTTP server
-        logger.info(`Starting HTTP server on ${appConfig.host}:${appConfig.port}...`);
+        logger.info(`Starting HTTP server on ${host}:${port}...`);
         await httpServer.start({
-            host: appConfig.host,
-            port: appConfig.port,
+            host,
+            port,
         });
 
         logger.info('Application started successfully');

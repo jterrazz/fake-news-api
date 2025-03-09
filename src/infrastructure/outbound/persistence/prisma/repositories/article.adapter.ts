@@ -1,4 +1,7 @@
-import type { FindArticlesQuery, FindArticlesResult } from '../../../../application/inbound/ports/use-cases/article.use-cases.js';
+import type {
+    FindArticlesQuery,
+    FindArticlesResult,
+} from '../../../../application/inbound/ports/use-cases/article.use-cases.js';
 import type { ArticleRepository } from '../../../../application/outbound/ports/persistence/article.repository.js';
 
 import type { Article } from '../../../../../domain/entities/article.js';
@@ -43,7 +46,7 @@ export class PrismaArticleRepository implements ArticleRepository {
         ]);
 
         return {
-            items: items.map(item => this.mapper.toDomain(item)),
+            items: items.map((item) => this.mapper.toDomain(item)),
             total,
         };
     }
@@ -68,4 +71,4 @@ export class PrismaArticleRepository implements ArticleRepository {
             where: { id: article.id },
         });
     }
-} 
+}

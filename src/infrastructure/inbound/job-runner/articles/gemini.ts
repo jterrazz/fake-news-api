@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { Article, ArticleSchema } from '../domain/entities/article.js';
 
-import { getArticleRepository, getConfiguration, getLogger, getNews } from '../di/container.js';
+import { getArticleRepository, getConfiguration, getLogger, getNews } from '../../../../di/container.js';
 
 const config = getConfiguration();
 const genAI = new GoogleGenerativeAI(config.getApiConfiguration().gemini.apiKey);

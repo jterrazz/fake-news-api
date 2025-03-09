@@ -2,7 +2,7 @@ import type { Article } from '@prisma/client';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
-import { getArticleRepository } from '../../di/container.js';
+import { getArticleRepository } from '../../../../di/container.js';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;

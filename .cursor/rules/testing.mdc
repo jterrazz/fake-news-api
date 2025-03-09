@@ -1,0 +1,44 @@
+---
+description: Enforces detailed testing standards, structure, naming conventions, and Jest configuration.
+globs: *test*
+alwaysApply: false
+---
+## Directory Structure
+- **Unit tests**: Located alongside source files using `.spec.ts`
+- **Integration tests**: Located under `__tests__/integration`, using `.test.ts`
+- **End-to-End tests**: Located under `__tests__/e2e`, using `.e2e.ts`
+- **Fixtures**: Located in `__tests__/__fixtures__/`
+
+## File Organization
+Tests should follow this clear structure:
+- Imports
+- Mocks
+- Test data
+- Setup (beforeAll/beforeEach)
+- Test suites (`describe`)
+- Cleanup (afterAll/afterEach)
+
+## Naming Conventions
+- Unit tests: `[component-name].spec.ts`
+- Integration tests: `[use-case-name].test.ts`
+- E2E tests: `[scenario-name].e2e.ts`
+
+## Test Structure
+- **Unit tests**:
+  - `describe`
+  - `beforeEach`
+  - `it` (individual test cases)
+- **Integration/E2E tests**:
+  - `describe`
+  - `beforeAll` and `afterAll` for setup and teardown
+  - `it` statements clearly structured with "it should"
+
+## Dependencies
+- Jest (latest)
+- ts-jest (latest)
+- jest-mock-extended (latest)
+
+## Best Practices
+- Write tests following Given/When/Then clearly
+- Keep tests fast, isolated, and maintainable
+- Clearly differentiate between expected and unexpected errors

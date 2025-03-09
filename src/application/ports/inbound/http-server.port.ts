@@ -26,9 +26,4 @@ export interface HttpServerPort {
      * Stop the HTTP server gracefully
      */
     stop(): Promise<void>;
-
-    /**
-     * Register routes and middleware
-     */
-    registerRoutes(): void;
 }
