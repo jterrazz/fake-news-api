@@ -2,8 +2,8 @@ import { Category, type Language } from '@prisma/client';
 import { z } from 'zod';
 
 import { type GenerateArticlesParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
-
 import { ArticleSchema } from '../../../../domain/entities/article.js';
+import { IntroductionPrompt } from './shared/introduction.prompt.js';
 
 const GeneratedArticleSchema = z.array(
     ArticleSchema.omit({
@@ -46,7 +46,7 @@ export class ArticleGenerationPrompt {
         recentArticles,
         language,
     }: GenerateArticlesParams): string {
-        return `You're creating content for a sophisticated "Spot the Fake News" game where players need sharp critical thinking to distinguish real from fictional news. The fake news should be highly believable and grounded in current events.
+        return `${IntroductionPrompt.GAME_CONTEXT}
 
 For REAL articles:
 - Use headlines that capture the essence of the original but rephrase them to be around 8-12 words

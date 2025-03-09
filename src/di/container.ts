@@ -24,6 +24,10 @@ import {
     PrismaAdapter,
 } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
+import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
+import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
+import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
+import { GeminiAdapter } from '../infrastructure/outbound/ai/providers/gemini.adapter.js';
 
 /**
  * Inbound adapters
@@ -67,6 +71,16 @@ const newsFactory = Injectable(
     },
 );
 
+const aiProviderFactory = Injectable(
+    'AIProvider',
+    ['Configuration', 'Logger'] as const,
+    (config: ConfigurationPort, logger: LoggerPort) =>
+        new GeminiAdapter({
+            config,
+            logger,
+        }),
+);
+
 /**
  * Repository adapters
  */
@@ -74,6 +88,16 @@ const articleRepositoryFactory = Injectable(
     'ArticleRepository',
     ['Database'] as const,
     (db: PrismaAdapter) => new PrismaArticleRepository(db),
+);
+
+const articleGeneratorFactory = Injectable(
+    'ArticleGenerator',
+    ['AIProvider', 'Logger'] as const,
+    (aiProvider: AIProviderPort, logger: LoggerPort) =>
+        new AIArticleGenerator({
+            aiProvider,
+            logger,
+        }),
 );
 
 /**
@@ -95,8 +119,8 @@ const generateArticlesUseCaseFactory = Injectable(
  */
 const jobsFactory = Injectable(
     'Jobs',
-    ['GenerateArticles'] as const,
-    (generateArticles: GenerateArticlesUseCase): Job[] => {
+    ['GenerateArticles', 'Logger'] as const,
+    (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): Job[] => {
         return [
             createArticleGenerationJob({
                 generateArticles,
@@ -117,8 +141,10 @@ export const container = Container
     .provides(databaseFactory)
     .provides(loggerFactory)
     .provides(newsFactory)
+    .provides(aiProviderFactory)
     // Repository adapters
     .provides(articleRepositoryFactory)
+    .provides(articleGeneratorFactory)
     // Use cases
     .provides(generateArticlesUseCaseFactory)
     // Jobs
@@ -158,4 +184,8 @@ export const getNews = (): NewsPort => {
 
 export const getJobs = (): Job[] => {
     return container.get('Jobs');
+};
+
+export const getArticleGenerator = (): ArticleGeneratorPort => {
+    return container.get('ArticleGenerator');
 };

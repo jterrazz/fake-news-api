@@ -1,12 +1,17 @@
 import { type Country, type Language } from '@prisma/client';
 
-import { ArticleStatus } from '../../../domain/value-objects/article-status.vo.js';
+import { Article } from '../../../domain/entities/article.js';
+import { ArticleCategory } from '../../../domain/value-objects/article-category.vo.js';
+import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
+import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-generator.port.js';
 import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type LoggerPort } from '../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepository } from '../../ports/outbound/persistence/article.repository.port.js';
 
 type Dependencies = {
+    articleGenerator: ArticleGeneratorPort;
     articleRepository: ArticleRepository;
     logger: LoggerPort;
     newsService: NewsPort;
@@ -22,37 +27,59 @@ export class GenerateArticlesUseCase {
      * Generate articles for a specific language and country
      */
     public async execute(language: Language = 'en', sourceCountry: Country = 'us'): Promise<void> {
-        const { articleRepository, logger, newsService } = this.deps;
+        const { articleGenerator, articleRepository, logger, newsService } = this.deps;
 
         try {
             logger.info('Starting article generation', { language, sourceCountry });
 
-            const articles = await newsService.fetchNews({
+            // Fetch real articles from news service
+            const realArticles = await newsService.fetchNews({
                 language,
                 sourceCountry,
             });
 
-            if (articles.length === 0) {
+            if (realArticles.length === 0) {
                 logger.warn('No articles found', { language, sourceCountry });
                 return;
             }
 
-            // Store articles in the database
-            await articleRepository.createMany(
-                articles.map((article) => ({
-                    content: article.summary,
-                    language,
-                    publishedAt: new Date(article.publishDate),
-                    sourceCountry,
-                    sourceUrl: article.url,
-                    status: ArticleStatus.PENDING,
-                    title: article.title,
-                })),
-            );
+            // Get recent articles for context
+            const recentArticles = await articleRepository.findRecentArticles({
+                language,
+                sourceCountry,
+            });
+
+            // Generate AI articles based on real ones
+            const generatedArticles = await articleGenerator.generateArticles({
+                language,
+                recentArticles,
+                sourceArticles: realArticles,
+                sourceCountry,
+            });
+
+            // Store both real and generated articles
+            const articlesToStore = [
+                ...realArticles.map((article) =>
+                    Article.create({
+                        article: article.summary ?? '',
+                        category: ArticleCategory.NEWS,
+                        country: new ArticleCountry(sourceCountry),
+                        headline: article.title,
+                        isFake: false,
+                        language: new ArticleLanguage(language),
+                        summary: article.summary ?? '',
+                    }),
+                ),
+                ...generatedArticles,
+            ];
+
+            await articleRepository.createMany(articlesToStore);
 
             logger.info('Successfully stored articles', {
-                articleCount: articles.length,
+                articleCount: articlesToStore.length,
+                fakeCount: generatedArticles.length,
                 language,
+                realCount: realArticles.length,
                 sourceCountry,
             });
         } catch (error) {
