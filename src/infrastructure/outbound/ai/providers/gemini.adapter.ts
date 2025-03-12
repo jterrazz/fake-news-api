@@ -39,7 +39,7 @@ export class GeminiAdapter implements AIProviderPort {
                 throw new Error('Empty response from Gemini');
             }
 
-            // Extract JSON from response (in case there's any text before/after)
+            // Extract JSON from response (in case there's any text before/after) // TODO Support for {}[] and text only or number or boolean or null or undefined
             const json = text.slice(text.indexOf('['), text.lastIndexOf(']') + 1);
             return schema.parse(JSON.parse(json));
         } catch (error) {

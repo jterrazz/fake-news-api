@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 import {
     FetchNewsOptions,
@@ -7,7 +8,7 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
-const CACHE_PATH_TEMPLATE = '/tmp/news-cache-{lang}.json';
+const CACHE_PATH_TEMPLATE = `${tmpdir()}/news-cache-{lang}.json`;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 type CacheData = {
@@ -57,18 +58,18 @@ export class CachedNewsAdapter implements NewsPort {
 
     public async fetchNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
         // Try to read from cache first
-        const cache = this.readCache(options.language);
+        const cache = this.readCache(options.language.toString());
         if (cache) {
-            this.logger.info('Using cached news data', { language: options.language });
+            this.logger.info('Using cached news data', { language: options.language.toString() });
             return cache.data;
         }
 
         // If no cache or expired, fetch fresh data
-        this.logger.info('Fetching fresh news data', { language: options.language });
+        this.logger.info('Fetching fresh news data', { language: options.language.toString() });
         const articles = await this.newsSource.fetchNews(options);
 
         // Cache the response
-        this.writeCache(articles, options.language);
+        this.writeCache(articles, options.language.toString());
 
         return articles;
     }

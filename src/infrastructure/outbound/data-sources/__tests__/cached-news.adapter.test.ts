@@ -8,6 +8,9 @@ import {
 } from '../../../../application/ports/outbound/data-sources/news.port.js';
 import { LoggerPort } from '../../../../application/ports/outbound/logging/logger.port.js';
 
+import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+
 import { CachedNewsAdapter } from '../cached-news.adapter.js';
 
 // Mock fs module
@@ -23,13 +26,13 @@ describe('CachedNewsAdapter', () => {
     const mockLogger = mock<LoggerPort>();
 
     const mockOptions: FetchNewsOptions = {
-        language: 'en',
-        sourceCountry: 'us',
+        country: ArticleCountry.create('us'),
+        language: ArticleLanguage.create('en'),
     };
 
     const mockArticles: NewsArticle[] = [
         {
-            publishDate: '2024-03-08',
+            publishedAt: new Date('2024-03-08'),
             summary: 'Test summary',
             title: 'Test title',
             url: 'https://test.com',

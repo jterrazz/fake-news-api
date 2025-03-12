@@ -1,14 +1,10 @@
-import { type Country, type Language } from '@prisma/client';
-
-import { Article } from '../../../domain/entities/article.js';
-import { ArticleCategory } from '../../../domain/value-objects/article-category.vo.js';
 import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
 import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-generator.port.js';
 import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type LoggerPort } from '../../ports/outbound/logging/logger.port.js';
-import { type ArticleRepository } from '../../ports/outbound/persistence/article.repository.port.js';
+import { type ArticleRepository } from '../../ports/outbound/persistence/article-repository.port.js';
 
 type Dependencies = {
     articleGenerator: ArticleGeneratorPort;
@@ -26,64 +22,50 @@ export class GenerateArticlesUseCase {
     /**
      * Generate articles for a specific language and country
      */
-    public async execute(language: Language = 'en', sourceCountry: Country = 'us'): Promise<void> {
+    public async execute(language: ArticleLanguage, country: ArticleCountry): Promise<void> {
         const { articleGenerator, articleRepository, logger, newsService } = this.deps;
 
         try {
-            logger.info('Starting article generation', { language, sourceCountry });
+            logger.info('Starting article generation', { country, language });
 
             // Fetch real articles from news service
-            const realArticles = await newsService.fetchNews({
+            const news = await newsService.fetchNews({
+                country,
                 language,
-                sourceCountry,
             });
 
-            if (realArticles.length === 0) {
-                logger.warn('No articles found', { language, sourceCountry });
+            if (news.length === 0) {
+                logger.warn('No articles found', { country, language });
                 return;
             }
 
-            // Get recent articles for context
-            const recentArticles = await articleRepository.findRecentArticles({
+            // Get recent headlines for context
+            const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+            const publishedSummaries = await articleRepository.findPublishedSummaries({
+                country,
                 language,
-                sourceCountry,
+                since,
             });
 
             // Generate AI articles based on real ones
             const generatedArticles = await articleGenerator.generateArticles({
+                articles: {
+                    news,
+                    publicationHistory: publishedSummaries,
+                },
+                country,
                 language,
-                recentArticles,
-                sourceArticles: realArticles,
-                sourceCountry,
             });
 
-            // Store both real and generated articles
-            const articlesToStore = [
-                ...realArticles.map((article) =>
-                    Article.create({
-                        article: article.summary ?? '',
-                        category: ArticleCategory.NEWS,
-                        country: new ArticleCountry(sourceCountry),
-                        headline: article.title,
-                        isFake: false,
-                        language: new ArticleLanguage(language),
-                        summary: article.summary ?? '',
-                    }),
-                ),
-                ...generatedArticles,
-            ];
-
-            await articleRepository.createMany(articlesToStore);
+            await articleRepository.createMany(generatedArticles);
 
             logger.info('Successfully stored articles', {
-                articleCount: articlesToStore.length,
-                fakeCount: generatedArticles.length,
+                country,
+                generatedCount: generatedArticles.length,
                 language,
-                realCount: realArticles.length,
-                sourceCountry,
             });
         } catch (error) {
-            logger.error('Failed to generate articles', { error, language, sourceCountry });
+            logger.error('Failed to generate articles', { country, error, language });
             throw error; // Re-throw to let the job handle the error
         }
     }

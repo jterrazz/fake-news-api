@@ -1,11 +1,12 @@
-import { type Country, type Language } from '@prisma/client';
+import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 /**
  * Represents a news article
  */
 export interface NewsArticle {
-    publishDate: string;
-    summary: string | null;
+    publishedAt: Date;
+    summary: string;
     title: string;
     url: string;
 }
@@ -14,8 +15,8 @@ export interface NewsArticle {
  * Options for fetching news articles
  */
 export interface FetchNewsOptions {
-    language: Language;
-    sourceCountry: Country;
+    language: ArticleLanguage;
+    country: ArticleCountry;
 }
 
 /**

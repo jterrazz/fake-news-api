@@ -1,20 +1,19 @@
-import { type Country, type Language } from '@prisma/client';
-
 import { type Article } from '../../../../domain/entities/article.js';
+import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-type NewsArticle = {
-    title: string;
-    summary: string | null;
-};
+import { NewsArticle } from '../data-sources/news.port.js';
 
 /**
  * Parameters for generating articles
  */
 export type GenerateArticlesParams = {
-    sourceArticles: NewsArticle[];
-    recentArticles: Article[];
-    language: Language;
-    sourceCountry: Country;
+    articles: {
+        publicationHistory: string[];
+        news: NewsArticle[];
+    };
+    language: ArticleLanguage;
+    country: ArticleCountry;
 };
 
 /**

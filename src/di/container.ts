@@ -8,7 +8,7 @@ import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port
 import { type Job } from '../application/ports/inbound/job-runner.port.js';
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
-import type { ArticleRepository } from '../application/ports/outbound/persistence/article.repository.port.js';
+import type { ArticleRepository } from '../application/ports/outbound/persistence/article-repository.port.js';
 import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 

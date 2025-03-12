@@ -33,3 +33,5 @@ const start = async () => {
 };
 
 start();
+
+// TODO: Schema validation casing PascalCase

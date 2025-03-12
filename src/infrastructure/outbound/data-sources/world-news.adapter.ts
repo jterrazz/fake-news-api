@@ -7,33 +7,18 @@ import {
     NewsArticle,
     NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
+import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
-const WorldNewsArticleSchema = z
-    .object({
-        author: z.string().nullish(),
-        authors: z.array(z.string()).nullish(),
-        category: z.string().nullish(),
-        id: z.number(),
-        image: z.string().nullish(),
-        language: z.string().nullish(),
-        publish_date: z.string(),
-        sentiment: z.number().nullish(),
-        source_country: z.string().nullish(),
-        summary: z.string().nullish(),
-        text: z.string(),
-        title: z.string(),
-        url: z.string().nullish(),
-        video: z.string().nullish(),
-    })
-    .transform((article) => ({
-        ...article,
-        author: article.author ?? 'Unknown',
-        authors: article.authors ?? [],
-        language: article.language ?? 'en',
-        source_country: article.source_country ?? 'unknown',
-    }));
+const WorldNewsArticleSchema = z.object({
+    publish_date: z.string(),
+    // source_country: z.string().nullish(),
+    summary: z.string().nullish(),
+    text: z.string(),
+    title: z.string(),
+    url: z.string(),
+});
 
 const WorldNewsResponseSchema = z.object({
     country: z.string(),
@@ -47,14 +32,11 @@ const WorldNewsResponseSchema = z.object({
 
 export class WorldNewsAdapter implements NewsPort {
     private lastRequestTime = 0;
-    private logger: Console;
 
     constructor(
         private readonly config: ConfigurationPort,
-        logger: Console = console,
-    ) {
-        this.logger = logger;
-    }
+        private readonly logger: LoggerPort,
+    ) {}
 
     private async enforceRateLimit(): Promise<void> {
         const now = Date.now();
@@ -69,7 +51,7 @@ export class WorldNewsAdapter implements NewsPort {
         this.lastRequestTime = Date.now();
     }
 
-    public async fetchNews({ language, sourceCountry }: FetchNewsOptions): Promise<NewsArticle[]> {
+    public async fetchNews({ language, country }: FetchNewsOptions): Promise<NewsArticle[]> {
         try {
             await this.enforceRateLimit();
 
@@ -78,14 +60,17 @@ export class WorldNewsAdapter implements NewsPort {
 
             // Add query parameters
             url.searchParams.append('api-key', this.config.getApiConfiguration().worldNews.apiKey);
-            url.searchParams.append('source-country', sourceCountry);
-            url.searchParams.append('language', language);
+            url.searchParams.append('source-country', country.toString());
+            url.searchParams.append('language', language.toString());
             url.searchParams.append('date', today);
 
             const response = await fetch(url.toString());
 
             if (!response.ok) {
-                this.logger.error('Failed to fetch news:', response.statusText);
+                this.logger.error('Failed to fetch news:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                });
                 return [];
             }
 
@@ -94,7 +79,11 @@ export class WorldNewsAdapter implements NewsPort {
 
             return this.transformResponse(parsed);
         } catch (error) {
-            this.logger.error(`Failed to fetch ${language} news:`, error);
+            this.logger.error(`Failed to fetch ${language} news:`, {
+                country,
+                error,
+                language,
+            });
             return [];
         }
     }
@@ -103,10 +92,10 @@ export class WorldNewsAdapter implements NewsPort {
         return response.top_news
             .map((section) => section.news[0])
             .map((article) => ({
-                publishDate: article.publish_date,
+                publishedAt: new Date(article.publish_date),
                 summary: article.summary ?? article.text,
                 title: article.title,
-                url: article.url ?? '',
+                url: article.url,
             }));
     }
 }

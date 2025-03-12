@@ -160,7 +160,7 @@ export const generateArticles = async (language: Language = Language.en): Promis
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
         const articleRepository = getArticleRepository();
-        const recentArticles = await articleRepository.findRecentArticles({
+        const recentArticles = await articleRepository.findPublishedSummaries({
             country: sourceCountry,
             language,
             since: twoWeeksAgo,

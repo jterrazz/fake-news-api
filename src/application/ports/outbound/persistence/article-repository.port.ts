@@ -18,11 +18,11 @@ export interface ArticleRepository {
         items: Article[];
         total: number;
     }>;
-    findRecentArticles(params: {
+    findPublishedSummaries(params: {
         language: ArticleLanguage;
         country: ArticleCountry;
         since: Date;
-    }): Promise<Array<{ headline: string; summary: string }>>;
+    }): Promise<Array<string>>;
     createMany(articles: Omit<Article, 'id' | 'createdAt'>[]): Promise<Article[]>;
     update(article: Article): Promise<void>;
 }
