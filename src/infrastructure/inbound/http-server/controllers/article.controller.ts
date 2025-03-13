@@ -1,20 +1,14 @@
 import { Article as PrismaArticle, Category, Country, Language } from '@prisma/client';
 import { z } from 'zod';
 
-import { type ArticleRepositoryPort } from '../../../../application/ports/outbound/persistence/article-repository.port.js';
+import {
+    type GetArticlesParams,
+    type GetArticlesUseCase,
+} from '../../../../application/use-cases/articles/get-articles.use-case.js';
 
-import {
-    ArticleCategory,
-    CategoryEnum,
-} from '../../../../domain/value-objects/article-category.vo.js';
-import {
-    ArticleCountry,
-    CountryEnum,
-} from '../../../../domain/value-objects/article-country.vo.js';
-import {
-    ArticleLanguage,
-    LanguageEnum,
-} from '../../../../domain/value-objects/article-language.vo.js';
+import { CategoryEnum } from '../../../../domain/value-objects/article-category.vo.js';
+import { CountryEnum } from '../../../../domain/value-objects/article-country.vo.js';
+import { LanguageEnum } from '../../../../domain/value-objects/article-language.vo.js';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
@@ -45,62 +39,13 @@ type PaginatedResponse<T> = {
 };
 
 export class ArticleController {
-    constructor(private readonly articleRepository: ArticleRepositoryPort) {}
+    constructor(private readonly getArticlesUseCase: GetArticlesUseCase) {}
 
-    async getArticles(params: {
-        category?: string;
-        country?: string;
-        cursor?: string;
-        language: string;
-        limit: number;
-    }): Promise<PaginatedResponse<PrismaArticle>> {
-        const validatedParams = paginationSchema.safeParse({
-            category: params.category,
-            country: params.country,
-            cursor: params.cursor,
-            language: params.language,
-            limit: params.limit,
-        });
-
-        if (!validatedParams.success) {
-            throw new Error('Invalid pagination parameters');
-        }
-
-        const { cursor, limit, category, language, country } = validatedParams.data;
-
-        // Decode cursor if provided
-        let cursorDate: Date | undefined;
-        if (cursor) {
-            try {
-                const timestamp = Number(atob(cursor));
-                if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
-                cursorDate = new Date(timestamp);
-            } catch {
-                throw new Error('Invalid cursor');
-            }
-        }
-
-        const { items, total } = await this.articleRepository.findMany({
-            category: category ? ArticleCategory.create(category) : undefined,
-            country: country ? ArticleCountry.create(country) : undefined,
-            cursor: cursorDate,
-            language: ArticleLanguage.create(language),
-            limit,
-        });
-
-        // Check if there are more items
-        const hasMore = items.length > limit;
-        const results = items.slice(0, limit);
-
-        // Generate next cursor
-        const nextCursor = hasMore
-            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString(
-                  'base64',
-              )
-            : null;
+    async getArticles(params: GetArticlesParams): Promise<PaginatedResponse<PrismaArticle>> {
+        const result = await this.getArticlesUseCase.execute(params);
 
         // Convert domain articles to Prisma articles
-        const prismaArticles: PrismaArticle[] = results.map((article) => ({
+        const prismaArticles: PrismaArticle[] = result.items.map((article) => ({
             article: article.content.toString(),
             category: article.category.toString() as Category,
             country: article.country.toString() as Country,
@@ -115,8 +60,8 @@ export class ArticleController {
 
         return {
             items: prismaArticles,
-            nextCursor,
-            total,
+            nextCursor: result.nextCursor,
+            total: result.total,
         };
     }
 }

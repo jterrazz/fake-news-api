@@ -13,6 +13,7 @@ import type { LoggerPort } from '../application/ports/outbound/logging/logger.po
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
+import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { ArticleController } from '../infrastructure/inbound/http-server/controllers/article.controller.js';
@@ -106,13 +107,25 @@ const articleGeneratorFactory = Injectable(
  */
 const generateArticlesUseCaseFactory = Injectable(
     'GenerateArticles',
-    ['ArticleRepository', 'Logger', 'News'] as const,
-    (articleRepository: ArticleRepositoryPort, logger: LoggerPort, newsService: NewsPort) =>
+    ['ArticleRepository', 'Logger', 'News', 'ArticleGenerator'] as const,
+    (
+        articleRepository: ArticleRepositoryPort,
+        logger: LoggerPort,
+        newsService: NewsPort,
+        articleGenerator: ArticleGeneratorPort,
+    ) =>
         new GenerateArticlesUseCase({
+            articleGenerator,
             articleRepository,
             logger,
             newsService,
         }),
+);
+
+const getArticlesUseCaseFactory = Injectable(
+    'GetArticles',
+    ['ArticleRepository'] as const,
+    (articleRepository: ArticleRepositoryPort) => new GetArticlesUseCase(articleRepository),
 );
 
 /**
@@ -120,8 +133,8 @@ const generateArticlesUseCaseFactory = Injectable(
  */
 const articleControllerFactory = Injectable(
     'ArticleController',
-    ['ArticleRepository'] as const,
-    (articleRepository: ArticleRepositoryPort) => new ArticleController(articleRepository),
+    ['GetArticles'] as const,
+    (getArticles: GetArticlesUseCase) => new ArticleController(getArticles),
 );
 
 /**
@@ -157,6 +170,7 @@ export const container = Container
     .provides(articleGeneratorFactory)
     // Use cases
     .provides(generateArticlesUseCaseFactory)
+    .provides(getArticlesUseCaseFactory)
     // Controllers
     .provides(articleControllerFactory)
     // Jobs
