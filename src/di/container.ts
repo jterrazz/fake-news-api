@@ -10,7 +10,7 @@ import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/arti
 import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
-import type { ArticleRepository } from '../application/ports/outbound/persistence/article-repository.port.js';
+import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 
@@ -107,7 +107,7 @@ const articleGeneratorFactory = Injectable(
 const generateArticlesUseCaseFactory = Injectable(
     'GenerateArticles',
     ['ArticleRepository', 'Logger', 'News'] as const,
-    (articleRepository: ArticleRepository, logger: LoggerPort, newsService: NewsPort) =>
+    (articleRepository: ArticleRepositoryPort, logger: LoggerPort, newsService: NewsPort) =>
         new GenerateArticlesUseCase({
             articleRepository,
             logger,
@@ -121,7 +121,7 @@ const generateArticlesUseCaseFactory = Injectable(
 const articleControllerFactory = Injectable(
     'ArticleController',
     ['ArticleRepository'] as const,
-    (articleRepository: ArticleRepository) => new ArticleController(articleRepository),
+    (articleRepository: ArticleRepositoryPort) => new ArticleController(articleRepository),
 );
 
 /**
@@ -170,7 +170,7 @@ export const getConfiguration = (): ConfigurationPort => {
     return container.get('Configuration');
 };
 
-export const getArticleRepository = (): ArticleRepository => {
+export const getArticleRepository = (): ArticleRepositoryPort => {
     return container.get('ArticleRepository');
 };
 

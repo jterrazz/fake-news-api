@@ -1,28 +1,49 @@
 import type { Article } from '../../../../domain/entities/article.js';
-import type {
-    ArticleCategory,
-    ArticleCountry,
-    ArticleLanguage,
-} from '../../../../domain/value-objects/article-category.vo.js';
+import type { ArticleCategory } from '../../../../domain/value-objects/article-category.vo.js';
+import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-export interface ArticleRepository {
-    findLatest(): Promise<Article | null>;
-    findById(id: string): Promise<Article | null>;
-    findMany(params: {
-        language: ArticleLanguage;
-        category?: ArticleCategory;
-        country?: ArticleCountry;
-        cursor?: Date;
-        limit: number;
-    }): Promise<{
+/**
+ * Parameters for finding many articles
+ */
+export interface FindManyParams {
+    language: ArticleLanguage;
+    category?: ArticleCategory;
+    country: ArticleCountry;
+    cursor?: Date;
+    limit: number;
+}
+
+/**
+ * Parameters for finding published summaries
+ */
+export interface FindPublishedSummariesParams {
+    language: ArticleLanguage;
+    country: ArticleCountry;
+    since: Date;
+}
+
+/**
+ * Article repository port
+ */
+export interface ArticleRepositoryPort {
+    /**
+     * Find many articles
+     */
+    findMany(params: FindManyParams): Promise<{
         items: Article[];
         total: number;
     }>;
-    findPublishedSummaries(params: {
-        language: ArticleLanguage;
-        country: ArticleCountry;
-        since: Date;
-    }): Promise<Array<string>>;
-    createMany(articles: Omit<Article, 'id' | 'createdAt'>[]): Promise<Article[]>;
-    update(article: Article): Promise<void>;
+
+    /**
+     * Find published article summaries since a given date
+     */
+    findPublishedSummaries(params: FindPublishedSummariesParams): Promise<Array<string>>;
+
+    /**
+     * Create multiple articles in a single transaction
+     * @param articles Array of articles to create
+     * @returns Created articles with their IDs
+     */
+    createMany(articles: Article[]): Promise<Article[]>;
 }

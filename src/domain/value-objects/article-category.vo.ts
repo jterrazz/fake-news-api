@@ -36,8 +36,4 @@ export class ArticleCategory {
     public toString(): string {
         return this.value;
     }
-
-    public isOther(): boolean {
-        return this.value === CategoryEnum.Other;
-    }
 } 

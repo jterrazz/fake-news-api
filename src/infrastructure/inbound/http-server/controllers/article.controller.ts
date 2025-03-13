@@ -1,7 +1,7 @@
 import { Article as PrismaArticle, Category, Country, Language } from '@prisma/client';
 import { z } from 'zod';
 
-import { type ArticleRepository } from '../../../../application/ports/outbound/persistence/article-repository.port.js';
+import { type ArticleRepositoryPort } from '../../../../application/ports/outbound/persistence/article-repository.port.js';
 
 import {
     ArticleCategory,
@@ -45,7 +45,7 @@ type PaginatedResponse<T> = {
 };
 
 export class ArticleController {
-    constructor(private readonly articleRepository: ArticleRepository) {}
+    constructor(private readonly articleRepository: ArticleRepositoryPort) {}
 
     async getArticles(params: {
         category?: string;

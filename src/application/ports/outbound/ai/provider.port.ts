@@ -4,9 +4,7 @@ import { z } from 'zod';
  * Configuration for AI model
  */
 export type AIModelConfig = {
-    model: string;
-    temperature?: number;
-    maxTokens?: number;
+    capability: 'basic' | 'advanced';
 };
 
 /**

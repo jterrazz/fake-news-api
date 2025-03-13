@@ -1,37 +1,22 @@
-import type { ArticleRepository } from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
+import type {
+    ArticleRepositoryPort,
+    FindManyParams,
+    FindPublishedSummariesParams,
+} from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
 
 import type { Article } from '../../../../../domain/entities/article.js';
-import type { ArticleCategory } from '../../../../../domain/value-objects/article-category.vo.js';
-import type { ArticleCountry } from '../../../../../domain/value-objects/article-country.vo.js';
-import type { ArticleLanguage } from '../../../../../domain/value-objects/article-language.vo.js';
 
 import { ArticleMapper } from '../mappers/article.mapper.js';
 import type { PrismaAdapter } from '../prisma.adapter.js';
 
-export class PrismaArticleRepository implements ArticleRepository {
+export class PrismaArticleRepository implements ArticleRepositoryPort {
     private readonly mapper: ArticleMapper;
 
     constructor(private readonly prisma: PrismaAdapter) {
         this.mapper = new ArticleMapper();
     }
 
-    async findLatest(): Promise<Article | null> {
-        const article = await this.prisma.getPrismaClient().article.findFirst({
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
-
-        return article ? this.mapper.toDomain(article) : null;
-    }
-
-    async findMany(params: {
-        language: ArticleLanguage;
-        category?: ArticleCategory;
-        country?: ArticleCountry;
-        cursor?: Date;
-        limit: number;
-    }): Promise<{
+    async findMany(params: FindManyParams): Promise<{
         items: Article[];
         total: number;
     }> {
@@ -59,11 +44,7 @@ export class PrismaArticleRepository implements ArticleRepository {
         };
     }
 
-    async findPublishedSummaries(params: {
-        language: ArticleLanguage;
-        country: ArticleCountry;
-        since: Date;
-    }): Promise<Array<string>> {
+    async findPublishedSummaries(params: FindPublishedSummariesParams): Promise<Array<string>> {
         const articles = await this.prisma.getPrismaClient().article.findMany({
             select: {
                 summary: true,
@@ -80,41 +61,17 @@ export class PrismaArticleRepository implements ArticleRepository {
         return articles.map((article) => article.summary);
     }
 
-    async createMany(articles: Omit<Article, 'id' | 'createdAt'>[]): Promise<Article[]> {
-        const data = articles.map((article) => this.mapper.toPrisma(article));
-        await this.prisma.getPrismaClient().article.createMany({
-            data,
-        });
+    async createMany(articles: Article[]): Promise<Article[]> {
+        const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
 
-        // Fetch the created articles to return them with their IDs
-        const result = await this.prisma.getPrismaClient().article.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
-            take: articles.length,
-            where: {
-                createdAt: {
-                    gte: new Date(Date.now() - 1000), // Articles created in the last second
-                },
-            },
-        });
+        const createdArticles = await this.prisma.getPrismaClient().$transaction(
+            prismaArticles.map((article) =>
+                this.prisma.getPrismaClient().article.create({
+                    data: article,
+                }),
+            ),
+        );
 
-        return result.map((article) => this.mapper.toDomain(article));
-    }
-
-    async findById(id: string): Promise<Article | null> {
-        const article = await this.prisma.getPrismaClient().article.findUnique({
-            where: { id },
-        });
-
-        return article ? this.mapper.toDomain(article) : null;
-    }
-
-    async update(article: Article): Promise<void> {
-        const data = this.mapper.toPrisma(article);
-        await this.prisma.getPrismaClient().article.update({
-            data,
-            where: { id: article.id },
-        });
+        return createdArticles.map((article) => this.mapper.toDomain(article));
     }
 }

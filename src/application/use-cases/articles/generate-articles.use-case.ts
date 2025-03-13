@@ -4,11 +4,11 @@ import { ArticleLanguage } from '../../../domain/value-objects/article-language.
 import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-generator.port.js';
 import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type LoggerPort } from '../../ports/outbound/logging/logger.port.js';
-import { type ArticleRepository } from '../../ports/outbound/persistence/article-repository.port.js';
+import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
 type Dependencies = {
     articleGenerator: ArticleGeneratorPort;
-    articleRepository: ArticleRepository;
+    articleRepository: ArticleRepositoryPort;
     logger: LoggerPort;
     newsService: NewsPort;
 };
