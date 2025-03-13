@@ -12,11 +12,11 @@ import { ArticleSummary } from '../../../../domain/value-objects/article-summary
 import { IntroductionPrompt } from './shared/introduction.prompt.js';
 
 /**
- * Base interface for all AI prompts
+ * Base interface for all AI content generators
  */
-export interface AIPrompt<TInput, TOutput> {
-    readonly responseSchema: z.ZodSchema<TOutput>;
-    generate(params: TInput): string;
+export interface AIContentGenerator<TInput, TOutput> {
+    readonly answerSchema: z.ZodSchema<TOutput>;
+    generateInstructions(params: TInput): string;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface GeneratedArticleData {
 /**
  * Schema for generated articles from AI
  */
-const GeneratedArticleSchema = z.array(
+const generatedArticleSchema = z.array(
     z
         .object({
             category: z.string().transform((val) => ArticleCategory.create(val)),
@@ -51,39 +51,20 @@ const GeneratedArticleSchema = z.array(
                 : ArticleFakeStatus.createNonFake(),
             headline: data.headline,
             summary: data.summary,
-        })),
-);
+        }))
+        .pipe(z.custom<GeneratedArticleData>((val) => val as GeneratedArticleData)),
+) as unknown as z.ZodSchema<GeneratedArticleData[]>;
 
-export class ArticleGenerationPrompt
-    implements AIPrompt<GenerateArticlesParams, GeneratedArticleData[]>
+/**
+ * Article content generator class
+ */
+export class ArticleGeneratorPrompt
+    implements AIContentGenerator<GenerateArticlesParams, GeneratedArticleData[]>
 {
-    static readonly responseSchema = GeneratedArticleSchema;
+    public readonly answerSchema = generatedArticleSchema;
 
-    private formatNewsItem(index: number, title: string, summary: string | null): string {
-        const baseText = `${index + 1}. "${title}"`;
-        return summary ? baseText + ` (Context: ${summary})` : baseText;
-    }
-
-    private formatNewsItems(items: Array<{ title: string; summary: string | null }>) {
-        return items.map((item, i) => this.formatNewsItem(i, item.title, item.summary)).join('\n');
-    }
-
-    private formatRecentArticle(index: number, headline: string, summary: string): string {
-        return `${index + 1}. "${headline}" - ${summary}`;
-    }
-
-    private formatRecentArticles(items: Array<{ headline: string; summary: string }>) {
-        return items
-            .map((item, i) => this.formatRecentArticle(i, item.headline, item.summary))
-            .join('\n');
-    }
-
-    // TODO: generateContextPrompt
-    // TODO: generateGoalPrompt
-    // TODO: generateOutputFormatPrompt
-
-    public generate({
-        articles: { news: sourceArticles, publicationHistory: recentArticles },
+    public generateInstructions({
+        articles: { news, publicationHistory },
         language,
     }: GenerateArticlesParams): string {
         const languageLabel = language.toString();
@@ -122,10 +103,10 @@ The response MUST BE A VALID JSON and MATCH THIS FORMAT, with AT LEAST 2 FAKE AR
 ]
 
 Original headlines to draw inspiration from:
-${this.formatNewsItems(sourceArticles)}
+${JSON.stringify(news)}
 
 Recently generated articles to avoid duplicating:
-${this.formatRecentArticles(recentArticles.map((summary) => ({ headline: summary, summary })))}
+${JSON.stringify(publicationHistory)}
 
 Important guidelines:
 - Create unique headlines different from both original and recent articles

@@ -6,6 +6,8 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
 import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
 import { type Job } from '../application/ports/inbound/job-runner.port.js';
+import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
+import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepository } from '../application/ports/outbound/persistence/article-repository.port.js';
@@ -13,9 +15,12 @@ import type { DatabasePort } from '../application/ports/outbound/persistence/dat
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
+import { ArticleController } from '../infrastructure/inbound/http-server/controllers/article.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
 import { createArticleGenerationJob } from '../infrastructure/inbound/job-runner/articles/article-generation.job.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/job-runner/node-cron.adapter.js';
+import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
+import { GeminiAdapter } from '../infrastructure/outbound/ai/providers/gemini.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
@@ -24,10 +29,6 @@ import {
     PrismaAdapter,
 } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
-import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
-import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
-import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
-import { GeminiAdapter } from '../infrastructure/outbound/ai/providers/gemini.adapter.js';
 
 /**
  * Inbound adapters
@@ -115,6 +116,15 @@ const generateArticlesUseCaseFactory = Injectable(
 );
 
 /**
+ * Controller factories
+ */
+const articleControllerFactory = Injectable(
+    'ArticleController',
+    ['ArticleRepository'] as const,
+    (articleRepository: ArticleRepository) => new ArticleController(articleRepository),
+);
+
+/**
  * Job factories
  */
 const jobsFactory = Injectable(
@@ -147,6 +157,8 @@ export const container = Container
     .provides(articleGeneratorFactory)
     // Use cases
     .provides(generateArticlesUseCaseFactory)
+    // Controllers
+    .provides(articleControllerFactory)
     // Jobs
     .provides(jobsFactory)
     .provides(jobRunnerFactory);
@@ -188,4 +200,8 @@ export const getJobs = (): Job[] => {
 
 export const getArticleGenerator = (): ArticleGeneratorPort => {
     return container.get('ArticleGenerator');
+};
+
+export const getArticleController = (): ArticleController => {
+    return container.get('ArticleController');
 };

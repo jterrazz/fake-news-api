@@ -1,58 +1,63 @@
-import type { Article as PrismaArticle } from '@prisma/client';
+import { Article as PrismaArticle, Category, Country, Language } from '@prisma/client';
 
 import { Article } from '../../../../../domain/entities/article.js';
 import { ArticleCategory } from '../../../../../domain/value-objects/article-category.vo.js';
+import { ArticleContent } from '../../../../../domain/value-objects/article-content.vo.js';
 import { ArticleCountry } from '../../../../../domain/value-objects/article-country.vo.js';
+import { ArticleFakeStatus } from '../../../../../domain/value-objects/article-fake-status.vo.js';
+import { ArticleHeadline } from '../../../../../domain/value-objects/article-headline.vo.js';
 import { ArticleLanguage } from '../../../../../domain/value-objects/article-language.vo.js';
+import { ArticleSummary } from '../../../../../domain/value-objects/article-summary.vo.js';
 
 export class ArticleMapper {
     toDomain(prisma: PrismaArticle): Article {
         return Article.create({
-            article: prisma.article,
             category: this.mapCategoryToDomain(prisma.category),
+            content: ArticleContent.create(prisma.article),
             country: this.mapCountryToDomain(prisma.country),
-            fakeReason: prisma.fakeReason,
-            headline: prisma.headline,
-            isFake: prisma.isFake,
+            fakeStatus: prisma.isFake
+                ? ArticleFakeStatus.createFake(prisma.fakeReason ?? '')
+                : ArticleFakeStatus.createNonFake(),
+            headline: ArticleHeadline.create(prisma.headline),
             language: this.mapLanguageToDomain(prisma.language),
-            summary: prisma.summary,
+            summary: ArticleSummary.create(prisma.summary),
         });
     }
 
     toPrisma(domain: Article): Omit<PrismaArticle, 'id' | 'createdAt'> {
         return {
-            article: domain.article,
+            article: domain.content.toString(),
             category: this.mapCategoryToPrisma(domain.category),
             country: this.mapCountryToPrisma(domain.country),
-            fakeReason: domain.fakeReason,
-            headline: domain.headline,
-            isFake: domain.isFake,
+            fakeReason: domain.fakeStatus.reason,
+            headline: domain.headline.toString(),
+            isFake: domain.isFake(),
             language: this.mapLanguageToPrisma(domain.language),
-            summary: domain.summary,
+            summary: domain.summary.toString(),
         };
     }
 
-    mapCategoryToDomain(category: string): ArticleCategory {
-        return ArticleCategory[category as keyof typeof ArticleCategory];
+    mapCategoryToDomain(category: Category): ArticleCategory {
+        return ArticleCategory.create(category.toLowerCase());
     }
 
-    mapCountryToDomain(country: string): ArticleCountry {
-        return ArticleCountry[country as keyof typeof ArticleCountry];
+    mapCountryToDomain(country: Country): ArticleCountry {
+        return ArticleCountry.create(country.toLowerCase());
     }
 
-    mapLanguageToDomain(language: string): ArticleLanguage {
-        return ArticleLanguage[language as keyof typeof ArticleLanguage];
+    mapLanguageToDomain(language: Language): ArticleLanguage {
+        return ArticleLanguage.create(language.toLowerCase());
     }
 
-    mapCategoryToPrisma(category: ArticleCategory): string {
-        return category.toString();
+    mapCategoryToPrisma(category: ArticleCategory): Category {
+        return category.toString().toUpperCase() as Category;
     }
 
-    mapCountryToPrisma(country: ArticleCountry): string {
-        return country.toString();
+    mapCountryToPrisma(country: ArticleCountry): Country {
+        return country.toString().toLowerCase() as Country;
     }
 
-    mapLanguageToPrisma(language: ArticleLanguage): string {
-        return language.toString();
+    mapLanguageToPrisma(language: ArticleLanguage): Language {
+        return language.toString().toLowerCase() as Language;
     }
-} 
+}

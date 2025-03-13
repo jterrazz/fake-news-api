@@ -1,44 +1,39 @@
 ---
 description: Enforces detailed testing standards, structure, naming conventions, and Jest configuration.
-globs: *test*
+globs: **test**
 alwaysApply: false
 ---
 ## Directory Structure
-- **Unit tests**: Located alongside source files using `.spec.ts`
+- **Unit tests**: Located alongside source files using `__tests__/`, using `.test.ts`
 - **Integration tests**: Located under `__tests__/integration`, using `.test.ts`
 - **End-to-End tests**: Located under `__tests__/e2e`, using `.e2e.ts`
 - **Fixtures**: Located in `__tests__/__fixtures__/`
 
 ## File Organization
-Tests should follow this clear structure:
-- Imports
-- Mocks
-- Test data
-- Setup (beforeAll/beforeEach)
-- Test suites (`describe`)
-- Cleanup (afterAll/afterEach)
+Tests should follow this clear order depending on requirements:
+1. Imports
+2. Mocks
+3. Test data
+4. Setup (beforeAll then beforeEach)
+5. Cleanup (afterEach then afterAll)
+6. Test suites (`describe`)
 
 ## Naming Conventions
-- Unit tests: `[component-name].spec.ts`
+- Unit tests: `[component-name].test.ts`
 - Integration tests: `[use-case-name].test.ts`
 - E2E tests: `[scenario-name].e2e.ts`
 
 ## Test Structure
-- **Unit tests**:
-  - `describe`
-  - `beforeEach`
-  - `it` (individual test cases)
-- **Integration/E2E tests**:
-  - `describe`
-  - `beforeAll` and `afterAll` for setup and teardown
-  - `it` statements clearly structured with "it should"
+- `describe`
+- `it` statements clearly structured with "it should"
 
 ## Dependencies
-- Jest (latest)
+- jest (latest)
 - ts-jest (latest)
 - jest-mock-extended (latest)
+- mswjs for mocking api calls (latest)
 
 ## Best Practices
-- Write tests following Given/When/Then clearly
+- Write tests following Given/When/Then clearly with // Given // When // Then
 - Keep tests fast, isolated, and maintainable
 - Clearly differentiate between expected and unexpected errors

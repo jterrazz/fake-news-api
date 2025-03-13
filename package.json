@@ -16,12 +16,13 @@
     "lint-style": "prettier ."
   },
   "devDependencies": {
-    "@jterrazz/typescript": "^1.9.6",
-    "@jterrazz/quality": "^1.6.1",
     "@jterrazz/package-typescript-test": "^1.2.1",
+    "@jterrazz/quality": "^1.6.1",
+    "@jterrazz/typescript": "^1.9.6",
     "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",
-    "@types/node-cron": "^3.0.11"
+    "@types/node-cron": "^3.0.11",
+    "msw": "^2.7.3"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

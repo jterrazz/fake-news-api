@@ -2,7 +2,6 @@ import { type Article } from '../../../../domain/entities/article.js';
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-import { NewsArticle } from '../data-sources/news.port.js';
 
 /**
  * Parameters for generating articles
@@ -10,7 +9,7 @@ import { NewsArticle } from '../data-sources/news.port.js';
 export type GenerateArticlesParams = {
     articles: {
         publicationHistory: string[];
-        news: NewsArticle[];
+        news: Array<{ title: string; content: string }>;
     };
     language: ArticleLanguage;
     country: ArticleCountry;

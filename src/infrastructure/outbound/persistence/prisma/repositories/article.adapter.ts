@@ -1,10 +1,9 @@
-import type {
-    FindArticlesQuery,
-    FindArticlesResult,
-} from '../../../../application/inbound/ports/use-cases/article.use-cases.js';
-import type { ArticleRepository } from '../../../../application/outbound/ports/persistence/article.repository.js';
+import type { ArticleRepository } from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
 
 import type { Article } from '../../../../../domain/entities/article.js';
+import type { ArticleCategory } from '../../../../../domain/value-objects/article-category.vo.js';
+import type { ArticleCountry } from '../../../../../domain/value-objects/article-country.vo.js';
+import type { ArticleLanguage } from '../../../../../domain/value-objects/article-language.vo.js';
 
 import { ArticleMapper } from '../mappers/article.mapper.js';
 import type { PrismaAdapter } from '../prisma.adapter.js';
@@ -26,12 +25,21 @@ export class PrismaArticleRepository implements ArticleRepository {
         return article ? this.mapper.toDomain(article) : null;
     }
 
-    async findMany(query: FindArticlesQuery): Promise<FindArticlesResult> {
+    async findMany(params: {
+        language: ArticleLanguage;
+        category?: ArticleCategory;
+        country?: ArticleCountry;
+        cursor?: Date;
+        limit: number;
+    }): Promise<{
+        items: Article[];
+        total: number;
+    }> {
         const where = {
-            language: this.mapper.mapLanguageToPrisma(query.language),
-            ...(query.category && { category: this.mapper.mapCategoryToPrisma(query.category) }),
-            ...(query.country && { country: this.mapper.mapCountryToPrisma(query.country) }),
-            ...(query.cursor && { createdAt: { lt: query.cursor } }),
+            language: this.mapper.mapLanguageToPrisma(params.language),
+            ...(params.category && { category: this.mapper.mapCategoryToPrisma(params.category) }),
+            ...(params.country && { country: this.mapper.mapCountryToPrisma(params.country) }),
+            ...(params.cursor && { createdAt: { lt: params.cursor } }),
         };
 
         const [items, total] = await Promise.all([
@@ -39,7 +47,7 @@ export class PrismaArticleRepository implements ArticleRepository {
                 orderBy: {
                     createdAt: 'desc',
                 },
-                take: query.limit,
+                take: params.limit,
                 where,
             }),
             this.prisma.getPrismaClient().article.count({ where }),
@@ -51,9 +59,47 @@ export class PrismaArticleRepository implements ArticleRepository {
         };
     }
 
-    async save(article: Article): Promise<void> {
-        const data = this.mapper.toPrisma(article);
-        await this.prisma.getPrismaClient().article.create({ data });
+    async findPublishedSummaries(params: {
+        language: ArticleLanguage;
+        country: ArticleCountry;
+        since: Date;
+    }): Promise<Array<string>> {
+        const articles = await this.prisma.getPrismaClient().article.findMany({
+            select: {
+                summary: true,
+            },
+            where: {
+                country: this.mapper.mapCountryToPrisma(params.country),
+                createdAt: {
+                    gte: params.since,
+                },
+                language: this.mapper.mapLanguageToPrisma(params.language),
+            },
+        });
+
+        return articles.map((article) => article.summary);
+    }
+
+    async createMany(articles: Omit<Article, 'id' | 'createdAt'>[]): Promise<Article[]> {
+        const data = articles.map((article) => this.mapper.toPrisma(article));
+        await this.prisma.getPrismaClient().article.createMany({
+            data,
+        });
+
+        // Fetch the created articles to return them with their IDs
+        const result = await this.prisma.getPrismaClient().article.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+            take: articles.length,
+            where: {
+                createdAt: {
+                    gte: new Date(Date.now() - 1000), // Articles created in the last second
+                },
+            },
+        });
+
+        return result.map((article) => this.mapper.toDomain(article));
     }
 
     async findById(id: string): Promise<Article | null> {
