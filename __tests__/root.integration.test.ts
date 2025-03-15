@@ -1,14 +1,20 @@
 import { getHttpServer } from '../src/di/container.js';
 
-import { cleanupIntegrationTest, setupIntegrationTest } from './setup.js';
+import {
+    cleanupIntegrationTest,
+    type IntegrationTestContext,
+    setupIntegrationTest,
+} from './support/integration.js';
 
 describe('Root Route Integration Tests', () => {
+    let testContext: IntegrationTestContext;
+
     beforeAll(async () => {
-        await setupIntegrationTest();
+        testContext = await setupIntegrationTest();
     });
 
     afterAll(async () => {
-        await cleanupIntegrationTest();
+        await cleanupIntegrationTest(testContext);
     });
 
     it('should return OK status for the root route', async () => {
