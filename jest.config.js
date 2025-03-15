@@ -1,5 +1,11 @@
 import { jestConfig } from '@jterrazz/package-typescript-test';
 
-const jest = await jestConfig();
+const baseConfig = await jestConfig();
 
-export default jest;
+export default {
+    ...baseConfig,
+    setupFilesAfterEnv: [
+        ...(baseConfig.setupFilesAfterEnv || []),
+        '<rootDir>/__tests__/support/jest.setup.ts',
+    ],
+};

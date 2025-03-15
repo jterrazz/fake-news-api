@@ -2,6 +2,8 @@ import { type Job } from '../src/application/ports/inbound/job-runner.port.js';
 
 import { getJobs } from '../src/di/container.js';
 
+import { mockGeminiGenerateContentHandler } from './handlers/com.google/gemini.handler.js';
+import { mockWorldNewsTopArticlesHandler } from './handlers/com.worldnewsapi/top-articles.handler.js';
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
@@ -12,7 +14,10 @@ describe('Jobs Integration Tests', () => {
     let testContext: IntegrationTestContext;
 
     beforeAll(async () => {
-        testContext = await setupIntegrationTest();
+        testContext = await setupIntegrationTest([
+            mockWorldNewsTopArticlesHandler,
+            mockGeminiGenerateContentHandler,
+        ]);
     });
 
     afterAll(async () => {
