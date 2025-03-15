@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import type { RequestHandler } from 'msw';
 import { setupServer } from 'msw/node';
 
@@ -12,6 +13,7 @@ export type IntegrationTestContext = {
     httpServer: HttpServerPort;
     jobRunner: JobRunnerPort;
     msw: ReturnType<typeof setupServer>;
+    prisma: PrismaClient;
 };
 
 const createMsw = (handlers: RequestHandler[] = []) => {
@@ -29,16 +31,18 @@ export async function setupIntegrationTest(
     const httpServer = getHttpServer();
     const jobRunner = getJobRunner();
     const msw = createMsw(handlers);
+    const prisma = new PrismaClient();
 
     msw.listen({ onUnhandledRequest: 'warn' });
 
-    return { httpServer, jobRunner, msw };
+    return { httpServer, jobRunner, msw, prisma };
 }
 
 // Cleanup function to be called after tests
 export async function cleanupIntegrationTest(context: IntegrationTestContext): Promise<void> {
     await context.jobRunner.stop();
     await context.httpServer.stop();
+    await context.prisma.$disconnect();
     context.msw.close();
 
     // Clean cache after each integration test

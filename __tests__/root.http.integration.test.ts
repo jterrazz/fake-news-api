@@ -4,7 +4,7 @@ import {
     setupIntegrationTest,
 } from './support/integration.js';
 
-describe('Root Route Integration Tests', () => {
+describe('HTTP Root Integration Tests', () => {
     let testContext: IntegrationTestContext;
 
     beforeAll(async () => {
