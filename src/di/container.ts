@@ -142,8 +142,8 @@ const articleControllerFactory = Injectable(
  */
 const jobsFactory = Injectable(
     'Jobs',
-    ['GenerateArticles', 'Logger'] as const,
-    (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): Job[] => {
+    ['GenerateArticles'] as const,
+    (generateArticles: GenerateArticlesUseCase): Job[] => {
         return [
             createArticleGenerationJob({
                 generateArticles,
