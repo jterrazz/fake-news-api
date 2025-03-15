@@ -1,5 +1,8 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { dirname } from 'node:path';
+
+import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
 
 import {
     FetchNewsOptions,
@@ -8,7 +11,9 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
-const CACHE_PATH_TEMPLATE = `${tmpdir()}/news-cache-{lang}.json`;
+export const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
+const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>
+    `${CACHE_DIR(env)}/articles/${lang}.json`;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 type CacheData = {
@@ -23,11 +28,19 @@ export class CachedNewsAdapter implements NewsPort {
     constructor(
         private readonly newsSource: NewsPort,
         private readonly logger: LoggerPort,
+        private readonly config: ConfigurationPort,
     ) {}
+
+    private ensureDirectoryExists(filePath: string): void {
+        const directory = dirname(filePath);
+        if (!existsSync(directory)) {
+            mkdirSync(directory, { recursive: true });
+        }
+    }
 
     private readCache(language: string): CacheData | null {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE.replace('{lang}', language);
+            const cachePath = CACHE_PATH_TEMPLATE(this.config.getAppConfiguration().env, language);
             if (!existsSync(cachePath)) return null;
 
             const cacheContent = readFileSync(cachePath, 'utf-8');
@@ -45,7 +58,9 @@ export class CachedNewsAdapter implements NewsPort {
 
     private writeCache(data: NewsArticle[], language: string): void {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE.replace('{lang}', language);
+            const cachePath = CACHE_PATH_TEMPLATE(this.config.getAppConfiguration().env, language);
+            this.ensureDirectoryExists(cachePath);
+
             const cacheData: CacheData = {
                 data,
                 timestamp: Date.now(),

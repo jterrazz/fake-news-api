@@ -1,16 +1,18 @@
 {
-    "database": {
-        "url": "postgresql://postgres:postgres@localhost:5432/fake_news_test"
+  "app": {
+    "env": "test",
+    "port": 3000,
+    "host": "localhost"
+  },
+  "logging": {
+    "level": "debug"
+  },
+  "api": {
+    "gemini": {
+      "apiKey": "test-gemini-key"
     },
-    "logging": {
-        "level": "error"
-    },
-    "ai": {
-        "provider": "gemini",
-        "apiKey": "test-key"
-    },
-    "news": {
-        "provider": "world-news",
-        "apiKey": "test-key"
+    "worldNews": {
+      "apiKey": "test-world-news-key"
     }
-} 
+  }
+}

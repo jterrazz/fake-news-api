@@ -1,5 +1,3 @@
-import { getHttpServer } from '../src/di/container.js';
-
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
@@ -19,10 +17,10 @@ describe('Root Route Integration Tests', () => {
 
     it('should return OK status for the root route', async () => {
         // Given
-        const app = getHttpServer();
+        const { httpServer } = testContext;
 
         // When
-        const response = await app.request('/');
+        const response = await httpServer.request('/');
 
         // Then
         expect(response.status).toBe(200);

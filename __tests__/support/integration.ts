@@ -1,11 +1,18 @@
 import type { RequestHandler } from 'msw';
 import { setupServer } from 'msw/node';
 
+import { type HttpServerPort } from '../../src/application/ports/inbound/http-server.port.js';
+import { type JobRunnerPort } from '../../src/application/ports/inbound/job-runner.port.js';
+
+import { getHttpServer, getJobRunner } from '../../src/di/container.js';
+
 export type IntegrationTestContext = {
-    server: ReturnType<typeof setupServer>;
+    mswServer: ReturnType<typeof setupServer>;
+    jobRunner: JobRunnerPort;
+    httpServer: HttpServerPort;
 };
 
-const createTestServer = (handlers: RequestHandler[] = []) => {
+const createMswServer = (handlers: RequestHandler[] = []) => {
     const server = setupServer(...handlers);
     return server;
 };
@@ -14,13 +21,18 @@ const createTestServer = (handlers: RequestHandler[] = []) => {
 export async function setupIntegrationTest(
     handlers: RequestHandler[] = [],
 ): Promise<IntegrationTestContext> {
-    const server = createTestServer(handlers);
-    server.listen({ onUnhandledRequest: 'error' });
+    const mswServer = createMswServer(handlers);
+    mswServer.listen({ onUnhandledRequest: 'error' });
 
-    return { server };
+    const jobRunner = getJobRunner();
+    const httpServer = getHttpServer();
+
+    return { httpServer, jobRunner, mswServer };
 }
 
 // Cleanup function to be called after tests
 export async function cleanupIntegrationTest(context: IntegrationTestContext): Promise<void> {
-    context.server.close();
+    await context.jobRunner.stop();
+    await context.httpServer.stop();
+    context.mswServer.close();
 }

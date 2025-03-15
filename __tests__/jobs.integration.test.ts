@@ -1,6 +1,6 @@
 import { type Job } from '../src/application/ports/inbound/job-runner.port.js';
 
-import { getJobRunner, getJobs } from '../src/di/container.js';
+import { getJobs } from '../src/di/container.js';
 
 import {
     cleanupIntegrationTest,
@@ -21,7 +21,7 @@ describe('Jobs Integration Tests', () => {
 
     it('should initialize and run article generation job', async () => {
         // Given
-        const jobRunner = getJobRunner();
+        const { jobRunner } = testContext;
         const jobs = getJobs();
         const articleGenerationJob = jobs.find((job) => job.name === 'article-generation');
 
@@ -42,7 +42,7 @@ describe('Jobs Integration Tests', () => {
 
     it('should handle job registration', async () => {
         // Given
-        const jobRunner = getJobRunner();
+        const { jobRunner } = testContext;
         const testJob: Job = {
             execute: async () => {
                 // Do nothing
@@ -67,7 +67,7 @@ describe('Jobs Integration Tests', () => {
 
     it('should handle job errors gracefully', async () => {
         // Given
-        const jobRunner = getJobRunner();
+        const { jobRunner } = testContext;
         const errorJob: Job = {
             execute: async () => {
                 throw new Error('Test error');
@@ -82,13 +82,10 @@ describe('Jobs Integration Tests', () => {
 
         // Then
         await expect(errorJob.execute()).rejects.toThrow('Test error');
-        // The job runner should continue running despite the error
-        expect(jobRunner).toBeDefined();
     });
 
     afterEach(async () => {
         // Stop the job runner after each test to clean up
-        const jobRunner = getJobRunner();
-        await jobRunner.stop();
+        await testContext.jobRunner.stop();
     });
 });

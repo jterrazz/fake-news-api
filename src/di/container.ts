@@ -68,8 +68,8 @@ const newsFactory = Injectable(
     'News',
     ['Configuration', 'Logger'] as const,
     (config: ConfigurationPort, logger: LoggerPort) => {
-        const newsAdapter = new WorldNewsAdapter(config);
-        return new CachedNewsAdapter(newsAdapter, logger);
+        const newsAdapter = new WorldNewsAdapter(config, logger);
+        return new CachedNewsAdapter(newsAdapter, logger, config);
     },
 );
 
