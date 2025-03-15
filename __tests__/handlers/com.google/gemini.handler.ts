@@ -6,7 +6,39 @@ import { http, HttpResponse } from 'msw';
  */
 export const mockGeminiGenerateContentHandler = http.post(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent',
-    () => {
+    ({ request }) => {
+        // Extract API key from x-goog-api-key header
+        const apiKey = request.headers.get('x-goog-api-key');
+
+        // Validate API key
+        if (apiKey !== 'test-gemini-key') {
+            return new HttpResponse(
+                JSON.stringify({
+                    error: {
+                        code: 400,
+                        details: [
+                            {
+                                '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
+                                domain: 'googleapis.com',
+                                metadata: {
+                                    service: 'generativelanguage.googleapis.com',
+                                },
+                                reason: 'API_KEY_INVALID',
+                            },
+                        ],
+                        message: 'API key not valid. Please pass a valid API key.',
+                        status: 'INVALID_ARGUMENT',
+                    },
+                }),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    status: 400,
+                },
+            );
+        }
+
         // Return a mock response that matches Gemini's API format
         return HttpResponse.json({
             candidates: [
