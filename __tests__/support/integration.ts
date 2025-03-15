@@ -7,8 +7,6 @@ import { type JobRunnerPort } from '../../src/application/ports/inbound/job-runn
 
 import { getHttpServer, getJobRunner } from '../../src/di/container.js';
 
-import { cleanCache } from './cache.js';
-
 export type IntegrationTestContext = {
     httpServer: HttpServerPort;
     jobRunner: JobRunnerPort;
@@ -25,9 +23,6 @@ const createMsw = (handlers: RequestHandler[] = []) => {
 export async function setupIntegrationTest(
     handlers: RequestHandler[] = [],
 ): Promise<IntegrationTestContext> {
-    // Clean cache before each integration test
-    cleanCache();
-
     const httpServer = getHttpServer();
     const jobRunner = getJobRunner();
     const msw = createMsw(handlers);
@@ -44,7 +39,4 @@ export async function cleanupIntegrationTest(context: IntegrationTestContext): P
     await context.httpServer.stop();
     await context.prisma.$disconnect();
     context.msw.close();
-
-    // Clean cache after each integration test
-    cleanCache();
 }

@@ -6,7 +6,10 @@ describe('Node Config Adapter', () => {
     const validConfig = {
         api: {
             gemini: { apiKey: 'test-gemini-key' },
-            worldNews: { apiKey: 'test-world-news-key' },
+            worldNews: { 
+                apiKey: 'test-world-news-key',
+                useCache: false
+            },
         },
         app: {
             env: 'development',

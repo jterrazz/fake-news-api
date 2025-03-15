@@ -12,7 +12,8 @@
       "apiKey": ""
     },
     "worldNews": {
-      "apiKey": ""
+      "apiKey": "",
+      "useCache": true
     }
   }
 }

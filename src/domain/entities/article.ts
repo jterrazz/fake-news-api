@@ -80,19 +80,6 @@ export class Article {
         };
     }
 
-    // Domain logic methods
-    public isInLanguage(language: ArticleLanguage): boolean {
-        return this.language.equals(language);
-    }
-
-    public isFromCountry(country: ArticleCountry): boolean {
-        return this.country.equals(country);
-    }
-
-    public isInCategory(category: ArticleCategory): boolean {
-        return this.category.equals(category);
-    }
-
     public isFake(): boolean {
         return this.fakeStatus.isFake;
     }

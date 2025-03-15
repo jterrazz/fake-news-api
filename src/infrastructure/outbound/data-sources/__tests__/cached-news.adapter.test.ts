@@ -1,6 +1,8 @@
 import { mock } from 'jest-mock-extended';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
+import { ConfigurationPort } from '../../../../application/ports/inbound/configuration.port.js';
+
 import {
     FetchNewsOptions,
     NewsArticle,
@@ -24,6 +26,14 @@ describe('CachedNewsAdapter', () => {
     // Mock news source and logger with proper types
     const mockNewsSource = mock<NewsPort>();
     const mockLogger = mock<LoggerPort>();
+    const mockConfig = mock<ConfigurationPort>({
+        getAppConfiguration: () => ({
+            env: 'test',
+            host: 'localhost',
+            logging: { level: 'debug' },
+            port: 3000,
+        }),
+    });
 
     const mockOptions: FetchNewsOptions = {
         country: ArticleCountry.create('us'),
@@ -43,7 +53,7 @@ describe('CachedNewsAdapter', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        adapter = new CachedNewsAdapter(mockNewsSource, mockLogger);
+        adapter = new CachedNewsAdapter(mockNewsSource, mockLogger, mockConfig);
     });
 
     describe('fetchNews', () => {

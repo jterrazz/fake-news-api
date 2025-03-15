@@ -11,7 +11,7 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
-export const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
+const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
 const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>
     `${CACHE_DIR(env)}/articles/${lang}.json`;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds

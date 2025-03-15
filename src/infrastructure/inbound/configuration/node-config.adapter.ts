@@ -13,6 +13,7 @@ const configurationSchema = z.object({
         }),
         worldNews: z.object({
             apiKey: z.string().min(1),
+            useCache: z.boolean(),
         }),
     }),
     app: z.object({

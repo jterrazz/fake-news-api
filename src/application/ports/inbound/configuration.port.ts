@@ -7,6 +7,7 @@ export interface ApiConfiguration {
     };
     worldNews: {
         apiKey: string;
+        useCache: boolean;
     };
 }
 

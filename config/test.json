@@ -12,7 +12,8 @@
       "apiKey": "test-gemini-key"
     },
     "worldNews": {
-      "apiKey": "test-world-news-key"
+      "apiKey": "test-world-news-key",
+      "useCache": false
     }
   }
 }

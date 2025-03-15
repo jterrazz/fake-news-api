@@ -68,7 +68,6 @@ describe('WorldNewsAdapter', () => {
     });
     afterEach(() => {
         server.resetHandlers();
-        jest.clearAllMocks();
     });
     afterAll(() => server.close());
 

@@ -28,6 +28,9 @@ export class GenerateArticlesUseCase {
         try {
             logger.info('Starting article generation', { country, language });
 
+            // TODO: Check if articles already exist for this country and language for the day
+            // TODO: Do a batch at 6am every day and a batch at 4pm every day
+
             // Fetch real articles from news service
             const news = await newsService.fetchNews({
                 country,
@@ -51,7 +54,7 @@ export class GenerateArticlesUseCase {
             const generatedArticles = await articleGenerator.generateArticles({
                 articles: {
                     news,
-                    publicationHistory: publishedSummaries,
+                    publicationHistory: publishedSummaries, // TODO Include date of publication and title
                 },
                 country,
                 language,
