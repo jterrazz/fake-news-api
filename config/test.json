@@ -1,0 +1,16 @@
+{
+    "database": {
+        "url": "postgresql://postgres:postgres@localhost:5432/fake_news_test"
+    },
+    "logging": {
+        "level": "error"
+    },
+    "ai": {
+        "provider": "gemini",
+        "apiKey": "test-key"
+    },
+    "news": {
+        "provider": "world-news",
+        "apiKey": "test-key"
+    }
+} 

@@ -1,23 +1,22 @@
 import { Hono } from 'hono';
 
-import { getArticleRepository } from '../../../../di/container.js';
-import { ArticleController } from '../controllers/article.controller.js';
+import { LanguageEnum } from '../../../../domain/value-objects/article-language.vo.js';
+
+import { getArticleController } from '../../../../di/container.js';
 
 export const createArticlesRouter = () => {
     const app = new Hono();
-    const articleRepository = getArticleRepository();
-    const articleController = new ArticleController(articleRepository);
+    const articleController = getArticleController();
 
     app.get('/', async (c) => {
         try {
             const query = c.req.query();
-            const response = await articleController.getArticles({
-                category: query.category,
-                country: query.country,
-                cursor: query.cursor,
-                language: query.language,
+            const params = {
+                ...query,
+                language: (query.language || LanguageEnum.English) as LanguageEnum,
                 limit: query.limit ? Number(query.limit) : 10,
-            });
+            };
+            const response = await articleController.getArticles(params);
             return c.json(response);
         } catch (error) {
             console.error('Failed to fetch articles:', error);

@@ -1,4 +1,4 @@
-import { serve, Server } from '@hono/node-server';
+import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 
 import {
@@ -11,10 +11,11 @@ import { createRootRouter } from './routes/root.js';
 
 export class HonoServerAdapter implements HttpServerPort {
     private app: Hono;
-    private server: Server | null = null;
+    private server: ReturnType<typeof serve> | null = null;
 
     constructor() {
         this.app = new Hono();
+        this.registerRoutes();
     }
 
     private registerRoutes(): void {
@@ -24,8 +25,6 @@ export class HonoServerAdapter implements HttpServerPort {
     }
 
     public async start(config: HttpServerConfiguration): Promise<void> {
-        this.registerRoutes();
-
         return new Promise((resolve) => {
             this.server = serve(this.app, (info) => {
                 console.log(`Server is running on ${config.host}:${info.port}`);
@@ -39,5 +38,17 @@ export class HonoServerAdapter implements HttpServerPort {
             await this.server.close();
             this.server = null;
         }
+    }
+
+    public async request(
+        path: `/${string}`,
+        options?: { method?: string; body?: string | object; headers?: Record<string, string> },
+    ): Promise<Response> {
+        const init: RequestInit = {
+            body: options?.body ? JSON.stringify(options.body) : undefined,
+            headers: options?.headers,
+            method: options?.method,
+        };
+        return this.app.request(path, init);
     }
 }

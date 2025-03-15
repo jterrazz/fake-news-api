@@ -1,36 +1,10 @@
 import { Article as PrismaArticle, Category, Country, Language } from '@prisma/client';
-import { z } from 'zod';
 
 import {
     type GetArticlesParams,
     type GetArticlesUseCase,
 } from '../../../../application/use-cases/articles/get-articles.use-case.js';
 
-import { CategoryEnum } from '../../../../domain/value-objects/article-category.vo.js';
-import { CountryEnum } from '../../../../domain/value-objects/article-country.vo.js';
-import { LanguageEnum } from '../../../../domain/value-objects/article-language.vo.js';
-
-const DEFAULT_PAGE_SIZE = 10;
-const MAX_PAGE_SIZE = 100;
-
-const paginationSchema = z.object({
-    category: z
-        .enum([
-            CategoryEnum.Politics,
-            CategoryEnum.Technology,
-            CategoryEnum.Science,
-            CategoryEnum.Health,
-            CategoryEnum.Entertainment,
-            CategoryEnum.Sports,
-            CategoryEnum.Business,
-            CategoryEnum.Other,
-        ])
-        .optional(),
-    country: z.nativeEnum(CountryEnum).optional(),
-    cursor: z.string().optional(),
-    language: z.nativeEnum(LanguageEnum).default(LanguageEnum.English),
-    limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
-});
 
 type PaginatedResponse<T> = {
     items: T[];

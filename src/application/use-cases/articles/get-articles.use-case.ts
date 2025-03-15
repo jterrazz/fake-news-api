@@ -1,16 +1,22 @@
 import { z } from 'zod';
 
 import { type Article } from '../../../domain/entities/article.js';
-import { ArticleCategory, CategoryEnum } from '../../../domain/value-objects/article-category.vo.js';
+import {
+    ArticleCategory,
+    CategoryEnum,
+} from '../../../domain/value-objects/article-category.vo.js';
 import { ArticleCountry, CountryEnum } from '../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage, LanguageEnum } from '../../../domain/value-objects/article-language.vo.js';
+import {
+    ArticleLanguage,
+    LanguageEnum,
+} from '../../../domain/value-objects/article-language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
-const paginationSchema = z.object({
+export const getArticlesParamsSchema = z.object({
     category: z
         .enum([
             CategoryEnum.Politics,
@@ -29,7 +35,7 @@ const paginationSchema = z.object({
     limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
 });
 
-export type GetArticlesParams = z.infer<typeof paginationSchema>;
+export type GetArticlesParams = z.infer<typeof getArticlesParamsSchema>;
 
 export type PaginatedResponse<T> = {
     items: T[];
@@ -41,7 +47,7 @@ export class GetArticlesUseCase {
     constructor(private readonly articleRepository: ArticleRepositoryPort) {}
 
     async execute(params: GetArticlesParams): Promise<PaginatedResponse<Article>> {
-        const validatedParams = paginationSchema.safeParse(params);
+        const validatedParams = getArticlesParamsSchema.safeParse(params);
 
         if (!validatedParams.success) {
             throw new Error('Invalid pagination parameters');
@@ -63,7 +69,9 @@ export class GetArticlesUseCase {
 
         const { items, total } = await this.articleRepository.findMany({
             category: category ? ArticleCategory.create(category) : undefined,
-            country: country ? ArticleCountry.create(country) : ArticleCountry.create(CountryEnum.UnitedStates), // Default to US if not specified
+            country: country
+                ? ArticleCountry.create(country)
+                : ArticleCountry.create(CountryEnum.UnitedStates), // Default to US if not specified
             cursor: cursorDate,
             language: ArticleLanguage.create(language),
             limit,
@@ -75,7 +83,9 @@ export class GetArticlesUseCase {
 
         // Generate next cursor
         const nextCursor = hasMore
-            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString('base64')
+            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString(
+                  'base64',
+              )
             : null;
 
         return {
@@ -84,4 +94,4 @@ export class GetArticlesUseCase {
             total,
         };
     }
-} 
+}

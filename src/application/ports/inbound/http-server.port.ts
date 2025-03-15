@@ -26,4 +26,13 @@ export interface HttpServerPort {
      * Stop the HTTP server gracefully
      */
     stop(): Promise<void>;
+
+    /**
+     * Make a test request to the server
+     * @param path Must start with /
+     */
+    request(
+        path: `/${string}`,
+        options?: { method?: string; body?: string | object; headers?: Record<string, string> },
+    ): Promise<Response>;
 }
