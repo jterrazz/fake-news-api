@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
@@ -8,7 +10,6 @@ import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/art
 
 import {
     createCurrentTZDate,
-    formatInTimezone,
     getCurrentHourInTimezone,
     getTimezoneForCountry,
     subtractDaysInTimezone,
@@ -69,7 +70,7 @@ export class GenerateArticlesUseCase {
                 logger.info('No new articles needed at this time', {
                     country: country.toString(),
                     currentCount: existingArticleCount,
-                    hour: formatInTimezone(tzDate, timezone, 'HH'),
+                    hour: format(tzDate, 'HH'),
                     language: language.toString(),
                     targetCount: targetArticleCount,
                     timezone,
@@ -122,7 +123,7 @@ export class GenerateArticlesUseCase {
                 country: country.toString(),
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
-                hour: formatInTimezone(tzDate, timezone, 'HH'),
+                hour: format(tzDate, 'HH'),
                 language: language.toString(),
                 targetCount: targetArticleCount,
                 timezone,

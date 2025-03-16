@@ -1,8 +1,8 @@
-import { type Category } from '@prisma/client';
 import { http, HttpResponse } from 'msw';
 
+
 interface MockArticle {
-    category: Category;
+    category: string;
     content: string;
     fakeReason: string | null;
     headline: string;
@@ -53,7 +53,7 @@ const TEST_API_KEY = 'test-gemini-key';
 
 const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
     {
-        category: 'TECHNOLOGY',
+        category: 'technology',
         content:
             'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
         fakeReason:
@@ -64,7 +64,7 @@ const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
             'Major technology companies have achieved a significant breakthrough in quantum computing, demonstrating stable qubit operations at room temperature.',
     },
     {
-        category: 'TECHNOLOGY',
+        category: 'technology',
         content:
             'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
         fakeReason: null,

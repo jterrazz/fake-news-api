@@ -11,7 +11,7 @@ import {
     setupIntegrationTest,
 } from './support/integration.js';
 
-describe('Job Article Generation Integration Tests', () => {
+describe('Generate Articles Job Integration Tests', () => {
     let testContext: IntegrationTestContext;
     const EXPECTED_HOUR = 13;
     const EXPECTED_ARTICLE_COUNT = 8;
