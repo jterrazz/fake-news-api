@@ -1,7 +1,5 @@
 import { Hono } from 'hono';
 
-import { LanguageEnum } from '../../../../domain/value-objects/article-language.vo.js';
-
 import { getArticleController } from '../../../../di/container.js';
 
 export const createArticlesRouter = () => {
@@ -13,8 +11,7 @@ export const createArticlesRouter = () => {
             const query = c.req.query();
             const params = {
                 ...query,
-                language: (query.language || LanguageEnum.English) as LanguageEnum,
-                limit: query.limit ? Number(query.limit) : 10,
+                limit: query.limit ? Number(query.limit) : 20,
             };
             const response = await articleController.getArticles(params);
             return c.json(response);

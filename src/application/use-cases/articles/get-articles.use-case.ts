@@ -31,7 +31,7 @@ export const getArticlesParamsSchema = z.object({
         .optional(),
     country: z.nativeEnum(CountryEnum).optional(),
     cursor: z.string().optional(),
-    language: z.nativeEnum(LanguageEnum).default(LanguageEnum.English),
+    language: z.nativeEnum(LanguageEnum).optional(),
     limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
 });
 
@@ -61,9 +61,9 @@ export class GetArticlesUseCase {
             try {
                 const decodedString = Buffer.from(cursor, 'base64').toString();
                 const timestamp = Number(decodedString);
-                
+
                 if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
-                
+
                 cursorDate = new Date(timestamp);
             } catch (error) {
                 throw new Error('Invalid cursor');
@@ -76,7 +76,7 @@ export class GetArticlesUseCase {
                 ? ArticleCountry.create(country)
                 : ArticleCountry.create(CountryEnum.UnitedStates), // Default to US if not specified
             cursor: cursorDate,
-            language: ArticleLanguage.create(language),
+            language: language ? ArticleLanguage.create(language) : undefined,
             limit,
         });
 

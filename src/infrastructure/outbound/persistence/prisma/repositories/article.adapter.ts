@@ -31,7 +31,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         total: number;
     }> {
         const baseWhere = {
-            language: this.mapper.mapLanguageToPrisma(params.language),
+            ...(params.language && { language: this.mapper.mapLanguageToPrisma(params.language) }),
             ...(params.category && { category: this.mapper.mapCategoryToPrisma(params.category) }),
             ...(params.country && { country: this.mapper.mapCountryToPrisma(params.country) }),
         };

@@ -7,7 +7,7 @@ import { ArticleLanguage } from '../../../../domain/value-objects/article-langua
  * Parameters for finding many articles
  */
 export interface FindManyParams {
-    language: ArticleLanguage;
+    language?: ArticleLanguage;
     category?: ArticleCategory;
     country: ArticleCountry;
     cursor?: Date;
