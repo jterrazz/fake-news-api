@@ -9,7 +9,7 @@
   "scripts": {
     "build": "prisma generate && swc-compile",
     "start": "prisma migrate deploy && node dist/index.js",
-    "dev": "prisma migrate deploy && swc-watch",
+    "dev": "prisma migrate deploy && NODE_ENV=development swc-watch",
     "test": "jest",
     "lint-type": "tsc --noEmit",
     "lint-code": "eslint .",

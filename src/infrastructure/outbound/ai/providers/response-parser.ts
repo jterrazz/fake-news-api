@@ -23,7 +23,8 @@ export class ResponseParser {
      */
     public static parse<T>(text: string, schema: z.ZodSchema<T>): T {
         try {
-            const json = this.extractJsonFromText(text, schema);
+            const cleanedText = this.cleanText(text);
+            const json = this.extractJsonFromText(cleanedText, schema);
             return schema.parse(json);
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -126,5 +127,12 @@ export class ResponseParser {
             return null;
         }
         return value;
+    }
+
+    /**
+     * Cleans text by removing newlines and extra whitespace
+     */
+    private static cleanText(text: string): string {
+        return text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     }
 }

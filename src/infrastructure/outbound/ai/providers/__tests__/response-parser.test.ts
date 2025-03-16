@@ -161,5 +161,46 @@ describe('ResponseParser', () => {
                 expect((error as ResponseParsingError).text).toBe(text);
             }
         });
+
+        it('should handle text with newlines in JSON object', () => {
+            // Given
+            const textWithNewlines = `{
+                "content": "Test\ncontent\nwith\nnewlines",
+                "tags": ["test", "ai"],
+                "title": "Test\nArticle"
+            }`;
+
+            // When
+            const result = ResponseParser.parse(textWithNewlines, testSchema);
+
+            // Then
+            expect(result).toEqual({
+                content: 'Test content with newlines',
+                tags: ['test', 'ai'],
+                title: 'Test Article',
+            });
+        });
+
+        it('should handle text with newlines in surrounding text', () => {
+            // Given
+            const textWithNewlines = `Here's the\narticle:\n${validJsonString}\n- end of\narticle`;
+
+            // When
+            const result = ResponseParser.parse(textWithNewlines, testSchema);
+
+            // Then
+            expect(result).toEqual(validJson);
+        });
+
+        it('should handle text with multiple consecutive newlines and spaces', () => {
+            // Given
+            const textWithNewlines = `Here's the\n\n  article:   \n\n${validJsonString}\n\n`;
+
+            // When
+            const result = ResponseParser.parse(textWithNewlines, testSchema);
+
+            // Then
+            expect(result).toEqual(validJson);
+        });
     });
 });
