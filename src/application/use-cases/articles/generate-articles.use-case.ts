@@ -74,7 +74,7 @@ export class GenerateArticlesUseCase {
             // Check existing articles for today
             const now = new Date();
             const zonedNow = toZonedTime(now, timezone);
-            const existingArticleCount = await articleRepository.countArticlesForDay({
+            const existingArticleCount = await articleRepository.countManyForDay({
                 country,
                 date: zonedNow,
                 language,

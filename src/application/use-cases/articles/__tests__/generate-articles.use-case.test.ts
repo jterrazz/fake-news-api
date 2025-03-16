@@ -117,7 +117,7 @@ describe('GenerateArticlesUseCase', () => {
         // Setup mock responses
         mockNewsService.fetchNews.mockResolvedValue(testNews);
         mockArticleRepository.findPublishedSummaries.mockResolvedValue(testPublishedSummaries);
-        mockArticleRepository.countArticlesForDay.mockResolvedValue(0);
+        mockArticleRepository.countManyForDay.mockResolvedValue(0);
         mockArticleGenerator.generateArticles.mockResolvedValue(testArticles);
 
         // Initialize use case
@@ -153,7 +153,7 @@ describe('GenerateArticlesUseCase', () => {
                 const testDate = createDateAtHour(hour, 'America/New_York');
                 jest.setSystemTime(testDate);
 
-                mockArticleRepository.countArticlesForDay.mockResolvedValue(existingCount);
+                mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
                 );
@@ -227,7 +227,7 @@ describe('GenerateArticlesUseCase', () => {
                 const frenchCountry = ArticleCountry.create(CountryEnum.France);
                 const frenchLanguage = ArticleLanguage.create(LanguageEnum.French);
 
-                mockArticleRepository.countArticlesForDay.mockResolvedValue(existingCount);
+                mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
                 );

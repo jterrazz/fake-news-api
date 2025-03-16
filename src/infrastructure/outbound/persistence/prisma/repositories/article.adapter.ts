@@ -1,9 +1,9 @@
+import { TZDate } from '@date-fns/tz';
 import { endOfDay, startOfDay } from 'date-fns';
-import { fromZonedTime } from 'date-fns-tz';
 
 import type {
     ArticleRepositoryPort,
-    CountArticlesForDayParams,
+    CountArticlesForDayParams as CountManyForDayParams,
     FindManyParams,
     FindPublishedSummariesParams,
 } from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
@@ -71,7 +71,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         return articles.map((article) => article.summary);
     }
 
-    async countArticlesForDay(params: CountArticlesForDayParams): Promise<number> {
+    async countManyForDay(params: CountManyForDayParams): Promise<number> {
         const countryCode = params.country.toString().toLowerCase();
         const timezone = COUNTRY_TIMEZONES[countryCode];
 
@@ -79,12 +79,12 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
             throw new Error(`Unsupported country: ${countryCode}`);
         }
 
-        // Convert the date to the target timezone
-        const zonedDate = fromZonedTime(params.date, timezone);
+        // Create a timezone-aware date
+        const tzDate = new TZDate(params.date, timezone);
 
         // Get start and end of day in the target timezone
-        const start = startOfDay(zonedDate);
-        const end = endOfDay(zonedDate);
+        const start = startOfDay(tzDate);
+        const end = endOfDay(tzDate);
 
         return this.prisma.getPrismaClient().article.count({
             where: {

@@ -1,3 +1,5 @@
+import { TZDate } from '@date-fns/tz';
+
 import { getJobs } from '../src/di/container.js';
 
 import { mockGeminiGenerateContentHandler } from './handlers/com.googleapis/gemini.handler.js';
@@ -33,8 +35,8 @@ describe('Job Article Generation Integration Tests', () => {
         // Clean up articles before each test
         await testContext.prisma.article.deleteMany();
 
-        // Set time to January 1st, 2020 at 13:00 Paris time
-        const mockDate = new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0);
+        // Set time to January 1st, 2020 at 13:00 Paris time using TZDate
+        const mockDate = new TZDate(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0, 'Europe/Paris');
         jest.setSystemTime(mockDate);
     });
 

@@ -52,7 +52,7 @@ export interface ArticleRepositoryPort {
     /**
      * Count articles for a specific day
      */
-    countArticlesForDay(params: CountArticlesForDayParams): Promise<number>;
+    countManyForDay(params: CountArticlesForDayParams): Promise<number>;
 
     /**
      * Create multiple articles in a single transaction
