@@ -1,6 +1,3 @@
-import { TZDate } from '@date-fns/tz';
-import { format, getHours, subDays } from 'date-fns';
-
 import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
@@ -9,40 +6,13 @@ import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type LoggerPort } from '../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
-/**
- * Map of country codes to their timezone identifiers
- */
-const COUNTRY_TIMEZONES: Record<string, string> = {
-    fr: 'Europe/Paris',
-    us: 'America/New_York',
-};
-
-/**
- * Get the current hour in the country's timezone
- */
-function getCurrentHourInCountry(country: ArticleCountry): { hour: number; timezone: string } {
-    const countryCode = country.toString().toLowerCase();
-    const timezone = COUNTRY_TIMEZONES[countryCode];
-
-    if (!timezone) {
-        throw new Error(`Unsupported country: ${countryCode}`);
-    }
-
-    const now = new Date();
-    const tzDate = new TZDate(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        now.getHours(),
-        now.getMinutes(),
-        now.getSeconds(),
-        now.getMilliseconds(),
-        timezone,
-    );
-    const hour = getHours(tzDate);
-
-    return { hour, timezone };
-}
+import {
+    createCurrentTZDate,
+    formatInTimezone,
+    getCurrentHourInTimezone,
+    getTimezoneForCountry,
+    subtractDaysInTimezone,
+} from '../../../shared/date/timezone.js';
 
 /**
  * Determines the target number of articles based on the hour
@@ -76,23 +46,13 @@ export class GenerateArticlesUseCase {
         try {
             logger.info('Starting article generation', { country, language });
 
-            // Get current time in the target country's timezone
-            const { hour, timezone } = getCurrentHourInCountry(country);
+            // Get timezone and current hour
+            const timezone = getTimezoneForCountry(country.toString());
+            const hour = getCurrentHourInTimezone(timezone);
             const targetArticleCount = getTargetArticleCount(hour);
 
             // Check existing articles for today
-            const now = new Date();
-            const tzDate = new TZDate(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                now.getHours(),
-                now.getMinutes(),
-                now.getSeconds(),
-                now.getMilliseconds(),
-                timezone,
-            );
-
+            const tzDate = createCurrentTZDate(timezone);
             const existingArticleCount = await articleRepository.countManyForDay({
                 country,
                 date: tzDate,
@@ -106,7 +66,7 @@ export class GenerateArticlesUseCase {
                 logger.info('No new articles needed at this time', {
                     country,
                     currentCount: existingArticleCount,
-                    hour: format(tzDate, 'HH'),
+                    hour: formatInTimezone(tzDate, timezone, 'HH'),
                     language,
                     targetCount: targetArticleCount,
                     timezone,
@@ -126,7 +86,7 @@ export class GenerateArticlesUseCase {
             }
 
             // Get recent headlines for context (last 30 days)
-            const since = subDays(tzDate, 30);
+            const since = subtractDaysInTimezone(tzDate, timezone, 30);
             const publishedSummaries = await articleRepository.findPublishedSummaries({
                 country,
                 language,
@@ -153,7 +113,7 @@ export class GenerateArticlesUseCase {
                 country,
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
-                hour: format(tzDate, 'HH'),
+                hour: formatInTimezone(tzDate, timezone, 'HH'),
                 language,
                 targetCount: targetArticleCount,
                 timezone,
