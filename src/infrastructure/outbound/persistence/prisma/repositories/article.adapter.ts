@@ -30,10 +30,14 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         items: Article[];
         total: number;
     }> {
-        const where = {
+        const baseWhere = {
             language: this.mapper.mapLanguageToPrisma(params.language),
             ...(params.category && { category: this.mapper.mapCategoryToPrisma(params.category) }),
             ...(params.country && { country: this.mapper.mapCountryToPrisma(params.country) }),
+        };
+
+        const itemsWhere = {
+            ...baseWhere,
             ...(params.cursor && { createdAt: { lt: params.cursor } }),
         };
 
@@ -42,10 +46,10 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
                 orderBy: {
                     createdAt: 'desc',
                 },
-                take: params.limit,
-                where,
+                take: params.limit + 1,
+                where: itemsWhere,
             }),
-            this.prisma.getPrismaClient().article.count({ where }),
+            this.prisma.getPrismaClient().article.count({ where: baseWhere }),
         ]);
 
         return {

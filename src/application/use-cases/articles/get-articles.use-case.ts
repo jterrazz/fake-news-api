@@ -79,9 +79,9 @@ export class GetArticlesUseCase {
 
         // Check if there are more items
         const hasMore = items.length > limit;
-        const results = items.slice(0, limit);
+        const results = hasMore ? items.slice(0, limit) : items;
 
-        // Generate next cursor
+        // Generate next cursor from the last item if there are more results
         const nextCursor = hasMore
             ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString(
                   'base64',

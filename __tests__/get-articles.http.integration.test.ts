@@ -154,22 +154,63 @@ describe('HTTP Get Articles Integration Tests', () => {
         });
     });
 
-    it('should handle pagination', async () => {
+    it('should handle pagination with limit', async () => {
         // Given
         const { httpServer } = testContext;
 
-        // When - Get all articles with a small page size
-        const response = await httpServer.request('/articles?limit=2');
-        const data = await response.json();
+        // When - Get first page of articles
+        const firstResponse = await httpServer.request('/articles?limit=2');
+        const firstData = await firstResponse.json();
 
         // Then
-        expect(response.status).toBe(200);
-        expect(data.items).toHaveLength(2);
-        expect(data.total).toBe(3); // Total US articles
+        expect(firstResponse.status).toBe(200);
+        expect(firstData.items).toHaveLength(2);
+        expect(firstData.total).toBe(3); // Total US articles
+        expect(firstData.nextCursor).toBeDefined();
 
         // Verify the order of articles (should be newest first)
-        expect(data.items[0].category.toLowerCase()).toBe('technology');
-        expect(data.items[1].category.toLowerCase()).toBe('politics');
+        expect(firstData.items[0].category.toLowerCase()).toBe('technology');
+        expect(firstData.items[1].category.toLowerCase()).toBe('politics');
+
+        // When - Get next page using cursor
+        const secondResponse = await httpServer.request(
+            `/articles?limit=2&cursor=${firstData.nextCursor}`,
+        );
+        const secondData = await secondResponse.json();
+
+        // Then
+        expect(secondResponse.status).toBe(200);
+        expect(secondData.items).toHaveLength(1); // Last article
+        expect(secondData.total).toBe(3);
+        expect(secondData.nextCursor).toBeNull(); // No more pages
+
+        // Verify it's the last article
+        expect(secondData.items[0].category.toLowerCase()).toBe('technology');
+    });
+
+    it('should handle invalid cursor gracefully', async () => {
+        // Given
+        const { httpServer } = testContext;
+
+        // When - Invalid cursor format
+        const invalidCursorResponse = await httpServer.request('/articles?cursor=invalid-cursor');
+
+        // Then
+        expect(invalidCursorResponse.status).toBe(500);
+        expect(await invalidCursorResponse.json()).toMatchObject({
+            error: expect.stringContaining('Invalid cursor'),
+        });
+
+        // When - Valid base64 but invalid timestamp
+        const invalidTimestampResponse = await httpServer.request(
+            `/articles?cursor=${Buffer.from('not-a-timestamp').toString('base64')}`,
+        );
+
+        // Then
+        expect(invalidTimestampResponse.status).toBe(500);
+        expect(await invalidTimestampResponse.json()).toMatchObject({
+            error: expect.stringContaining('Invalid cursor'),
+        });
     });
 
     it('should handle invalid parameters gracefully', async () => {
