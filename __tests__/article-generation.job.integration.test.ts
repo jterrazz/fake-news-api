@@ -1,6 +1,7 @@
 import { TZDate } from '@date-fns/tz';
 
 import { getJobs } from '../src/di/container.js';
+import { getTimezoneForCountry } from '../src/shared/date/timezone.js';
 
 import { mockGeminiGenerateContentHandler } from './handlers/com.googleapis/gemini.handler.js';
 import { mockWorldNewsTopArticlesHandler } from './handlers/com.worldnewsapi/articles.handler.js';
@@ -12,14 +13,10 @@ import {
 
 describe('Job Article Generation Integration Tests', () => {
     let testContext: IntegrationTestContext;
-    const originalTZ = process.env.TZ;
-    const EXPECTED_HOUR = 14;
-    const EXPECTED_ARTICLE_COUNT = 2; // Between 12:00 and 17:00 we generate 8 articles
+    const EXPECTED_HOUR = 13;
+    const EXPECTED_ARTICLE_COUNT = 8;
 
     beforeAll(async () => {
-        // Set timezone to Paris for consistent testing
-        process.env.TZ = 'Europe/Paris';
-
         testContext = await setupIntegrationTest([
             mockWorldNewsTopArticlesHandler,
             mockGeminiGenerateContentHandler,
@@ -35,8 +32,17 @@ describe('Job Article Generation Integration Tests', () => {
         // Clean up articles before each test
         await testContext.prisma.article.deleteMany();
 
-        // Set time to January 1st, 2020 at 13:00 Paris time using TZDate
-        const mockDate = new TZDate(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0, 'Europe/Paris');
+        // Set time to January 1st, 2020 at Paris time
+        const mockDate = new TZDate(
+            2020,
+            0,
+            1,
+            EXPECTED_HOUR,
+            0,
+            0,
+            0,
+            getTimezoneForCountry('us'),
+        );
         jest.setSystemTime(mockDate);
     });
 
@@ -45,8 +51,6 @@ describe('Job Article Generation Integration Tests', () => {
     });
 
     afterAll(async () => {
-        // Restore original timezone and timers
-        process.env.TZ = originalTZ;
         jest.useRealTimers();
         await cleanupIntegrationTest(testContext);
     });
@@ -69,9 +73,6 @@ describe('Job Article Generation Integration Tests', () => {
             orderBy: { createdAt: 'desc' },
         });
 
-        console.log(`Found ${articles.length} articles at ${EXPECTED_HOUR}:00`);
-        console.log('Current date in test:', new Date().toISOString());
-
         // Verify article count based on time rules
         expect(articles).toHaveLength(EXPECTED_ARTICLE_COUNT);
 
@@ -86,7 +87,6 @@ describe('Job Article Generation Integration Tests', () => {
 
             // Verify creation time is at the expected hour
             // const articleHour = article.createdAt.getHours();
-            // console.log(`Article created at hour: ${articleHour}`);
             // expect(articleHour).toBe(EXPECTED_HOUR);
         });
 
@@ -94,9 +94,6 @@ describe('Job Article Generation Integration Tests', () => {
         const fakeArticles = articles.filter((a) => a.isFake);
         const realArticles = articles.filter((a) => !a.isFake);
 
-        console.log(
-            `Found ${fakeArticles.length} fake articles and ${realArticles.length} real articles`,
-        );
         expect(fakeArticles.length).toBeGreaterThan(0);
         expect(realArticles.length).toBeGreaterThan(0);
     });

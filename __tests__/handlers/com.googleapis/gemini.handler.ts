@@ -1,16 +1,57 @@
 import { type Category } from '@prisma/client';
 import { http, HttpResponse } from 'msw';
 
-type MockArticle = {
+interface MockArticle {
     category: Category;
     content: string;
     fakeReason: string | null;
     headline: string;
     isFake: boolean;
     summary: string;
-};
+}
 
-const MOCK_ARTICLES: MockArticle[] = [
+interface GeminiErrorResponse {
+    error: {
+        code: number;
+        details: Array<{
+            '@type': string;
+            domain: string;
+            metadata: {
+                service: string;
+            };
+            reason: string;
+        }>;
+        message: string;
+        status: string;
+    };
+}
+
+interface GeminiSuccessResponse {
+    candidates: Array<{
+        content: {
+            parts: Array<{
+                text: string;
+            }>;
+        };
+        finishReason: 'STOP';
+        safetyRatings: Array<never>;
+    }>;
+    promptFeedback: {
+        safetyRatings: Array<never>;
+    };
+}
+
+interface GeminiRequest {
+    contents: Array<{
+        parts: Array<{
+            text: string;
+        }>;
+    }>;
+}
+
+const TEST_API_KEY = 'test-gemini-key';
+
+const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
     {
         category: 'TECHNOLOGY',
         content:
@@ -33,7 +74,7 @@ const MOCK_ARTICLES: MockArticle[] = [
     },
 ];
 
-const INVALID_API_KEY_RESPONSE = {
+const INVALID_API_KEY_RESPONSE: GeminiErrorResponse = {
     error: {
         code: 400,
         details: [
@@ -52,28 +93,64 @@ const INVALID_API_KEY_RESPONSE = {
 };
 
 /**
+ * Generates a specified number of mock articles by alternating between fake and real articles.
+ *
+ * @param count - The number of articles to generate
+ * @returns An array of mock articles
+ */
+const generateMockArticles = (count: number): MockArticle[] => {
+    const articles: MockArticle[] = [];
+
+    for (let i = 0; i < count; i++) {
+        // Alternate between fake and real articles
+        const template = MOCK_ARTICLE_TEMPLATES[i % 2];
+
+        articles.push({
+            ...template,
+            // Add a suffix to make each article unique
+            headline: `${template.headline} ${i + 1}`,
+            summary: `${template.summary} (Article ${i + 1})`,
+        });
+    }
+
+    return articles;
+};
+
+/**
  * Mock handler for Google's Gemini API content generation endpoint.
  * Validates the API key and returns a predefined response for article generation requests.
+ * The number of articles to generate can be specified in the request prompt.
  *
  * @see https://ai.google.dev/api/rest/v1beta/models/generateContent
  */
 export const mockGeminiGenerateContentHandler = http.post(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent',
-    ({ request }) => {
+    async ({ request }) => {
         const apiKey = request.headers.get('x-goog-api-key');
 
-        if (apiKey !== 'test-gemini-key') {
+        if (apiKey !== TEST_API_KEY) {
             return new HttpResponse(JSON.stringify(INVALID_API_KEY_RESPONSE), {
                 headers: { 'Content-Type': 'application/json' },
                 status: 400,
             });
         }
 
-        return HttpResponse.json({
+        // Parse request body to get the number of articles to generate
+        const requestBody = (await request.json()) as GeminiRequest;
+        const promptText = requestBody.contents?.[0]?.parts?.[0]?.text ?? '';
+        const articleCountMatch = promptText.match(/Generate exactly (\d+) articles?/i);
+
+        if (!articleCountMatch) {
+            throw new Error('Number of articles not specified in prompt');
+        }
+
+        const articleCount = parseInt(articleCountMatch[1], 10);
+
+        const response: GeminiSuccessResponse = {
             candidates: [
                 {
                     content: {
-                        parts: [{ text: JSON.stringify(MOCK_ARTICLES) }],
+                        parts: [{ text: JSON.stringify(generateMockArticles(articleCount)) }],
                     },
                     finishReason: 'STOP',
                     safetyRatings: [],
@@ -82,6 +159,8 @@ export const mockGeminiGenerateContentHandler = http.post(
             promptFeedback: {
                 safetyRatings: [],
             },
-        });
+        };
+
+        return HttpResponse.json(response);
     },
 );
