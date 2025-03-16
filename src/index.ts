@@ -13,11 +13,9 @@ const start = async () => {
         const { host, port } = config.getAppConfiguration();
 
         // Initialize jobs
-        logger.info('Initializing job runner...');
         await jobRunner.initialize();
 
         // Start HTTP server
-        logger.info(`Starting HTTP server on ${host}:${port}...`);
         await httpServer.start({
             host,
             port,

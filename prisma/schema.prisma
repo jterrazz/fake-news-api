@@ -24,15 +24,13 @@ enum Language {
 }
 
 enum Category {
-  WORLD
   POLITICS
-  BUSINESS
   TECHNOLOGY
   SCIENCE
   HEALTH
-  SPORTS
   ENTERTAINMENT
-  LIFESTYLE
+  SPORTS
+  BUSINESS
   OTHER
 }
 

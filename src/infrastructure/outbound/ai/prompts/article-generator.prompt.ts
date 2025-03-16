@@ -1,4 +1,3 @@
-import { Category } from '@prisma/client';
 import { z } from 'zod';
 
 import { type GenerateArticlesParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
@@ -93,12 +92,12 @@ For FICTIONAL articles (generate at least 2 fake articles):
 - Use realistic quotes and statistics that seem credible
 - Keep the story within the realm of possibility given the current context
 
-The response MUST BE A VALID JSON and MATCH THIS FORMAT, with AT LEAST 2 FAKE ARTICLES (isFake: true):
+The response MUST BE A VALID JSON and MATCH THIS FORMAT:
 [
   {
     "headline": "A clear, professional headline of around 8-12 words",
     "content": "A well-crafted ~70 word article that reads like genuine news",
-    "category": "One of: ${Object.keys(Category).join(', ')}",
+    "category": "One of: ${Object.keys(ArticleCategory).join(', ')}",
     "summary": "A professional 1-2 sentence summary in journalistic style",
     "isFake": boolean,
     "fakeReason": "For fake articles only: A clear explanation of the subtle fictional elements and how they deviate from reality. Set to null for real articles."
