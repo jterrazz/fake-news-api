@@ -1,5 +1,4 @@
-import { setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
-import { fromZonedTime } from 'date-fns-tz';
+import { TZDate } from '@date-fns/tz';
 import { DeepMockProxy, mock } from 'jest-mock-extended';
 
 import { Article } from '../../../../domain/entities/article.js';
@@ -75,11 +74,16 @@ describe('GenerateArticlesUseCase', () => {
      * Used to simulate different times of day in different timezones
      */
     function createDateAtHour(hour: number, timezone: string): Date {
-        const localDate = setMilliseconds(
-            setSeconds(setMinutes(setHours(new Date(), hour), 0), 0),
+        return new TZDate(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            new Date().getDate(),
+            hour,
             0,
+            0,
+            0,
+            timezone,
         );
-        return fromZonedTime(localDate, timezone);
     }
 
     // Test fixtures
@@ -337,6 +341,9 @@ describe('GenerateArticlesUseCase', () => {
 
         it('should handle and re-throw errors during execution', async () => {
             // Given
+            const testDate = new TZDate(2020, 0, 1, 14, 0, 0, 0, 'America/New_York');
+            jest.setSystemTime(testDate);
+
             const testError = new Error('Test error');
             mockNewsService.fetchNews.mockRejectedValue(testError);
 

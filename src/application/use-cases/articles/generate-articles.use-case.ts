@@ -1,5 +1,5 @@
+import { TZDate } from '@date-fns/tz';
 import { format, getHours, subDays } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
 
 import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
@@ -29,8 +29,17 @@ function getCurrentHourInCountry(country: ArticleCountry): { hour: number; timez
     }
 
     const now = new Date();
-    const zonedDate = toZonedTime(now, timezone);
-    const hour = getHours(zonedDate);
+    const tzDate = new TZDate(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds(),
+        now.getMilliseconds(),
+        timezone,
+    );
+    const hour = getHours(tzDate);
 
     return { hour, timezone };
 }
@@ -73,10 +82,20 @@ export class GenerateArticlesUseCase {
 
             // Check existing articles for today
             const now = new Date();
-            const zonedNow = toZonedTime(now, timezone);
+            const tzDate = new TZDate(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                now.getHours(),
+                now.getMinutes(),
+                now.getSeconds(),
+                now.getMilliseconds(),
+                timezone,
+            );
+
             const existingArticleCount = await articleRepository.countManyForDay({
                 country,
-                date: zonedNow,
+                date: tzDate,
                 language,
             });
 
@@ -87,7 +106,7 @@ export class GenerateArticlesUseCase {
                 logger.info('No new articles needed at this time', {
                     country,
                     currentCount: existingArticleCount,
-                    hour: format(zonedNow, 'HH'),
+                    hour: format(tzDate, 'HH'),
                     language,
                     targetCount: targetArticleCount,
                     timezone,
@@ -107,7 +126,7 @@ export class GenerateArticlesUseCase {
             }
 
             // Get recent headlines for context (last 30 days)
-            const since = subDays(zonedNow, 30);
+            const since = subDays(tzDate, 30);
             const publishedSummaries = await articleRepository.findPublishedSummaries({
                 country,
                 language,
@@ -134,7 +153,7 @@ export class GenerateArticlesUseCase {
                 country,
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
-                hour: format(zonedNow, 'HH'),
+                hour: format(tzDate, 'HH'),
                 language,
                 targetCount: targetArticleCount,
                 timezone,
