@@ -44,7 +44,10 @@ export class GenerateArticlesUseCase {
         const { articleGenerator, articleRepository, logger, newsService } = this.deps;
 
         try {
-            logger.info('Starting article generation', { country, language });
+            logger.info('Starting article generation', {
+                country: country.toString(),
+                language: language.toString(),
+            });
 
             // Get timezone and current hour
             const timezone = getTimezoneForCountry(country.toString());
@@ -64,10 +67,10 @@ export class GenerateArticlesUseCase {
 
             if (articlesToGenerate <= 0) {
                 logger.info('No new articles needed at this time', {
-                    country,
+                    country: country.toString(),
                     currentCount: existingArticleCount,
                     hour: formatInTimezone(tzDate, timezone, 'HH'),
-                    language,
+                    language: language.toString(),
                     targetCount: targetArticleCount,
                     timezone,
                 });
@@ -82,7 +85,10 @@ export class GenerateArticlesUseCase {
             });
 
             if (news.length === 0) {
-                logger.warn('No articles found', { country, language });
+                logger.warn('No articles found', {
+                    country: country.toString(),
+                    language: language.toString(),
+                });
                 return;
             }
 
@@ -113,16 +119,20 @@ export class GenerateArticlesUseCase {
             await articleRepository.createMany(generatedArticles);
 
             logger.info('Successfully stored articles', {
-                country,
+                country: country.toString(),
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
                 hour: formatInTimezone(tzDate, timezone, 'HH'),
-                language,
+                language: language.toString(),
                 targetCount: targetArticleCount,
                 timezone,
             });
         } catch (error) {
-            logger.error('Failed to generate articles', { country, error, language });
+            logger.error('Failed to generate articles', {
+                country: country.toString(),
+                error,
+                language: language.toString(),
+            });
             throw error;
         }
     }

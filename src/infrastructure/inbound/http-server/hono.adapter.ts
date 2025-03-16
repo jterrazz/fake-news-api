@@ -5,6 +5,7 @@ import {
     HttpServerConfiguration,
     HttpServerPort,
 } from '../../../application/ports/inbound/http-server.port.js';
+import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 import { createArticlesRouter } from './routes/articles.js';
 import { createRootRouter } from './routes/root.js';
@@ -13,7 +14,7 @@ export class HonoServerAdapter implements HttpServerPort {
     private app: Hono;
     private server: ReturnType<typeof serve> | null = null;
 
-    constructor() {
+    constructor(private readonly logger: LoggerPort) {
         this.app = new Hono();
         this.registerRoutes();
     }
@@ -27,7 +28,10 @@ export class HonoServerAdapter implements HttpServerPort {
     public async start(config: HttpServerConfiguration): Promise<void> {
         return new Promise((resolve) => {
             this.server = serve(this.app, (info) => {
-                console.log(`Server is running on ${config.host}:${info.port}`);
+                this.logger.info('Server started', {
+                    host: config.host,
+                    port: info.port,
+                });
                 resolve();
             });
         });
@@ -37,6 +41,7 @@ export class HonoServerAdapter implements HttpServerPort {
         if (this.server) {
             await this.server.close();
             this.server = null;
+            this.logger.info('Server stopped');
         }
     }
 

@@ -188,8 +188,8 @@ describe('GenerateArticlesUseCase', () => {
                         1,
                         'Starting article generation',
                         {
-                            country: TEST_COUNTRY,
-                            language: TEST_LANGUAGE,
+                            country: TEST_COUNTRY.toString(),
+                            language: TEST_LANGUAGE.toString(),
                         },
                     );
 
@@ -197,11 +197,11 @@ describe('GenerateArticlesUseCase', () => {
                         2,
                         'Successfully stored articles',
                         {
-                            country: TEST_COUNTRY,
+                            country: TEST_COUNTRY.toString(),
                             currentCount: existingCount + expectedToGenerate,
                             generatedCount: expectedToGenerate,
                             hour: hour < 10 ? `0${hour}` : hour.toString(),
-                            language: TEST_LANGUAGE,
+                            language: TEST_LANGUAGE.toString(),
                             targetCount: getTargetArticleCount(hour),
                             timezone: 'America/New_York',
                         },
@@ -262,8 +262,8 @@ describe('GenerateArticlesUseCase', () => {
                         1,
                         'Starting article generation',
                         {
-                            country: frenchCountry,
-                            language: frenchLanguage,
+                            country: frenchCountry.toString(),
+                            language: frenchLanguage.toString(),
                         },
                     );
 
@@ -271,11 +271,11 @@ describe('GenerateArticlesUseCase', () => {
                         2,
                         'Successfully stored articles',
                         {
-                            country: frenchCountry,
+                            country: frenchCountry.toString(),
                             currentCount: existingCount + expectedToGenerate,
                             generatedCount: expectedToGenerate,
                             hour: hour < 10 ? `0${hour}` : hour.toString(),
-                            language: frenchLanguage,
+                            language: frenchLanguage.toString(),
                             targetCount: getTargetArticleCount(hour),
                             timezone: 'Europe/Paris',
                         },
@@ -300,18 +300,18 @@ describe('GenerateArticlesUseCase', () => {
 
             // Then
             expect(mockLogger.info).toHaveBeenNthCalledWith(1, 'Starting article generation', {
-                country: frenchCountry,
-                language: frenchLanguage,
+                country: frenchCountry.toString(),
+                language: frenchLanguage.toString(),
             });
 
             expect(mockLogger.info).toHaveBeenNthCalledWith(
                 2,
                 'No new articles needed at this time',
                 {
-                    country: frenchCountry,
+                    country: frenchCountry.toString(),
                     currentCount: 0,
                     hour: '04',
-                    language: frenchLanguage,
+                    language: frenchLanguage.toString(),
                     targetCount: 0,
                     timezone: 'Europe/Paris',
                 },
@@ -332,8 +332,8 @@ describe('GenerateArticlesUseCase', () => {
 
             // Then
             expect(mockLogger.warn).toHaveBeenCalledWith('No articles found', {
-                country: TEST_COUNTRY,
-                language: TEST_LANGUAGE,
+                country: TEST_COUNTRY.toString(),
+                language: TEST_LANGUAGE.toString(),
             });
             expect(mockArticleGenerator.generateArticles).not.toHaveBeenCalled();
             expect(mockArticleRepository.createMany).not.toHaveBeenCalled();
@@ -351,9 +351,9 @@ describe('GenerateArticlesUseCase', () => {
             await expect(useCase.execute(TEST_LANGUAGE, TEST_COUNTRY)).rejects.toThrow(testError);
 
             expect(mockLogger.error).toHaveBeenCalledWith('Failed to generate articles', {
-                country: TEST_COUNTRY,
+                country: TEST_COUNTRY.toString(),
                 error: testError,
-                language: TEST_LANGUAGE,
+                language: TEST_LANGUAGE.toString(),
             });
         });
     });

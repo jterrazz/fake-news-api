@@ -39,7 +39,13 @@ const configurationFactory = Injectable(
     () => new NodeConfigAdapter(nodeConfiguration),
 );
 
-const httpServerFactory = Injectable('HttpServer', () => new HonoServerAdapter());
+const httpServerFactory = Injectable(
+    'HttpServer',
+    ['Logger'] as const,
+    (logger: LoggerPort): HttpServerPort => {
+        return new HonoServerAdapter(logger);
+    },
+);
 
 const jobRunnerFactory = Injectable(
     'JobRunner',
@@ -159,12 +165,11 @@ const jobsFactory = Injectable(
  * Application container configuration
  */
 export const container = Container
-    // Inbound adapters
+    // Adapters
     .provides(configurationFactory)
-    .provides(httpServerFactory)
-    // Outbound adapters
-    .provides(databaseFactory)
     .provides(loggerFactory)
+    .provides(httpServerFactory)
+    .provides(databaseFactory)
     .provides(newsFactory)
     .provides(aiProviderFactory)
     // Repository adapters
