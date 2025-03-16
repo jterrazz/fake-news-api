@@ -75,20 +75,16 @@ describe('GenerateArticlesUseCase', () => {
      */
     function createDateAtHour(hour: number, timezone: string): Date {
         const now = new Date();
-        // Create a date at midnight in the target timezone
-        const tzDate = new TZDate(
+        return new TZDate(
             now.getFullYear(),
             now.getMonth(),
             now.getDate(),
-            0, // Start at midnight
+            hour,
             0,
             0,
             0,
             timezone,
         );
-
-        // Add the specified hours
-        return new TZDate(tzDate.getTime() + hour * 60 * 60 * 1000, timezone);
     }
 
     // Test fixtures

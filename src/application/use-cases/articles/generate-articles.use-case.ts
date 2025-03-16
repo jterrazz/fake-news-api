@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-
 import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
@@ -9,9 +7,7 @@ import { type LoggerPort } from '../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
 import {
-    createCurrentTZDate,
     formatInTimezone,
-    getCurrentHourInTimezone,
     getTimezoneForCountry,
     subtractDaysInTimezone,
     TZDate,
@@ -54,8 +50,7 @@ export class GenerateArticlesUseCase {
 
             // Get timezone and current hour
             const timezone = getTimezoneForCountry(country.toString());
-            const currentDate = new Date();
-            const tzDate = new TZDate(currentDate.getTime(), timezone);
+            const tzDate = new TZDate(Date.now(), timezone);
             const hour = tzDate.getHours();
             const targetArticleCount = getTargetArticleCount(hour);
 
@@ -82,7 +77,6 @@ export class GenerateArticlesUseCase {
             }
 
             // Fetch real articles from news service
-            // TODO Use maybe full content article to generate fake articles
             const news = await newsService.fetchNews({
                 country,
                 language,
@@ -98,7 +92,6 @@ export class GenerateArticlesUseCase {
 
             // Get recent headlines for context (last 30 days)
             const since = subtractDaysInTimezone(tzDate, timezone, 30);
-            // TODO Use more than just the summary
             const publishedSummaries = await articleRepository.findPublishedSummaries({
                 country,
                 language,
@@ -109,7 +102,6 @@ export class GenerateArticlesUseCase {
             const generatedArticles = await articleGenerator.generateArticles({
                 articles: {
                     news: news.map((article) => ({
-                        // TODO Fix this
                         content: article.summary,
                         title: article.title,
                     })),
