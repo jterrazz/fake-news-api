@@ -25,7 +25,8 @@ export class ResponseParser {
         try {
             const cleanedText = this.cleanText(text);
             const json = this.extractJsonFromText(cleanedText, schema);
-            return schema.parse(json);
+            const unescapedJson = this.unescapeJsonValues(json);
+            return schema.parse(unescapedJson);
         } catch (error) {
             if (error instanceof z.ZodError) {
                 throw new ResponseParsingError(
@@ -130,9 +131,46 @@ export class ResponseParser {
     }
 
     /**
+     * Unescapes common escaped characters in text
+     */
+    private static unescapeText(text: string): string {
+        return text
+            .replace(/\\"/g, '"') // Unescape quotes
+            .replace(/\\n/g, '\n') // Unescape newlines
+            .replace(/\\r/g, '\r') // Unescape carriage returns
+            .replace(/\\t/g, '\t') // Unescape tabs
+            .replace(/\\\\/g, '\\') // Unescape backslashes
+            .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16))); // Unescape unicode
+    }
+
+    /**
+     * Recursively unescapes all string values in a JSON object/array
+     */
+    private static unescapeJsonValues(json: unknown): unknown {
+        if (typeof json === 'string') {
+            return this.unescapeText(json);
+        }
+        if (Array.isArray(json)) {
+            return json.map((item) => this.unescapeJsonValues(item));
+        }
+        if (typeof json === 'object' && json !== null) {
+            return Object.fromEntries(
+                Object.entries(json).map(([key, value]) => [key, this.unescapeJsonValues(value)]),
+            );
+        }
+        return json;
+    }
+
+    /**
      * Cleans text by removing newlines and extra whitespace
      */
     private static cleanText(text: string): string {
+        // Extract content from markdown code blocks if present
+        const codeBlockMatch = text.match(/```(?:json)?\n([\s\S]*?)\n```/);
+        if (codeBlockMatch) {
+            text = codeBlockMatch[1];
+        }
+
         return text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     }
 }

@@ -13,13 +13,13 @@ const configurationSchema = z.object({
         }),
         worldNews: z.object({
             apiKey: z.string().min(1),
-            useCache: z.boolean(),
+            useCache: z.coerce.boolean(),
         }),
     }),
     app: z.object({
         env: z.enum(['development', 'production', 'test']),
         host: z.string(),
-        port: z.number(),
+        port: z.coerce.number().int().positive(),
     }),
     logging: z.object({
         level: z.enum(['debug', 'info', 'warn', 'error']),

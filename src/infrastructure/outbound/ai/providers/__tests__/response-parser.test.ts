@@ -202,5 +202,37 @@ describe('ResponseParser', () => {
             // Then
             expect(result).toEqual(validJson);
         });
+
+        it('should handle escaped characters in JSON', () => {
+            // Given
+            const text =
+                '{"content": "Test\\ncontent\\twith\\r\\nescapes", "tags": ["test\\u0020ai", "escaped\\"quotes\\""], "title": "Test\\\\Article"}';
+
+            // When
+            const result = ResponseParser.parse(text, testSchema);
+
+            // Then
+            expect(result).toEqual({
+                content: 'Test\ncontent\twith\r\nescapes',
+                tags: ['test ai', 'escaped"quotes"'],
+                title: 'Test\\Article',
+            });
+        });
+
+        it('should handle escaped characters in markdown code blocks', () => {
+            // Given
+            const text =
+                '```json\n{"content": "Test\\nContent", "tags": ["test\\u0020ai"], "title": "Test\\\\Title"}\n```';
+
+            // When
+            const result = ResponseParser.parse(text, testSchema);
+
+            // Then
+            expect(result).toEqual({
+                content: 'Test\nContent',
+                tags: ['test ai'],
+                title: 'Test\\Title',
+            });
+        });
     });
 });
