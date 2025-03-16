@@ -38,7 +38,11 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
 
         const itemsWhere = {
             ...baseWhere,
-            ...(params.cursor && { createdAt: { lt: params.cursor } }),
+            ...(params.cursor && {
+                createdAt: {
+                    lt: params.cursor,
+                },
+            }),
         };
 
         const [items, total] = await Promise.all([

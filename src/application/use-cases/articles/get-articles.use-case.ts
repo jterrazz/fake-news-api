@@ -59,10 +59,13 @@ export class GetArticlesUseCase {
         let cursorDate: Date | undefined;
         if (cursor) {
             try {
-                const timestamp = Number(atob(cursor));
+                const decodedString = Buffer.from(cursor, 'base64').toString();
+                const timestamp = Number(decodedString);
+                
                 if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
+                
                 cursorDate = new Date(timestamp);
-            } catch {
+            } catch (error) {
                 throw new Error('Invalid cursor');
             }
         }
@@ -82,11 +85,12 @@ export class GetArticlesUseCase {
         const results = hasMore ? items.slice(0, limit) : items;
 
         // Generate next cursor from the last item if there are more results
-        const nextCursor = hasMore
-            ? Buffer.from(results[results.length - 1].createdAt.getTime().toString()).toString(
-                  'base64',
-              )
-            : null;
+        let nextCursor = null;
+        if (hasMore && results.length > 0) {
+            const lastItem = results[results.length - 1];
+            const timestamp = lastItem.createdAt.getTime().toString();
+            nextCursor = Buffer.from(timestamp).toString('base64');
+        }
 
         return {
             items: results,

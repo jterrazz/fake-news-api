@@ -15,10 +15,12 @@ export class ArticleMapper {
             category: this.mapCategoryToDomain(prisma.category),
             content: ArticleContent.create(prisma.article),
             country: this.mapCountryToDomain(prisma.country),
+            createdAt: prisma.createdAt,
             fakeStatus: prisma.isFake
                 ? ArticleFakeStatus.createFake(prisma.fakeReason ?? '')
                 : ArticleFakeStatus.createNonFake(),
             headline: ArticleHeadline.create(prisma.headline),
+            id: prisma.id,
             language: this.mapLanguageToDomain(prisma.language),
             summary: ArticleSummary.create(prisma.summary),
         });

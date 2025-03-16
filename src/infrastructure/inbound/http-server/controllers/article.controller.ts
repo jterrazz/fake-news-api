@@ -5,7 +5,6 @@ import {
     type GetArticlesUseCase,
 } from '../../../../application/use-cases/articles/get-articles.use-case.js';
 
-
 type PaginatedResponse<T> = {
     items: T[];
     nextCursor: string | null;
@@ -31,7 +30,7 @@ export class ArticleController {
             language: article.language.toString() as Language,
             summary: article.summary.toString(),
         }));
-
+        
         return {
             items: prismaArticles,
             nextCursor: result.nextCursor,
