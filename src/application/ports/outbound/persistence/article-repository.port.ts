@@ -24,6 +24,15 @@ export interface FindPublishedSummariesParams {
 }
 
 /**
+ * Parameters for counting articles for a specific day
+ */
+export interface CountArticlesForDayParams {
+    language: ArticleLanguage;
+    country: ArticleCountry;
+    date: Date;
+}
+
+/**
  * Article repository port
  */
 export interface ArticleRepositoryPort {
@@ -39,6 +48,11 @@ export interface ArticleRepositoryPort {
      * Find published article summaries since a given date
      */
     findPublishedSummaries(params: FindPublishedSummariesParams): Promise<Array<string>>;
+
+    /**
+     * Count articles for a specific day
+     */
+    countArticlesForDay(params: CountArticlesForDayParams): Promise<number>;
 
     /**
      * Create multiple articles in a single transaction

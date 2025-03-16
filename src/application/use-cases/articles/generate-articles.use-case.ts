@@ -1,3 +1,6 @@
+import { format, getHours, subDays } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+
 import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
@@ -5,6 +8,42 @@ import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-gener
 import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type LoggerPort } from '../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
+
+/**
+ * Map of country codes to their timezone identifiers
+ */
+const COUNTRY_TIMEZONES: Record<string, string> = {
+    fr: 'Europe/Paris',
+    us: 'America/New_York',
+};
+
+/**
+ * Get the current hour in the country's timezone
+ */
+function getCurrentHourInCountry(country: ArticleCountry): { hour: number; timezone: string } {
+    const countryCode = country.toString().toLowerCase();
+    const timezone = COUNTRY_TIMEZONES[countryCode];
+
+    if (!timezone) {
+        throw new Error(`Unsupported country: ${countryCode}`);
+    }
+
+    const now = new Date();
+    const zonedDate = toZonedTime(now, timezone);
+    const hour = getHours(zonedDate);
+
+    return { hour, timezone };
+}
+
+/**
+ * Determines the target number of articles based on the hour
+ */
+function getTargetArticleCount(hour: number): number {
+    if (hour < 6) return 0;
+    if (hour < 12) return 4;
+    if (hour < 17) return 8;
+    return 12;
+}
 
 type Dependencies = {
     articleGenerator: ArticleGeneratorPort;
@@ -28,8 +67,33 @@ export class GenerateArticlesUseCase {
         try {
             logger.info('Starting article generation', { country, language });
 
-            // TODO: Check if articles already exist for this country and language for the day
-            // TODO: Do a batch at 6am every day and a batch at 4pm every day
+            // Get current time in the target country's timezone
+            const { hour, timezone } = getCurrentHourInCountry(country);
+            const targetArticleCount = getTargetArticleCount(hour);
+
+            // Check existing articles for today
+            const now = new Date();
+            const zonedNow = toZonedTime(now, timezone);
+            const existingArticleCount = await articleRepository.countArticlesForDay({
+                country,
+                date: zonedNow,
+                language,
+            });
+
+            // Calculate how many articles we need to generate
+            const articlesToGenerate = targetArticleCount - existingArticleCount;
+
+            if (articlesToGenerate <= 0) {
+                logger.info('No new articles needed at this time', {
+                    country,
+                    currentCount: existingArticleCount,
+                    hour: format(zonedNow, 'HH'),
+                    language,
+                    targetCount: targetArticleCount,
+                    timezone,
+                });
+                return;
+            }
 
             // Fetch real articles from news service
             const news = await newsService.fetchNews({
@@ -42,8 +106,8 @@ export class GenerateArticlesUseCase {
                 return;
             }
 
-            // Get recent headlines for context
-            const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+            // Get recent headlines for context (last 30 days)
+            const since = subDays(zonedNow, 30);
             const publishedSummaries = await articleRepository.findPublishedSummaries({
                 country,
                 language,
@@ -53,9 +117,13 @@ export class GenerateArticlesUseCase {
             // Generate AI articles based on real ones
             const generatedArticles = await articleGenerator.generateArticles({
                 articles: {
-                    news,
-                    publicationHistory: publishedSummaries, // TODO Include date of publication and title
+                    news: news.map((article) => ({
+                        content: article.summary,
+                        title: article.title,
+                    })),
+                    publicationHistory: publishedSummaries,
                 },
+                count: articlesToGenerate,
                 country,
                 language,
             });
@@ -64,12 +132,16 @@ export class GenerateArticlesUseCase {
 
             logger.info('Successfully stored articles', {
                 country,
+                currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
+                hour: format(zonedNow, 'HH'),
                 language,
+                targetCount: targetArticleCount,
+                timezone,
             });
         } catch (error) {
             logger.error('Failed to generate articles', { country, error, language });
-            throw error; // Re-throw to let the job handle the error
+            throw error;
         }
     }
 }

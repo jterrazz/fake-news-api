@@ -2,7 +2,6 @@ import { type Article } from '../../../../domain/entities/article.js';
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-
 /**
  * Parameters for generating articles
  */
@@ -13,6 +12,7 @@ export type GenerateArticlesParams = {
     };
     language: ArticleLanguage;
     country: ArticleCountry;
+    count: number;
 };
 
 /**

@@ -43,11 +43,23 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             const instructions = this.prompt.generateInstructions(params);
 
             // Get raw articles from AI
-            const rawArticles = await aiProvider.generateContent(
+            let rawArticles = await aiProvider.generateContent(
                 instructions,
                 this.prompt.answerSchema,
-                { model: 'gemini-1.5-pro' },
+                { capability: 'advanced' },
             );
+
+            // Ensure we have exactly the requested number of articles
+            if (rawArticles.length > params.count) {
+                rawArticles = rawArticles.slice(0, params.count);
+            } else if (rawArticles.length < params.count) {
+                logger.warn('AI generated fewer articles than requested', {
+                    country: params.country,
+                    expected: params.count,
+                    language: params.language,
+                    received: rawArticles.length,
+                });
+            }
 
             // Base date from current time
             const baseDate = new Date();
@@ -76,6 +88,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             logger.info('Generated articles', {
                 articleCount: articles.length,
                 country: params.country,
+                expected: params.count,
                 fakeCount,
                 language: params.language,
                 realCount,

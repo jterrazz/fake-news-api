@@ -66,10 +66,13 @@ export class ArticleGeneratorPrompt
     public generateInstructions({
         articles: { news, publicationHistory },
         language,
+        count,
     }: GenerateArticlesParams): string {
         const languageLabel = language.toString();
 
         return `${IntroductionPrompt.GAME_CONTEXT}
+
+Generate exactly ${count} articles in total, with a nice balance between fake and real articles.
 
 For REAL articles:
 - Use headlines that capture the essence of the original but rephrase them to be around 8-12 words

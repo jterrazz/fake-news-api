@@ -20,5 +20,5 @@ export const createArticleGenerationJob = ({ generateArticles }: Dependencies): 
     },
     executeOnStartup: true, // We want articles available immediately on startup
     name: 'article-generation',
-    schedule: '0 11 * * *', // Run at 11 AM daily
+    schedule: '5 * * * *', // Run at 5 minutes past every hour
 });
