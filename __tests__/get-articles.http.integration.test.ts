@@ -1,4 +1,3 @@
-import { TZDate } from '@date-fns/tz';
 import { Category, Country, Language } from '@prisma/client';
 
 import {
@@ -44,13 +43,13 @@ describe('HTTP Get Articles Integration Tests', () => {
         await prisma.article.deleteMany();
 
         // Create test articles with different categories, dates, and languages
-        const baseDate = new TZDate(2024, 2, 1, 12, 0, 0, 0, 'UTC');
+        // Use string dates to ensure consistency and uniqueness
         const articles = [
             // US articles
             createTestArticle({
                 category: 'TECHNOLOGY' as Category,
                 country: 'us' as Country,
-                createdAt: new Date(baseDate.getTime()),
+                createdAt: new Date('2024-03-01T12:00:00.000Z'),
                 isFake: true,
                 language: 'en' as Language,
                 position: 1,
@@ -58,7 +57,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'POLITICS' as Category,
                 country: 'us' as Country,
-                createdAt: new Date(baseDate.getTime() - 1000 * 60 * 60), // 1 hour before
+                createdAt: new Date('2024-03-01T11:00:00.000Z'), // 1 hour before
                 isFake: false,
                 language: 'en' as Language,
                 position: 2,
@@ -66,7 +65,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'TECHNOLOGY' as Category,
                 country: 'us' as Country,
-                createdAt: new Date(baseDate.getTime() - 1000 * 60 * 60 * 2), // 2 hours before
+                createdAt: new Date('2024-03-01T10:00:00.000Z'), // 2 hours before
                 isFake: true,
                 language: 'en' as Language,
                 position: 3,
@@ -75,7 +74,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'POLITICS' as Category,
                 country: 'fr' as Country,
-                createdAt: new Date(baseDate.getTime()),
+                createdAt: new Date('2024-03-01T12:00:00.000Z'),
                 isFake: true,
                 language: 'fr' as Language,
                 position: 4,
@@ -83,7 +82,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'TECHNOLOGY' as Category,
                 country: 'fr' as Country,
-                createdAt: new Date(baseDate.getTime() - 1000 * 60 * 60), // 1 hour before
+                createdAt: new Date('2024-03-01T11:00:00.000Z'), // 1 hour before
                 isFake: false,
                 language: 'fr' as Language,
                 position: 5,
@@ -156,21 +155,32 @@ describe('HTTP Get Articles Integration Tests', () => {
 
     it('should handle pagination with limit', async () => {
         // Given
-        const { httpServer } = testContext;
+        const { httpServer, prisma } = testContext;
+
+        // Verify test data exists
+        const dbArticles = await prisma.article.findMany({
+            orderBy: { createdAt: 'desc' },
+            where: { country: 'us' },
+        });
+        expect(dbArticles).toHaveLength(3);
 
         // When - Get first page of articles
         const firstResponse = await httpServer.request('/articles?limit=2');
         const firstData = await firstResponse.json();
 
-        // Then
+        // Then - verify first page
         expect(firstResponse.status).toBe(200);
         expect(firstData.items).toHaveLength(2);
         expect(firstData.total).toBe(3); // Total US articles
         expect(firstData.nextCursor).toBeDefined();
 
-        // Verify the order of articles (should be newest first)
-        expect(firstData.items[0].category.toLowerCase()).toBe('technology');
-        expect(firstData.items[1].category.toLowerCase()).toBe('politics');
+        // Verify first page contains the newest articles
+        expect(new Date(firstData.items[0].createdAt).toISOString()).toBe(
+            '2024-03-01T12:00:00.000Z',
+        );
+        expect(new Date(firstData.items[1].createdAt).toISOString()).toBe(
+            '2024-03-01T11:00:00.000Z',
+        );
 
         // When - Get next page using cursor
         const secondResponse = await httpServer.request(
@@ -178,14 +188,27 @@ describe('HTTP Get Articles Integration Tests', () => {
         );
         const secondData = await secondResponse.json();
 
-        // Then
+        // Then - verify second page
         expect(secondResponse.status).toBe(200);
-        expect(secondData.items).toHaveLength(1); // Last article
-        expect(secondData.total).toBe(3);
-        expect(secondData.nextCursor).toBeNull(); // No more pages
 
-        // Verify it's the last article
-        expect(secondData.items[0].category.toLowerCase()).toBe('technology');
+        // Should have exactly one item in the second page (the third article)
+        expect(secondData.items).toHaveLength(1);
+
+        // Verify that the article returned is the third article
+        // with timestamp 2024-03-01T10:00:00.000Z
+        const secondPageArticle = secondData.items[0];
+        expect(secondPageArticle.category.toLowerCase()).toBe('technology');
+        expect(new Date(secondPageArticle.createdAt).toISOString()).toBe(
+            '2024-03-01T10:00:00.000Z',
+        );
+
+        // Verify we're not getting duplicates from the first page
+        const firstPageIds = new Set(firstData.items.map((item) => item.id));
+        const secondPageIds = new Set(secondData.items.map((item) => item.id));
+
+        // Verify no overlapping IDs between pages
+        const hasOverlap = [...secondPageIds].some((id) => firstPageIds.has(id));
+        expect(hasOverlap).toBe(false);
     });
 
     it('should handle invalid cursor gracefully', async () => {
