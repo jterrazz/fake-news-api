@@ -9,7 +9,7 @@ import {
 describe('HTTP Get Articles Integration Tests', () => {
     let testContext: IntegrationTestContext;
 
-    // Test data setup helpers
+    // Helper to create test article data
     const createTestArticle = (params: {
         category: Category;
         country: Country;
@@ -43,7 +43,6 @@ describe('HTTP Get Articles Integration Tests', () => {
         await prisma.article.deleteMany();
 
         // Create test articles with different categories, dates, and languages
-        // Use string dates to ensure consistency and uniqueness
         const articles = [
             // US articles
             createTestArticle({
@@ -57,7 +56,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'POLITICS' as Category,
                 country: 'us' as Country,
-                createdAt: new Date('2024-03-01T11:00:00.000Z'), // 1 hour before
+                createdAt: new Date('2024-03-01T11:00:00.000Z'),
                 isFake: false,
                 language: 'en' as Language,
                 position: 2,
@@ -65,7 +64,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'TECHNOLOGY' as Category,
                 country: 'us' as Country,
-                createdAt: new Date('2024-03-01T10:00:00.000Z'), // 2 hours before
+                createdAt: new Date('2024-03-01T10:00:00.000Z'),
                 isFake: true,
                 language: 'en' as Language,
                 position: 3,
@@ -82,7 +81,7 @@ describe('HTTP Get Articles Integration Tests', () => {
             createTestArticle({
                 category: 'TECHNOLOGY' as Category,
                 country: 'fr' as Country,
-                createdAt: new Date('2024-03-01T11:00:00.000Z'), // 1 hour before
+                createdAt: new Date('2024-03-01T11:00:00.000Z'),
                 isFake: false,
                 language: 'fr' as Language,
                 position: 5,
@@ -91,9 +90,7 @@ describe('HTTP Get Articles Integration Tests', () => {
 
         // Insert test articles
         for (const article of articles) {
-            await prisma.article.create({
-                data: article,
-            });
+            await prisma.article.create({ data: article });
         }
     });
 
@@ -171,7 +168,7 @@ describe('HTTP Get Articles Integration Tests', () => {
         // Then - verify first page
         expect(firstResponse.status).toBe(200);
         expect(firstData.items).toHaveLength(2);
-        expect(firstData.total).toBe(3); // Total US articles
+        expect(firstData.total).toBe(3);
         expect(firstData.nextCursor).toBeDefined();
 
         // Verify first page contains the newest articles
@@ -190,23 +187,18 @@ describe('HTTP Get Articles Integration Tests', () => {
 
         // Then - verify second page
         expect(secondResponse.status).toBe(200);
-
-        // Should have exactly one item in the second page (the third article)
         expect(secondData.items).toHaveLength(1);
 
-        // Verify that the article returned is the third article
-        // with timestamp 2024-03-01T10:00:00.000Z
+        // Verify the article is the oldest one
         const secondPageArticle = secondData.items[0];
         expect(secondPageArticle.category.toLowerCase()).toBe('technology');
         expect(new Date(secondPageArticle.createdAt).toISOString()).toBe(
             '2024-03-01T10:00:00.000Z',
         );
 
-        // Verify we're not getting duplicates from the first page
+        // Verify no duplicates between pages
         const firstPageIds = new Set(firstData.items.map((item) => item.id));
         const secondPageIds = new Set(secondData.items.map((item) => item.id));
-
-        // Verify no overlapping IDs between pages
         const hasOverlap = [...secondPageIds].some((id) => firstPageIds.has(id));
         expect(hasOverlap).toBe(false);
     });
@@ -244,7 +236,7 @@ describe('HTTP Get Articles Integration Tests', () => {
         const response = await httpServer.request('/articles?category=INVALID');
 
         // Then
-        expect(response.status).toBe(500); // API returns 500 for invalid parameters
+        expect(response.status).toBe(500);
         expect(await response.json()).toMatchObject({
             error: expect.any(String),
         });
