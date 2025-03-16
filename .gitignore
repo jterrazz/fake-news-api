@@ -9,7 +9,7 @@
 # Configuration
 src/configuration/values/local.yml
 .env
-config/local.*
+config/*local*
 
 # NodeJS
 node_modules/
