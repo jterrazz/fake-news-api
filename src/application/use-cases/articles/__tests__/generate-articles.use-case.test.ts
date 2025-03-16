@@ -1,6 +1,6 @@
 import { setHours, setMilliseconds, setMinutes, setSeconds } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
-import { mock } from 'jest-mock-extended';
+import { DeepMockProxy, mock } from 'jest-mock-extended';
 
 import { Article } from '../../../../domain/entities/article.js';
 import { ArticleCategory } from '../../../../domain/value-objects/article-category.vo.js';
@@ -18,83 +18,109 @@ import {
 import { ArticleSummary } from '../../../../domain/value-objects/article-summary.vo.js';
 
 import { type ArticleGeneratorPort } from '../../../ports/outbound/ai/article-generator.port.js';
-import { type NewsPort } from '../../../ports/outbound/data-sources/news.port.js';
-import { type NewsArticle } from '../../../ports/outbound/data-sources/news.port.js';
+import { type NewsArticle, type NewsPort } from '../../../ports/outbound/data-sources/news.port.js';
 import { type LoggerPort } from '../../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
 import { GenerateArticlesUseCase } from '../generate-articles.use-case.js';
 
-/**
- * Helper function to get target article count based on hour
- */
-function getTargetArticleCount(hour: number): number {
-    if (hour < 6) return 0;
-    if (hour < 12) return 4;
-    if (hour < 17) return 8;
-    return 12;
-}
-
-/**
- * Helper to create a date at a specific hour in a timezone
- */
-function createDateAtHour(hour: number, timezone: string): Date {
-    // Create date at the specified hour in local time
-    const localDate = setMilliseconds(setSeconds(setMinutes(setHours(new Date(), hour), 0), 0), 0);
-
-    // Convert to UTC based on the target timezone
-    return fromZonedTime(localDate, timezone);
-}
-
 describe('GenerateArticlesUseCase', () => {
-    // Mocks
-    const mockArticleGenerator = mock<ArticleGeneratorPort>();
-    const mockArticleRepository = mock<ArticleRepositoryPort>();
-    const mockLogger = mock<LoggerPort>();
-    const mockNewsService = mock<NewsPort>();
+    // Test helpers
+    const createTestNews = (count: number): NewsArticle[] =>
+        Array.from({ length: count }, (_, i) => ({
+            publishedAt: new Date(`2024-03-${String(i + 1).padStart(2, '0')}`),
+            summary: `Summary of real news ${i + 1}`,
+            title: `Real News ${i + 1}`,
+            url: `https://example.com/${i + 1}`,
+        }));
 
-    // Test data
-    const testCountry = ArticleCountry.create(CountryEnum.UnitedStates);
-    const testLanguage = ArticleLanguage.create(LanguageEnum.English);
+    const createTestArticles = (
+        count: number,
+        country: ArticleCountry,
+        language: ArticleLanguage,
+    ): Article[] =>
+        Array.from({ length: count }, (_, i) =>
+            Article.create({
+                category: ArticleCategory.create(i % 2 === 0 ? 'POLITICS' : 'TECHNOLOGY'),
+                content: ArticleContent.create(
+                    `This is article ${i + 1} with detailed content about ${i % 2 === 0 ? 'political' : 'technological'} developments. ` +
+                        'The content discusses various aspects and their potential impacts on society. ' +
+                        'Multiple perspectives are presented to provide a balanced view.',
+                ),
+                country,
+                createdAt: new Date(),
+                fakeStatus: ArticleFakeStatus.createFake('AI-generated content for testing'),
+                headline: ArticleHeadline.create(`Generated Article ${i + 1}`),
+                language,
+                summary: ArticleSummary.create(`Summary of generated article ${i + 1}`),
+            }),
+        );
 
-    const testNews: NewsArticle[] = Array.from({ length: 12 }, (_, i) => ({
-        publishedAt: new Date(`2024-03-${String(i + 1).padStart(2, '0')}`),
-        summary: `Summary of real news ${i + 1}`,
-        title: `Real News ${i + 1}`,
-        url: `https://example.com/${i + 1}`,
-    }));
+    /**
+     * Helper function to get target article count based on hour of the day
+     * - Before 6am: 0 articles
+     * - 6am to 12pm: 4 articles
+     * - 12pm to 5pm: 8 articles
+     * - After 5pm: 12 articles
+     */
+    function getTargetArticleCount(hour: number): number {
+        if (hour < 6) return 0;
+        if (hour < 12) return 4;
+        if (hour < 17) return 8;
+        return 12;
+    }
 
-    const testPublishedSummaries: string[] = Array.from(
-        { length: 12 },
-        (_, i) => `Old Article ${i + 1} from 2024-01-${String(i + 1).padStart(2, '0')}`,
-    );
+    /**
+     * Helper to create a date at a specific hour in a timezone
+     * Used to simulate different times of day in different timezones
+     */
+    function createDateAtHour(hour: number, timezone: string): Date {
+        const localDate = setMilliseconds(
+            setSeconds(setMinutes(setHours(new Date(), hour), 0), 0),
+            0,
+        );
+        return fromZonedTime(localDate, timezone);
+    }
 
-    const testGeneratedArticles: Article[] = Array.from({ length: 12 }, (_, i) =>
-        Article.create({
-            category: ArticleCategory.create(i % 2 === 0 ? 'POLITICS' : 'TECHNOLOGY'),
-            content: ArticleContent.create(
-                `This is article ${i + 1} with detailed content about ${i % 2 === 0 ? 'political' : 'technological'} developments. ` +
-                    'The content discusses various aspects and their potential impacts on society. ' +
-                    'Multiple perspectives are presented to provide a balanced view.',
-            ),
-            country: testCountry,
-            createdAt: new Date(),
-            fakeStatus: ArticleFakeStatus.createFake('AI-generated content for testing'),
-            headline: ArticleHeadline.create(`Generated Article ${i + 1}`),
-            language: testLanguage,
-            summary: ArticleSummary.create(`Summary of generated article ${i + 1}`),
-        }),
-    );
+    // Test fixtures
+    const TEST_COUNTRY = ArticleCountry.create(CountryEnum.UnitedStates);
+    const TEST_LANGUAGE = ArticleLanguage.create(LanguageEnum.English);
+    const TEST_ARTICLE_COUNT = 12;
 
-    // System under test
+    // Mocks setup
+    let mockArticleGenerator: DeepMockProxy<ArticleGeneratorPort>;
+    let mockArticleRepository: DeepMockProxy<ArticleRepositoryPort>;
+    let mockLogger: DeepMockProxy<LoggerPort>;
+    let mockNewsService: DeepMockProxy<NewsPort>;
     let useCase: GenerateArticlesUseCase;
 
-    beforeEach(() => {
-        // Reset all mocks
-        jest.clearAllMocks();
-        jest.useFakeTimers();
+    // Test data
+    let testNews: NewsArticle[];
+    let testArticles: Article[];
+    let testPublishedSummaries: string[];
 
-        // Initialize use case with mocked dependencies
+    beforeEach(() => {
+        // Initialize mocks
+        mockArticleGenerator = mock<ArticleGeneratorPort>();
+        mockArticleRepository = mock<ArticleRepositoryPort>();
+        mockLogger = mock<LoggerPort>();
+        mockNewsService = mock<NewsPort>();
+
+        // Initialize test data
+        testNews = createTestNews(TEST_ARTICLE_COUNT);
+        testArticles = createTestArticles(TEST_ARTICLE_COUNT, TEST_COUNTRY, TEST_LANGUAGE);
+        testPublishedSummaries = Array.from(
+            { length: TEST_ARTICLE_COUNT },
+            (_, i) => `Old Article ${i + 1} from 2024-01-${String(i + 1).padStart(2, '0')}`,
+        );
+
+        // Setup mock responses
+        mockNewsService.fetchNews.mockResolvedValue(testNews);
+        mockArticleRepository.findPublishedSummaries.mockResolvedValue(testPublishedSummaries);
+        mockArticleRepository.countArticlesForDay.mockResolvedValue(0);
+        mockArticleGenerator.generateArticles.mockResolvedValue(testArticles);
+
+        // Initialize use case
         useCase = new GenerateArticlesUseCase({
             articleGenerator: mockArticleGenerator,
             articleRepository: mockArticleRepository,
@@ -102,15 +128,13 @@ describe('GenerateArticlesUseCase', () => {
             newsService: mockNewsService,
         });
 
-        // Default mock implementations
-        mockNewsService.fetchNews.mockResolvedValue(testNews);
-        mockArticleRepository.findPublishedSummaries.mockResolvedValue(testPublishedSummaries);
-        mockArticleRepository.countArticlesForDay.mockResolvedValue(0);
-        mockArticleGenerator.generateArticles.mockResolvedValue(testGeneratedArticles);
+        // Setup time mocking
+        jest.useFakeTimers();
     });
 
     afterEach(() => {
         jest.useRealTimers();
+        jest.clearAllMocks();
     });
 
     describe('execute', () => {
@@ -131,11 +155,11 @@ describe('GenerateArticlesUseCase', () => {
 
                 mockArticleRepository.countArticlesForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
-                    testGeneratedArticles.slice(0, expectedToGenerate),
+                    testArticles.slice(0, expectedToGenerate),
                 );
 
                 // When
-                await useCase.execute(testLanguage, testCountry);
+                await useCase.execute(TEST_LANGUAGE, TEST_COUNTRY);
 
                 // Then
                 if (expectedToGenerate > 0) {
@@ -148,20 +172,20 @@ describe('GenerateArticlesUseCase', () => {
                             publicationHistory: testPublishedSummaries,
                         },
                         count: expectedToGenerate,
-                        country: testCountry,
-                        language: testLanguage,
+                        country: TEST_COUNTRY,
+                        language: TEST_LANGUAGE,
                     });
 
                     expect(mockArticleRepository.createMany).toHaveBeenCalledWith(
-                        testGeneratedArticles.slice(0, expectedToGenerate),
+                        testArticles.slice(0, expectedToGenerate),
                     );
 
                     expect(mockLogger.info).toHaveBeenNthCalledWith(
                         1,
                         'Starting article generation',
                         {
-                            country: testCountry,
-                            language: testLanguage,
+                            country: TEST_COUNTRY,
+                            language: TEST_LANGUAGE,
                         },
                     );
 
@@ -169,11 +193,11 @@ describe('GenerateArticlesUseCase', () => {
                         2,
                         'Successfully stored articles',
                         {
-                            country: testCountry,
+                            country: TEST_COUNTRY,
                             currentCount: existingCount + expectedToGenerate,
                             generatedCount: expectedToGenerate,
                             hour: hour < 10 ? `0${hour}` : hour.toString(),
-                            language: testLanguage,
+                            language: TEST_LANGUAGE,
                             targetCount: getTargetArticleCount(hour),
                             timezone: 'America/New_York',
                         },
@@ -205,7 +229,7 @@ describe('GenerateArticlesUseCase', () => {
 
                 mockArticleRepository.countArticlesForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
-                    testGeneratedArticles.slice(0, expectedToGenerate),
+                    testArticles.slice(0, expectedToGenerate),
                 );
 
                 // When
@@ -227,7 +251,7 @@ describe('GenerateArticlesUseCase', () => {
                     });
 
                     expect(mockArticleRepository.createMany).toHaveBeenCalledWith(
-                        testGeneratedArticles.slice(0, expectedToGenerate),
+                        testArticles.slice(0, expectedToGenerate),
                     );
 
                     expect(mockLogger.info).toHaveBeenNthCalledWith(
@@ -300,12 +324,12 @@ describe('GenerateArticlesUseCase', () => {
             mockNewsService.fetchNews.mockResolvedValue([]);
 
             // When
-            await useCase.execute(testLanguage, testCountry);
+            await useCase.execute(TEST_LANGUAGE, TEST_COUNTRY);
 
             // Then
             expect(mockLogger.warn).toHaveBeenCalledWith('No articles found', {
-                country: testCountry,
-                language: testLanguage,
+                country: TEST_COUNTRY,
+                language: TEST_LANGUAGE,
             });
             expect(mockArticleGenerator.generateArticles).not.toHaveBeenCalled();
             expect(mockArticleRepository.createMany).not.toHaveBeenCalled();
@@ -317,12 +341,12 @@ describe('GenerateArticlesUseCase', () => {
             mockNewsService.fetchNews.mockRejectedValue(testError);
 
             // When/Then
-            await expect(useCase.execute(testLanguage, testCountry)).rejects.toThrow(testError);
+            await expect(useCase.execute(TEST_LANGUAGE, TEST_COUNTRY)).rejects.toThrow(testError);
 
             expect(mockLogger.error).toHaveBeenCalledWith('Failed to generate articles', {
-                country: testCountry,
+                country: TEST_COUNTRY,
                 error: testError,
-                language: testLanguage,
+                language: TEST_LANGUAGE,
             });
         });
     });
