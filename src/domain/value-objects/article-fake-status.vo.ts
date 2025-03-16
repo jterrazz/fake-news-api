@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const fakeStatusSchema = z
+export const fakeStatusSchema = z
     .object({
         isFake: z.boolean().default(false),
         reason: z.string().nullable().default(null),

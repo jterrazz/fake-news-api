@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const contentSchema = z.string().min(50, 'Article content must be at least 50 characters long');
+export const contentSchema = z.string().min(50, 'Article content must be at least 50 characters long');
 
 export class ArticleContent {
     private constructor(public readonly value: string) {}

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const headlineSchema = z.string().min(3, 'Article headline must be at least 3 characters long');
+export const headlineSchema = z.string().min(3, 'Article headline must be at least 3 characters long');
 
 export class ArticleHeadline {
     private constructor(public readonly value: string) {}
