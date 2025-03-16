@@ -1,5 +1,9 @@
+import { endOfDay, startOfDay } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
+
 import type {
     ArticleRepositoryPort,
+    CountArticlesForDayParams,
     FindManyParams,
     FindPublishedSummariesParams,
 } from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
@@ -8,6 +12,12 @@ import type { Article } from '../../../../../domain/entities/article.js';
 
 import { ArticleMapper } from '../mappers/article.mapper.js';
 import type { PrismaAdapter } from '../prisma.adapter.js';
+
+// Map of country codes to their timezone identifiers
+const COUNTRY_TIMEZONES: Record<string, string> = {
+    fr: 'Europe/Paris',
+    us: 'America/New_York',
+};
 
 export class PrismaArticleRepository implements ArticleRepositoryPort {
     private readonly mapper: ArticleMapper;
@@ -59,6 +69,33 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         });
 
         return articles.map((article) => article.summary);
+    }
+
+    async countArticlesForDay(params: CountArticlesForDayParams): Promise<number> {
+        const countryCode = params.country.toString().toLowerCase();
+        const timezone = COUNTRY_TIMEZONES[countryCode];
+
+        if (!timezone) {
+            throw new Error(`Unsupported country: ${countryCode}`);
+        }
+
+        // Convert the date to the target timezone
+        const zonedDate = fromZonedTime(params.date, timezone);
+
+        // Get start and end of day in the target timezone
+        const start = startOfDay(zonedDate);
+        const end = endOfDay(zonedDate);
+
+        return this.prisma.getPrismaClient().article.count({
+            where: {
+                country: this.mapper.mapCountryToPrisma(params.country),
+                createdAt: {
+                    gte: start,
+                    lte: end,
+                },
+                language: this.mapper.mapLanguageToPrisma(params.language),
+            },
+        });
     }
 
     async createMany(articles: Article[]): Promise<Article[]> {

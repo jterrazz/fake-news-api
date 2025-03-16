@@ -18,7 +18,7 @@ export const mockWorldNewsTopArticlesHandler = http.get(
             apiKey !== 'test-world-news-key' ||
             sourceCountry !== 'us' ||
             language !== 'en' ||
-            date !== '2025-03-15'
+            date !== '2020-01-01'
         ) {
             return new HttpResponse(null, {
                 status: 400,
@@ -34,7 +34,7 @@ export const mockWorldNewsTopArticlesHandler = http.get(
                 {
                     news: [
                         {
-                            publish_date: '2024-03-10T12:00:00Z',
+                            publish_date: '2020-01-01T12:00:00Z',
                             summary: 'Test summary',
                             text: 'Test article text',
                             title: 'Test Article',
