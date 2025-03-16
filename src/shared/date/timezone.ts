@@ -1,6 +1,8 @@
 import { TZDate } from '@date-fns/tz';
 import { format, subDays } from 'date-fns';
 
+export { TZDate };
+
 /**
  * Map of country codes to their timezone identifiers
  */
@@ -56,7 +58,8 @@ export function getTimezoneForCountry(countryCode: string): string {
  */
 export function getCurrentHourInTimezone(timezone: string): number {
     const now = new Date();
-    const tzDate = new TZDate(now, timezone);
+    // Create a TZDate directly from UTC timestamp to ensure correct timezone conversion
+    const tzDate = new TZDate(now.getTime(), timezone);
     return tzDate.getHours();
 }
 

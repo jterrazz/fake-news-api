@@ -1,4 +1,3 @@
-import { TZDate } from '@date-fns/tz';
 import { DeepMockProxy, mock } from 'jest-mock-extended';
 
 import { Article } from '../../../../domain/entities/article.js';
@@ -21,6 +20,7 @@ import { type NewsArticle, type NewsPort } from '../../../ports/outbound/data-so
 import { type LoggerPort } from '../../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
+import { TZDate } from '../../../../shared/date/timezone.js';
 import { GenerateArticlesUseCase } from '../generate-articles.use-case.js';
 
 describe('GenerateArticlesUseCase', () => {
@@ -74,16 +74,21 @@ describe('GenerateArticlesUseCase', () => {
      * Used to simulate different times of day in different timezones
      */
     function createDateAtHour(hour: number, timezone: string): Date {
-        return new TZDate(
-            new Date().getFullYear(),
-            new Date().getMonth(),
-            new Date().getDate(),
-            hour,
+        const now = new Date();
+        // Create a date at midnight in the target timezone
+        const tzDate = new TZDate(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            0, // Start at midnight
             0,
             0,
             0,
             timezone,
         );
+
+        // Add the specified hours
+        return new TZDate(tzDate.getTime() + hour * 60 * 60 * 1000, timezone);
     }
 
     // Test fixtures

@@ -10,9 +10,11 @@ import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/art
 
 import {
     createCurrentTZDate,
+    formatInTimezone,
     getCurrentHourInTimezone,
     getTimezoneForCountry,
     subtractDaysInTimezone,
+    TZDate,
 } from '../../../shared/date/timezone.js';
 
 /**
@@ -52,11 +54,12 @@ export class GenerateArticlesUseCase {
 
             // Get timezone and current hour
             const timezone = getTimezoneForCountry(country.toString());
-            const hour = getCurrentHourInTimezone(timezone);
+            const currentDate = new Date();
+            const tzDate = new TZDate(currentDate.getTime(), timezone);
+            const hour = tzDate.getHours();
             const targetArticleCount = getTargetArticleCount(hour);
 
             // Check existing articles for today
-            const tzDate = createCurrentTZDate(timezone);
             const existingArticleCount = await articleRepository.countManyForDay({
                 country,
                 date: tzDate,
@@ -70,7 +73,7 @@ export class GenerateArticlesUseCase {
                 logger.info('No new articles needed at this time', {
                     country: country.toString(),
                     currentCount: existingArticleCount,
-                    hour: format(tzDate, 'HH'),
+                    hour: formatInTimezone(tzDate, timezone, 'HH'),
                     language: language.toString(),
                     targetCount: targetArticleCount,
                     timezone,
@@ -123,7 +126,7 @@ export class GenerateArticlesUseCase {
                 country: country.toString(),
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
-                hour: format(tzDate, 'HH'),
+                hour: formatInTimezone(tzDate, timezone, 'HH'),
                 language: language.toString(),
                 targetCount: targetArticleCount,
                 timezone,
