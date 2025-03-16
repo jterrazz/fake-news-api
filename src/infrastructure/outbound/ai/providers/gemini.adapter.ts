@@ -28,7 +28,7 @@ export class GeminiAdapter implements AIProviderPort {
     private readonly logger: LoggerPort;
     private readonly maxAttempts: number;
 
-    constructor({ config, logger, maxAttempts = 1 }: GeminiAdapterConfig) {
+    constructor({ config, logger, maxAttempts = 3 }: GeminiAdapterConfig) {
         this.client = new GoogleGenerativeAI(config.getApiConfiguration().gemini.apiKey);
         this.logger = logger;
         this.maxAttempts = maxAttempts;
