@@ -11,10 +11,4 @@ export interface DatabasePort {
      * Disconnect from the database
      */
     disconnect(): Promise<void>;
-
-    article: {
-        deleteMany: () => Promise<void>;
-        // Add other methods as needed
-    };
-    // ... other collections
 }

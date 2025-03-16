@@ -13,7 +13,6 @@ const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
 const WorldNewsArticleSchema = z.object({
     publish_date: z.string(),
-    // source_country: z.string().nullish(),
     summary: z.string().nullish(),
     text: z.string(),
     title: z.string(),

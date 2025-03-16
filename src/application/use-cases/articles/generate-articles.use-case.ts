@@ -75,6 +75,7 @@ export class GenerateArticlesUseCase {
             }
 
             // Fetch real articles from news service
+            // TODO Use maybe full content article to generate fake articles
             const news = await newsService.fetchNews({
                 country,
                 language,
@@ -87,6 +88,7 @@ export class GenerateArticlesUseCase {
 
             // Get recent headlines for context (last 30 days)
             const since = subtractDaysInTimezone(tzDate, timezone, 30);
+            // TODO Use more than just the summary
             const publishedSummaries = await articleRepository.findPublishedSummaries({
                 country,
                 language,
@@ -97,6 +99,7 @@ export class GenerateArticlesUseCase {
             const generatedArticles = await articleGenerator.generateArticles({
                 articles: {
                     news: news.map((article) => ({
+                        // TODO Fix this
                         content: article.summary,
                         title: article.title,
                     })),
