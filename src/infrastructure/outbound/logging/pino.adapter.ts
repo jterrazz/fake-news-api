@@ -22,7 +22,7 @@ export class PinoLoggerAdapter implements LoggerPort {
                       levelFirst: true,
                       messageFormat: false,
                       singleLine: true,
-                      translateTime: 'HH:MM:ss.l',
+                      translateTime: 'HH:MM:ss',
                   },
                   target: 'pino-pretty',
               }

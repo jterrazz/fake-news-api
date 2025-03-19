@@ -52,6 +52,7 @@ export class WorldNewsAdapter implements NewsPort {
 
     public async fetchNews({ language, country }: FetchNewsOptions): Promise<NewsArticle[]> {
         try {
+            this.logger.info('Retrieving news articles:', { country, language });
             await this.enforceRateLimit();
 
             const today = new Date().toISOString().split('T')[0];
@@ -75,8 +76,15 @@ export class WorldNewsAdapter implements NewsPort {
 
             const data = await response.json();
             const parsed = WorldNewsResponseSchema.parse(data);
+            const articles = this.transformResponse(parsed);
 
-            return this.transformResponse(parsed);
+            this.logger.info('Successfully retrieved news articles:', {
+                articleCount: articles.length,
+                country,
+                language,
+            });
+
+            return articles;
         } catch (error) {
             this.logger.error(`Failed to fetch ${language} news:`, {
                 country,

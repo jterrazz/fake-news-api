@@ -17,7 +17,7 @@ type GeminiAdapterConfig = {
     maxAttempts?: number;
 };
 
-type GeminiModelType = 'gemini-1.5-flash' | 'gemini-1.5-pro';
+type GeminiModelType = 'gemini-1.5-flash' | 'gemini-2.0-pro-exp';
 
 /**
  * Adapter for Google's Gemini AI service implementing the AIProviderPort interface.
@@ -58,7 +58,7 @@ export class GeminiAdapter implements AIProviderPort {
     }
 
     private getModelType(capability: AIModelConfig['capability']): GeminiModelType {
-        return capability === 'basic' ? 'gemini-1.5-flash' : 'gemini-1.5-pro';
+        return capability === 'basic' ? 'gemini-1.5-flash' : 'gemini-2.0-pro-exp';
     }
 
     private async generateModelResponse(model: GenerativeModel, prompt: string): Promise<string> {

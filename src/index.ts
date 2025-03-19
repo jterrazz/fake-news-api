@@ -1,7 +1,6 @@
 import { getConfiguration, getHttpServer, getJobRunner, getLogger } from './di/container.js';
 
 // Start server with proper error handling
-console.log(process.env.NODE_ENV);
 const start = async () => {
     const logger = getLogger();
 

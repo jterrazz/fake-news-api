@@ -39,6 +39,12 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
         const { aiProvider, logger } = this.deps;
 
         try {
+            logger.info('Starting article generation with AI', {
+                count: params.count,
+                country: params.country,
+                language: params.language,
+            });
+
             // Generate instructions
             const instructions = this.prompt.generateInstructions(params);
 
@@ -85,7 +91,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             // Log generation stats for monitoring
             const realCount = articles.filter((a) => !a.isFake()).length;
             const fakeCount = articles.filter((a) => a.isFake()).length;
-            logger.info('Generated articles', {
+            logger.info('Generated articles with AI', {
                 articleCount: articles.length,
                 country: params.country,
                 expected: params.count,
@@ -96,7 +102,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
 
             return articles;
         } catch (error) {
-            logger.error('Failed to generate articles', {
+            logger.error('Failed to generate articles with AI', {
                 country: params.country,
                 error,
                 language: params.language,

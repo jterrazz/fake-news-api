@@ -111,42 +111,34 @@ export class ArticleGeneratorPrompt
 Generate exactly ${count} articles in total, with a nice balance between fake and real articles.
 
 For REAL articles:
-- Use headlines that capture the essence of the original but rephrase them to be around 8-12 words
-- Keep the original language (${languageLabel}) of the headlines and content
-- Add interesting but factual details that make the story engaging
-- Keep the tone professional and journalistic
-- Include relevant context and factual background
+- Use headlines that capture the essence of the original but rephrase them to keep consistency in the app
+- Add interesting factual details that make the story engaging, and the app fun to play
+- Include relevant context and factual background, if you're certain about it
 
-For FICTIONAL articles (generate at least 2 fake articles):
-- Base fake stories on current real events and trends from the original headlines
-- Use the same journalistic style and tone as real news sources
+For FICTIONAL articles (generate a nice balance between fake and real articles):
+- Base fake stories on current real events and trends from the original real world headlines
 - Include accurate names of real organizations, places, and public figures
 - Create plausible extensions or developments of real current events
-- Add subtle twists that require fact-checking to disprove
-- Mix in accurate background details with the fictional elements
+- Add twists that require fact-checking to disprove
 - Make the fictional elements logically consistent with current reality
 - Avoid sensational or outlandish claims that would immediately raise suspicion
 - Use realistic quotes and statistics that seem credible
 - Keep the story within the realm of possibility given the current context
 
-Schema: ${this.getSchemaDescription()}
+======
 
-Original headlines to draw inspiration from:
+Original real world headlines to draw inspiration from:
 ${JSON.stringify(news)}
 
-Recently generated articles to avoid duplicating:
+Past generated articles in my app to keep the consistency:
 ${JSON.stringify(publicationHistory)}
 
 Important guidelines:
-- Create unique headlines different from both original and recent articles
 - Headlines should be clear and around 8-12 words long
-- Maintain consistent professional tone across all articles
-- Write all content in ${languageLabel}
+- Write all content in the output JSON in ${languageLabel}
 - Use proper journalistic style and structure
-- Include relevant context and background information
-- For fake articles, ensure the fictional elements are subtle and plausible
-- Make fact-checking necessary to distinguish real from fake
-- Avoid obvious patterns that could give away fake articles
-- Return only valid JSON`;
+- The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
+
+Output the JSON in the following format: ${this.getSchemaDescription()}. Pass directly the JSON, do not use markdown or any other formatting. Simple JSON.`;
     }
 }
