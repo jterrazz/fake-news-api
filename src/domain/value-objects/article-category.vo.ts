@@ -8,7 +8,7 @@ export enum CategoryEnum {
     Entertainment = 'entertainment',
     Sports = 'sports',
     Business = 'business',
-    Other = 'other'
+    World = 'world',
 }
 
 export const categorySchema = z.nativeEnum(CategoryEnum);

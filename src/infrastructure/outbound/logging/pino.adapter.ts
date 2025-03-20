@@ -4,8 +4,10 @@ import { ConfigurationPort } from '../../../application/ports/inbound/configurat
 
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
+// TODO Migrate to package-logger
 export class PinoLoggerAdapter implements LoggerPort {
     private logger: pino.Logger;
+    // TODO Fix config leak - expose only a format option
     private config: ConfigurationPort;
 
     constructor(config: ConfigurationPort, options?: pino.LoggerOptions) {

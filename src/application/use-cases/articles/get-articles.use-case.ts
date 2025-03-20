@@ -26,7 +26,7 @@ export const getArticlesParamsSchema = z.object({
             CategoryEnum.Entertainment,
             CategoryEnum.Sports,
             CategoryEnum.Business,
-            CategoryEnum.Other,
+            CategoryEnum.World,
         ])
         .optional(),
     country: z.nativeEnum(CountryEnum).optional(),

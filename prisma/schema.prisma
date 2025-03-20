@@ -31,7 +31,7 @@ enum Category {
   ENTERTAINMENT
   SPORTS
   BUSINESS
-  OTHER
+  WORLD
 }
 
 model Article {

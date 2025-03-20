@@ -162,15 +162,83 @@ export class ResponseParser {
     }
 
     /**
-     * Cleans text by removing newlines and extra whitespace
+     * Extracts and validates JSON content from a code block
      */
-    private static cleanText(text: string): string {
-        // Extract content from markdown code blocks if present
-        const codeBlockMatch = text.match(/```(?:json)?\n([\s\S]*?)\n```/);
-        if (codeBlockMatch) {
-            text = codeBlockMatch[1];
+    private static extractJsonFromCodeBlock(block: string): string | null {
+        const content = block.replace(/```(?:json)?\r?\n([^`]*?)\r?\n```/, '$1').trim();
+        try {
+            // Attempt to parse as JSON to validate structure
+            JSON.parse(content);
+            return content;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Finds valid JSON structures in raw text
+     */
+    private static findJsonStructures(text: string): string[] {
+        const jsonMatches: string[] = [];
+        let depth = 0;
+        let start = -1;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '{' || char === '[') {
+                if (depth === 0) start = i;
+                depth++;
+            } else if (char === '}' || char === ']') {
+                depth--;
+                if (depth === 0 && start !== -1) {
+                    const potentialJson = text.slice(start, i + 1);
+                    try {
+                        JSON.parse(potentialJson);
+                        jsonMatches.push(potentialJson);
+                    } catch {
+                        // Invalid JSON, ignore
+                    }
+                }
+            }
         }
 
-        return text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+        return jsonMatches;
+    }
+
+    /**
+     * Returns the largest string from an array of strings
+     */
+    private static findLargestString(strings: string[]): string {
+        return strings.reduce(
+            (largest, current) => (current.length > largest.length ? current : largest),
+            strings[0],
+        );
+    }
+
+    /**
+     * Cleans text and finds the largest schema-compatible structure
+     */
+    private static cleanText(text: string): string {
+        // First try to extract from markdown code blocks
+        const codeBlocks = text.match(/```(?:json)?\r?\n([^`]*?)\r?\n```/g);
+        if (codeBlocks) {
+            // Try each code block and return the largest valid one
+            const validBlocks = codeBlocks
+                .map((block) => this.extractJsonFromCodeBlock(block))
+                .filter((block): block is string => block !== null);
+
+            if (validBlocks.length > 0) {
+                return this.findLargestString(validBlocks);
+            }
+        }
+
+        // If no valid code blocks, try to find JSON-like structures in the text
+        const jsonMatches = this.findJsonStructures(text);
+        if (jsonMatches.length > 0) {
+            return this.findLargestString(jsonMatches);
+        }
+
+        // If no JSON structures found, clean and return the original text
+        return text.replace(/\s+/g, ' ').trim();
     }
 }
