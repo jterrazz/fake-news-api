@@ -4,7 +4,7 @@ import { getArticleController } from '../../../../di/container.js';
 
 export const createArticlesRouter = () => {
     const app = new Hono();
-    const articleController = getArticleController();
+    const articleController = getArticleController(); // TODO: inject
 
     app.get('/', async (c) => {
         try {

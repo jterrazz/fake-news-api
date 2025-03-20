@@ -35,7 +35,7 @@ describe('GetArticlesUseCase', () => {
             fakeStatus: ArticleFakeStatus.createNonFake(),
             headline: ArticleHeadline.create('Test Headline'),
             language: ArticleLanguage.create(LanguageEnum.English),
-            summary: ArticleSummary.create('Test article summary'),
+            summary: ArticleSummary.create('Test article summary'.repeat(10)),
         });
     };
 

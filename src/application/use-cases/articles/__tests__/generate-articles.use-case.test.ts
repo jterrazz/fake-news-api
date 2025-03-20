@@ -51,7 +51,7 @@ describe('GenerateArticlesUseCase', () => {
                 fakeStatus: ArticleFakeStatus.createFake('AI-generated content for testing'),
                 headline: ArticleHeadline.create(`Generated Article ${i + 1}`),
                 language,
-                summary: ArticleSummary.create(`Summary of generated article ${i + 1}`),
+                summary: ArticleSummary.create(`Summary of generated article ${i + 1}`.repeat(10)),
             }),
         );
 

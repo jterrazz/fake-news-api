@@ -11,7 +11,6 @@ import { type AIProviderPort } from '../application/ports/outbound/ai/provider.p
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
 import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
-import type { DatabasePort } from '../application/ports/outbound/persistence/database.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 
@@ -191,16 +190,8 @@ export const getConfiguration = (): ConfigurationPort => {
     return container.get('Configuration');
 };
 
-export const getArticleRepository = (): ArticleRepositoryPort => {
-    return container.get('ArticleRepository');
-};
-
 export const getLogger = (): LoggerPort => {
     return container.get('Logger');
-};
-
-export const getDatabase = (): DatabasePort => {
-    return container.get('Database');
 };
 
 export const getHttpServer = (): HttpServerPort => {
@@ -209,18 +200,6 @@ export const getHttpServer = (): HttpServerPort => {
 
 export const getJobRunner = (): JobRunnerPort => {
     return container.get('JobRunner');
-};
-
-export const getNews = (): NewsPort => {
-    return container.get('News');
-};
-
-export const getJobs = (): Job[] => {
-    return container.get('Jobs');
-};
-
-export const getArticleGenerator = (): ArticleGeneratorPort => {
-    return container.get('ArticleGenerator');
 };
 
 export const getArticleController = (): ArticleController => {
