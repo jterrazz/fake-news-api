@@ -61,6 +61,7 @@ const loggerFactory = Injectable(
     'Logger',
     ['Configuration'] as const,
     (config: ConfigurationPort) =>
+        // TODO Fix config leak
         new PinoLoggerAdapter(config, {
             formatters: {
                 level: (label) => ({ level: label }),
@@ -72,6 +73,7 @@ const loggerFactory = Injectable(
 const newsFactory = Injectable(
     'News',
     ['Configuration', 'Logger'] as const,
+    // TODO Fix config leak
     (config: ConfigurationPort, logger: LoggerPort) => {
         const newsAdapter = new WorldNewsAdapter(config, logger);
         const useCache = config.getApiConfiguration().worldNews.useCache;
@@ -83,6 +85,7 @@ const newsFactory = Injectable(
 const aiProviderFactory = Injectable(
     'AIProvider',
     ['Configuration', 'Logger'] as const,
+    // TODO Fix config leak
     (config: ConfigurationPort, logger: LoggerPort) =>
         new GeminiAdapter({
             config,
