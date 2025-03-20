@@ -234,5 +234,24 @@ describe('ResponseParser', () => {
                 title: 'Test\\Title',
             });
         });
+
+        it('should handle escaped characters in markdown code blocks', () => {
+            // Given
+            const text =
+                '```json\n [\n{"content": "Test\\nContent", "tags": ["test\\u0020ai"], "title": "Test\\\\Title"}\n]\n```';
+            const arraySchema = z.array(testSchema);
+
+            // When
+            const result = ResponseParser.parse(text, arraySchema);
+
+            // Then
+            expect(result).toEqual([
+                {
+                    content: 'Test\nContent',
+                    tags: ['test ai'],
+                    title: 'Test\\Title',
+                },
+            ]);
+        });
     });
 });
