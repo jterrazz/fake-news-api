@@ -1,6 +1,9 @@
 import cron from 'node-cron';
 
-import { type Job, type JobRunnerPort } from '../../../application/ports/inbound/job-runner.port.js';
+import {
+    type Job,
+    type JobRunnerPort,
+} from '../../../application/ports/inbound/job-runner.port.js';
 import { type LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 export class NodeCronAdapter implements JobRunnerPort {
@@ -21,8 +24,14 @@ export class NodeCronAdapter implements JobRunnerPort {
 
             for (const job of this.jobs) {
                 // Execute immediately if configured to run on startup
+                // Run in background to not block initialization
                 if (job.executeOnStartup) {
-                    await job.execute();
+                    job.execute().catch((error) => {
+                        this.logger.error('Failed to execute startup job', {
+                            error,
+                            job: job.name,
+                        });
+                    });
                 }
 
                 // Schedule the job
