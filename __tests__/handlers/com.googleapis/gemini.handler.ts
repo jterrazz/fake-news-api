@@ -1,6 +1,5 @@
 import { http, HttpResponse } from 'msw';
 
-
 interface MockArticle {
     category: string;
     content: string;
@@ -124,7 +123,7 @@ const generateMockArticles = (count: number): MockArticle[] => {
  * @see https://ai.google.dev/api/rest/v1beta/models/generateContent
  */
 export const mockGeminiGenerateContentHandler = http.post(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro-exp:generateContent',
     async ({ request }) => {
         const apiKey = request.headers.get('x-goog-api-key');
 
