@@ -153,6 +153,6 @@ Important guidelines:
   * Include at least one quote and one list in each article
 - The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
 
-Direct output the JSON (like a JSON.stringify output) in the following format: ${this.getSchemaDescription()}. Give me directly the JSON object.`;
+Direct output the JSON (like a JSON.stringify output) in the following format. IT MUST RESPECT THE SCHEMA: ${this.getSchemaDescription()}. Give me directly the JSON object.`;
     }
 }
