@@ -52,12 +52,18 @@ const rawArticleSchema = z.object({
         'The category of the article that strictly matches the category enum',
     ),
     contentInMarkdown: contentSchema.describe(
-        'The content of the article in markdown format. MUST use proper markdown syntax including: ' +
+        'The content of the article in markdown format. Around 400-500 words if possible. MUST use proper markdown syntax including: ' +
             '- for lists, > for quotes, **bold** for emphasis, ' +
-            '[text](url) for links, and two newlines between paragraphs. Include between 1-3 paragraphs ' +
+            '[text](url) for links, and two newlines between paragraphs. ' +
             'with proper markdown formatting.',
     ),
-    fakeReason: z.string().nullable().default(null).describe('The reason why the article is fake'),
+    fakeReason: z
+        .string()
+        .nullable()
+        .default(null)
+        .describe(
+            'If isFake is false, this field MUST be null. If isFake is true, this field MUST be a string with the reason why the article is fake.',
+        ),
     headline: headlineSchema.describe('The headline of the article'),
     isFake: z.boolean().default(false).describe('Whether the article is fake or not'),
     summary: summarySchema.describe('The summary of the article'),
@@ -145,12 +151,11 @@ Important guidelines:
 - Write all content in the output JSON in ${languageLabel}
 - Use proper journalistic style and structure
 - For the contentInMarkdown field, you MUST use proper markdown formatting:
-  * Format quotes with > blockquotes
+  * Format quotes with > blockquotes if needed
   * Use **bold** for emphasis on key points
-  * Create bullet points with - for lists
+  * Create bullet points with - for lists if needed
   * Include [text](url) format for any references
   * Separate paragraphs with two newlines
-  * Include at least one quote and one list in each article
 - The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
 
 Direct output the JSON (like a JSON.stringify output) in the following format. IT MUST RESPECT THE SCHEMA: ${this.getSchemaDescription()}. Give me directly the JSON object.`;
