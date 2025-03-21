@@ -52,7 +52,7 @@ const rawArticleSchema = z.object({
         'The category of the article that strictly matches the category enum',
     ),
     contentInMarkdown: contentSchema.describe(
-        'The content of the article in markdown format. Around 400-500 words if possible. MUST use proper markdown syntax including: ' +
+        'The content of the article in markdown format. Around 300 words if possible. MUST use proper markdown syntax including: ' +
             '- for lists, > for quotes, **bold** for emphasis, ' +
             '[text](url) for links, and two newlines between paragraphs. ' +
             'with proper markdown formatting.',
