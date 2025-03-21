@@ -129,6 +129,7 @@ Important guidelines:
   * Create bullet points with - for lists if needed
   * Include [text](url) format for any references
   * Separate paragraphs with two newlines
+- ContentInMarkdown field must use bold text to put emphasis on important concepts
 - The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
 
 Direct output the JSON (like a direct JSON.stringify output) in the following format. It MUST respect the schema: ${this.getSchemaDescription()}.
