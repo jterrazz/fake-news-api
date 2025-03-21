@@ -51,12 +51,7 @@ const rawArticleSchema = z.object({
     category: categorySchema.describe(
         'The category of the article that strictly matches the category enum',
     ),
-    contentInMarkdown: contentSchema.describe(
-        'The content of the article in markdown format. Around 300 words if possible. MUST use proper markdown syntax including: ' +
-            '- for lists, > for quotes, **bold** for emphasis, ' +
-            '[text](url) for links, and two newlines between paragraphs. ' +
-            'with proper markdown formatting.',
-    ),
+    contentInMarkdown: contentSchema.describe('The content of the article in markdown format.'),
     fakeReason: z
         .string()
         .nullable()
@@ -123,6 +118,21 @@ export class ArticleGeneratorPrompt
 
 Generate exactly ${count} articles in total, with a nice balance between fake and real articles.
 
+Important guidelines:
+- Headlines should be clear and around 8-12 words long
+- ContentInMarkdown field MUST be around 80-100 words
+- Write all content in the output JSON in ${languageLabel}
+- Use proper journalistic style and structure
+- ContentInMarkdown field can use proper markdown formatting:
+  * Format quotes with > blockquotes if needed
+  * Use **bold** for emphasis on key points
+  * Create bullet points with - for lists if needed
+  * Include [text](url) format for any references
+  * Separate paragraphs with two newlines
+- The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
+
+Direct output the JSON (like a direct JSON.stringify output) in the following format. It MUST respect the schema: ${this.getSchemaDescription()}.
+
 For REAL articles:
 - Use headlines that capture the essence of the original but rephrase them to keep consistency in the app
 - Add interesting factual details that make the story engaging, and the app fun to play
@@ -133,9 +143,9 @@ For FICTIONAL articles (generate a nice balance between fake and real articles):
 - Include accurate names of real organizations, places, and public figures
 - Create plausible extensions or developments of real current events
 - Add twists that require fact-checking to disprove
+- Add some fun to make the app more engaging
 - Make the fictional elements logically consistent with current reality
 - Avoid sensational or outlandish claims that would immediately raise suspicion
-- Use realistic quotes and statistics that seem credible
 - Keep the story within the realm of possibility given the current context
 
 ======
@@ -144,20 +154,6 @@ Original real world headlines to draw inspiration from:
 ${JSON.stringify(news)}
 
 Past generated articles in my app to keep the consistency:
-${JSON.stringify(publicationHistory)}
-
-Important guidelines:
-- Headlines should be clear and around 8-12 words long
-- Write all content in the output JSON in ${languageLabel}
-- Use proper journalistic style and structure
-- For the contentInMarkdown field, you MUST use proper markdown formatting:
-  * Format quotes with > blockquotes if needed
-  * Use **bold** for emphasis on key points
-  * Create bullet points with - for lists if needed
-  * Include [text](url) format for any references
-  * Separate paragraphs with two newlines
-- The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
-
-Direct output the JSON (like a JSON.stringify output) in the following format. IT MUST RESPECT THE SCHEMA: ${this.getSchemaDescription()}. Give me directly the JSON object.`;
+${JSON.stringify(publicationHistory)}`;
     }
 }
