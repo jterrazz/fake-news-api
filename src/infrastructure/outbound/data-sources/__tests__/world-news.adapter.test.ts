@@ -12,6 +12,7 @@ import { LoggerPort } from '../../../../application/ports/outbound/logging/logge
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
+import { COUNTRY_TIMEZONES, TZDate } from '../../../../shared/date/timezone.js';
 import { WorldNewsAdapter } from '../world-news.adapter.js';
 
 // Given: Mock configuration with valid API key
@@ -25,6 +26,9 @@ const mockConfig = mock<ConfigurationPort>({
 // Given: Mock logger
 const mockLogger = mock<LoggerPort>();
 
+// Store requested dates for verification
+let requestedDates: Record<string, string> = {};
+
 // Given: MSW server setup for API mocking
 const server = setupServer(
     http.get('https://api.worldnewsapi.com/top-news', ({ request }: { request: Request }) => {
@@ -32,6 +36,12 @@ const server = setupServer(
         const apiKey = url.searchParams.get('api-key');
         const sourceCountry = url.searchParams.get('source-country');
         const language = url.searchParams.get('language');
+        const date = url.searchParams.get('date');
+
+        // Store the requested date for verification
+        if (sourceCountry && date) {
+            requestedDates[sourceCountry] = date;
+        }
 
         if (apiKey !== 'test-world-news-key') {
             return new HttpResponse(null, { status: 401 });
@@ -65,9 +75,11 @@ describe('WorldNewsAdapter', () => {
     beforeAll(() => server.listen());
     beforeEach(() => {
         adapter = new WorldNewsAdapter(mockConfig, mockLogger);
+        requestedDates = {}; // Reset stored dates
     });
     afterEach(() => {
         server.resetHandlers();
+        jest.useRealTimers(); // Ensure real timers are restored
     });
     afterAll(() => server.close());
 
@@ -87,6 +99,46 @@ describe('WorldNewsAdapter', () => {
             title: 'Test Article',
             url: 'https://example.com/article',
         });
+    });
+
+    it('should use correct date based on country timezone', async () => {
+        // Given: Create a date representing 4:30 AM in France on Jan 15
+        // We need a time where:
+        // - In France (UTC+1): It's Jan 15, 4:30 AM
+        // - In NYC (UTC-5): It's Jan 14, 10:30 PM (previous day)
+        const fakeDate = new TZDate(2024, 0, 15, 4, 30, 0, 0, COUNTRY_TIMEZONES.fr);
+
+        // This French time converts to 3:30 AM UTC
+        const utcTimestamp = fakeDate.getTime();
+
+        // Set up Jest's fake timer with our calculated UTC time
+        jest.useFakeTimers({
+            doNotFake: ['nextTick', 'setImmediate', 'setTimeout', 'clearTimeout'],
+            now: utcTimestamp,
+        });
+
+        // Log the mocked date for verification
+        const currentDate = new Date();
+        console.log('Mocked system date (UTC):', currentDate.toISOString());
+        console.log('Expected US date: 2024-01-14');
+        console.log('Expected FR date: 2024-01-15');
+
+        // When: Fetching news for US and France
+        const usCountry = ArticleCountry.create('us');
+        const frCountry = ArticleCountry.create('fr');
+        const language = ArticleLanguage.create('en');
+
+        await adapter.fetchNews({ country: usCountry, language });
+        await adapter.fetchNews({ country: frCountry, language });
+
+        // Log actual requested dates for debugging
+        console.log('Actual requested dates:', requestedDates);
+
+        // Then: Dates should be different based on timezone
+        // For US (NYC timezone UTC-5): It should be previous day (2024-01-14)
+        // For France (Paris timezone UTC+1): It should be current day (2024-01-15)
+        expect(requestedDates['us']).toBe('2024-01-14');
+        expect(requestedDates['fr']).toBe('2024-01-15');
     });
 
     it('should handle API errors gracefully', async () => {

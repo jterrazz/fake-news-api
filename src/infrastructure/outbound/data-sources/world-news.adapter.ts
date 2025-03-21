@@ -9,6 +9,8 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
+import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
+
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
 const WorldNewsArticleSchema = z.object({
@@ -50,19 +52,32 @@ export class WorldNewsAdapter implements NewsPort {
         this.lastRequestTime = Date.now();
     }
 
+    /**
+     * Gets the current date in the timezone of the specified country
+     */
+    private getDateForCountry(countryCode: string): string {
+        const timezone = getTimezoneForCountry(countryCode);
+        return formatInTimezone(new Date(), timezone, 'yyyy-MM-dd');
+    }
+
     public async fetchNews({ language, country }: FetchNewsOptions): Promise<NewsArticle[]> {
         try {
             this.logger.info('Retrieving news articles:', { country, language });
             await this.enforceRateLimit();
 
-            const today = new Date().toISOString().split('T')[0];
+            const countryDate = this.getDateForCountry(country.toString());
             const url = new URL('https://api.worldnewsapi.com/top-news');
 
             // Add query parameters
             url.searchParams.append('api-key', this.config.getApiConfiguration().worldNews.apiKey);
             url.searchParams.append('source-country', country.toString());
             url.searchParams.append('language', language.toString());
-            url.searchParams.append('date', today);
+            url.searchParams.append('date', countryDate);
+
+            this.logger.info('Fetching news with date', {
+                country: country.toString(),
+                countryDate,
+            });
 
             const response = await fetch(url.toString());
 
