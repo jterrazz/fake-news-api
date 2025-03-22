@@ -9,6 +9,7 @@ export enum CategoryEnum {
     Sports = 'sports',
     Business = 'business',
     World = 'world',
+    Other = 'other',
 }
 
 export const categorySchema = z.nativeEnum(CategoryEnum);
@@ -21,9 +22,7 @@ export class ArticleCategory {
         const result = categorySchema.safeParse(normalizedCategory);
 
         if (!result.success) {
-            throw new Error(
-                `Invalid category: ${category}. Supported categories are: ${Object.values(CategoryEnum).join(', ')}`,
-            );
+            return new ArticleCategory(CategoryEnum.Other);
         }
 
         return new ArticleCategory(result.data);
@@ -36,4 +35,4 @@ export class ArticleCategory {
     public toString(): string {
         return this.value;
     }
-} 
+}

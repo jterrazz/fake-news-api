@@ -130,6 +130,7 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
 - Content: EXACTLY 80-100 words in proper markdown format
 - Language: All content must be in ${languageLabel}
 - Structure: Professional newspaper style with proper paragraphs
+- Category: Assign each article to one of these categories: politics, technology, science, health, entertainment, sports, business, world. If content doesn't clearly fit into any of these categories, use "other" as the category value.
 - Quotes usage:
   * For REAL articles: DO NOT INVENT quotes. Only include quotes if they are verifiable facts from the original headlines.
   * For ALL articles: Use quotes sparingly - at most one quote per article if necessary.
