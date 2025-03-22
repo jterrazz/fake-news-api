@@ -123,6 +123,7 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
 2. ALL articles must be written in an authentic journalistic style regardless of their truth status.
 3. The writing style and quality should be IDENTICAL between fake and real articles.
 4. Users must rely solely on their critical thinking to identify fake content - there should be NO linguistic clues.
+5. IMPORTANT: Use ONLY the provided real-world headlines as your source of factual information. DO NOT rely on your internal knowledge about current events, politicians, or world affairs.
 
 ## Content Guidelines:
 - Headlines: Clear, concise, 8-12 words, journalistic tone
@@ -141,21 +142,29 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
   * Separate paragraphs with two newlines
 - Summary: Create informative summaries that accurately represent the article's content and reveal its authenticity status. This field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
 
+## Knowledge Base:
+- USE ONLY the "Original real world headlines" section below as your factual knowledge source
+- DO NOT use any information outside of what is explicitly provided in these headlines
+- If the headlines don't mention a topic, DO NOT make assumptions based on your training data
+- For names of politicians, world leaders, companies, and other entities, ONLY use those explicitly mentioned in the provided headlines
+
 ## Output Format:
 Direct output the JSON (like a direct JSON.stringify output) following the schema: ${this.getSchemaDescription()}
 
 ## Content Strategy:
 For REAL articles:
+- Base articles EXCLUSIVELY on information from the provided real-world headlines
 - Accurately represent factual events while maintaining reader engagement
 - Rephrase original headlines while preserving the core message
-- Include relevant factual context and background information
+- Include relevant factual context ONLY if it's present in the provided headlines
 - Maintain journalistic integrity and factual accuracy
 - NEVER fabricate quotes or statements from real people or organizations
+- DO NOT incorporate facts from your training data that aren't in the provided headlines
 
 For FICTIONAL articles:
-- Create plausible stories that could reasonably happen in our current reality
-- Base fictional content on actual trends, organizations, and public figures
-- Introduce subtle twists or extensions to real current events
+- Create plausible fictional stories that build upon the SAME real-world headlines provided
+- Introduce fictional elements ONLY as extensions or twists to the facts in the provided headlines
+- Base fictional content on actual trends, organizations, and public figures MENTIONED in the headlines
 - Ensure fictional elements require fact-checking to identify
 - Maintain the same level of detail, style, and credibility as real articles
 - NEVER include obvious fabrications or claims that would immediately seem implausible
