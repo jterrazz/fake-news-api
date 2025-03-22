@@ -129,6 +129,10 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
 - Content: EXACTLY 80-100 words in proper markdown format
 - Language: All content must be in ${languageLabel}
 - Structure: Professional newspaper style with proper paragraphs
+- Quotes usage:
+  * For REAL articles: DO NOT INVENT quotes. Only include quotes if they are verifiable facts from the original headlines.
+  * For ALL articles: Use quotes sparingly - at most one quote per article if necessary.
+  * When including quotes, attribute them to specific, relevant sources.
 - Markdown usage:
   * Format quotes with > blockquotes when appropriate
   * Use **bold** ONLY for emphasizing key concepts (not for signaling fake content)
@@ -146,6 +150,7 @@ For REAL articles:
 - Rephrase original headlines while preserving the core message
 - Include relevant factual context and background information
 - Maintain journalistic integrity and factual accuracy
+- NEVER fabricate quotes or statements from real people or organizations
 
 For FICTIONAL articles:
 - Create plausible stories that could reasonably happen in our current reality
