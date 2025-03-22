@@ -116,45 +116,52 @@ export class ArticleGeneratorPrompt
 
         return `${IntroductionPrompt.GAME_CONTEXT}
 
-Generate exactly ${count} articles in total, with a nice balance between fake and real articles.
+Generate exactly ${count} news articles in total, with a balanced mix of genuine and fictional articles.
 
-Important guidelines:
-- Headlines should be clear and around 8-12 words long
-- ContentInMarkdown field MUST be around 80-100 words
-- Write all content in the output JSON in ${languageLabel}
-- Use proper journalistic style and structure
-- ContentInMarkdown field can use proper markdown formatting:
-  * Format quotes with > blockquotes if needed
-  * Use **bold** for emphasis on key points
-  * Create bullet points with - for lists if needed
-  * Include [text](url) format for any references
+## CRITICAL REQUIREMENTS:
+1. NEVER reveal in the article content whether it's fake or real. The 'isFake' flag is ONLY for internal game mechanics.
+2. ALL articles must be written in an authentic journalistic style regardless of their truth status.
+3. The writing style and quality should be IDENTICAL between fake and real articles.
+4. Users must rely solely on their critical thinking to identify fake content - there should be NO linguistic clues.
+
+## Content Guidelines:
+- Headlines: Clear, concise, 8-12 words, journalistic tone
+- Content: EXACTLY 80-100 words in proper markdown format
+- Language: All content must be in ${languageLabel}
+- Structure: Professional newspaper style with proper paragraphs
+- Markdown usage:
+  * Format quotes with > blockquotes when appropriate
+  * Use **bold** ONLY for emphasizing key concepts (not for signaling fake content)
+  * Create bullet points with - for lists when necessary
+  * Include [text](url) format for references when relevant
   * Separate paragraphs with two newlines
-- ContentInMarkdown field must use bold text to put emphasis on the important concepts related to the news
-- The summary field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
+- Summary: Create informative summaries that accurately represent the article's content and reveal its authenticity status. This field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
 
-Direct output the JSON (like a direct JSON.stringify output) in the following format. It MUST respect the schema: ${this.getSchemaDescription()}.
+## Output Format:
+Direct output the JSON (like a direct JSON.stringify output) following the schema: ${this.getSchemaDescription()}
 
+## Content Strategy:
 For REAL articles:
-- Use headlines that capture the essence of the original but rephrase them to keep consistency in the app
-- Add interesting factual details that make the story engaging, and the app fun to play
-- Include relevant context and factual background, if you're certain about it
+- Accurately represent factual events while maintaining reader engagement
+- Rephrase original headlines while preserving the core message
+- Include relevant factual context and background information
+- Maintain journalistic integrity and factual accuracy
 
-For FICTIONAL articles (generate a nice balance between fake and real articles):
-- Base fake stories on current real events and trends from the original real world headlines
-- Include accurate names of real organizations, places, and public figures
-- Create plausible extensions or developments of real current events
-- Add twists that require fact-checking to disprove
-- Add some fun to make the app more engaging
-- Make the fictional elements logically consistent with current reality
-- Avoid sensational or outlandish claims that would immediately raise suspicion
-- Keep the story within the realm of possibility given the current context
+For FICTIONAL articles:
+- Create plausible stories that could reasonably happen in our current reality
+- Base fictional content on actual trends, organizations, and public figures
+- Introduce subtle twists or extensions to real current events
+- Ensure fictional elements require fact-checking to identify
+- Maintain the same level of detail, style, and credibility as real articles
+- NEVER include obvious fabrications or claims that would immediately seem implausible
+- CRITICAL: The content should NOT self-identify as fake through hints, exaggerations, or stylistic differences
 
 ======
 
-Original real world headlines to draw inspiration from:
+Original real world headlines for inspiration:
 ${JSON.stringify(news)}
 
-Past generated articles in my app to keep the consistency:
+Past generated articles to maintain consistency:
 ${JSON.stringify(publicationHistory)}`;
     }
 }
