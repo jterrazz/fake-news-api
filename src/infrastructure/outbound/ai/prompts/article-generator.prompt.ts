@@ -119,20 +119,20 @@ export class ArticleGeneratorPrompt
 Generate exactly ${count} news articles in total, with a balanced mix of genuine and fictional articles.
 
 ## CRITICAL REQUIREMENTS:
-1. NEVER reveal in the article content whether it's fake or real. The 'isFake' flag is ONLY for internal game mechanics.
+1. NEVER reveal in the article content whether it's fake or real. The 'isFake' and 'fakeReason' and 'summary' fields are the ONLY fields to indicate the truthfulness of the article.
 2. ALL articles must be written in an authentic journalistic style regardless of their truth status.
 3. The writing style and quality should be IDENTICAL between fake and real articles.
 4. Users must rely solely on their critical thinking to identify fake content - there should be NO linguistic clues.
-5. IMPORTANT: Use ONLY the provided real-world headlines as your source of factual information. DO NOT rely on your internal knowledge about current events, politicians, or world affairs.
+5. IMPORTANT: Use ONLY the provided real-world news as your source of factual information. Your internal knowledge about current events, politicians, or world affairs might be outdated, and few months old.
 
-## Content Guidelines:
-- Headlines: Clear, concise, 8-12 words, journalistic tone
-- Content: EXACTLY 80-100 words in proper markdown format
+## Output Content Guidelines:
+- Healine: Clear, concise, 8-15 words, journalistic tone
+- Content: EXACTLY 60-110 words in proper markdown format
 - Language: All content must be in ${languageLabel}
 - Structure: Professional newspaper style with proper paragraphs
 - Category: Assign each article to one of these categories: politics, technology, science, health, entertainment, sports, business, world. If content doesn't clearly fit into any of these categories, use "other" as the category value.
 - Quotes usage:
-  * For REAL articles: DO NOT INVENT quotes. Only include quotes if they are verifiable facts from the original headlines.
+  * For REAL articles: DO NOT INVENT quotes. Only include quotes if they are verifiable facts from the original news.
   * For ALL articles: Use quotes sparingly - at most one quote per article if necessary.
   * When including quotes, attribute them to specific, relevant sources.
 - Markdown usage:
@@ -141,39 +141,33 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
   * Create bullet points with - for lists when necessary
   * Include [text](url) format for references when relevant
   * Separate paragraphs with two newlines
-- Summary: Create informative summaries that accurately represent the article's content and reveal its authenticity status. This field will be used by future AIs to understand the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for the future AIs generators.
+- Summary: Create informative summaries that accurately represent the article's content and reveal its authenticity status. This field will be used by AIs to understand quickly the history of the newspaper (latest fake and real articles). Encode it in a way that will pass the maximum amount of information for future AIs.
 
 ## Knowledge Base:
-- USE ONLY the "Original real world headlines" section below as your factual knowledge source
-- DO NOT use any information outside of what is explicitly provided in these headlines
-- If the headlines don't mention a topic, DO NOT make assumptions based on your training data
-- For names of politicians, world leaders, companies, and other entities, ONLY use those explicitly mentioned in the provided headlines
+- USE ONLY the "Original real world news for inspiration" section below as your factual knowledge source for up to date news
+- Try NOT to use too much information outside of what is explicitly provided in these news, as the news are the up to date source of truth
 
 ## Output Format:
 Direct output the JSON (like a direct JSON.stringify output) following the schema: ${this.getSchemaDescription()}
 
 ## Content Strategy:
 For REAL articles:
-- Base articles EXCLUSIVELY on information from the provided real-world headlines
+- Rephrase original news to achieve quick readability while preserving the core message
 - Accurately represent factual events while maintaining reader engagement
-- Rephrase original headlines while preserving the core message
-- Include relevant factual context ONLY if it's present in the provided headlines
-- Maintain journalistic integrity and factual accuracy
 - NEVER fabricate quotes or statements from real people or organizations
-- DO NOT incorporate facts from your training data that aren't in the provided headlines
 
 For FICTIONAL articles:
-- Create plausible fictional stories that build upon the SAME real-world headlines provided
-- Introduce fictional elements ONLY as extensions or twists to the facts in the provided headlines
-- Base fictional content on actual trends, organizations, and public figures MENTIONED in the headlines
-- Ensure fictional elements require fact-checking to identify
+- Create plausible fictional stories that build upon the SAME real-world news provided
+- Introduce fictional elements ONLY as extensions or twists to the facts in the provided news
+- Act like a "fake news" social media account or publication would do in the real world
+- Respect all sides of the political spectrum, and try to find how biased media would have taken advantage of the news to be more engaging and clickbait than reality
 - Maintain the same level of detail, style, and credibility as real articles
 - NEVER include obvious fabrications or claims that would immediately seem implausible
 - CRITICAL: The content should NOT self-identify as fake through hints, exaggerations, or stylistic differences
 
 ======
 
-Original real world headlines for inspiration:
+Original real world news for inspiration:
 ${JSON.stringify(news)}
 
 Past generated articles to maintain consistency:
