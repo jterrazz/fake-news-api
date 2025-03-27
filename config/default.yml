@@ -5,8 +5,6 @@ app:
 logging:
   level: info
 api:
-  gemini:
-    apiKey: ""
   worldNews:
     apiKey: ""
     useCache: true 

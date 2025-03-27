@@ -2,9 +2,6 @@
  * API configuration
  */
 export interface ApiConfiguration {
-    gemini: {
-        apiKey: string;
-    };
     openRouter: {
         apiKey: string;
     };

@@ -7,8 +7,6 @@ logging:
   level: LOG_LEVEL
 
 api:
-  gemini:
-    apiKey: GEMINI_API_KEY
   openRouter:
     apiKey: OPEN_ROUTER_API_KEY
   worldNews:

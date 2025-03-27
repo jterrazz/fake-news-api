@@ -5,10 +5,9 @@ import { NodeConfigAdapter } from '../node-config.adapter.js';
 describe('Node Config Adapter', () => {
     const validConfig = {
         api: {
-            gemini: { apiKey: 'test-gemini-key' },
-            worldNews: { 
+            worldNews: {
                 apiKey: 'test-world-news-key',
-                useCache: false
+                useCache: false,
             },
         },
         app: {
@@ -47,7 +46,6 @@ describe('Node Config Adapter', () => {
         const invalidConfig = {
             ...validConfig,
             api: {
-                gemini: { apiKey: '' },
                 worldNews: { apiKey: '' },
             },
         };

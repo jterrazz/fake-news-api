@@ -5,8 +5,6 @@ app:
 logging:
   level: debug
 api:
-  gemini:
-    apiKey: test-gemini-key
   worldNews:
     apiKey: test-world-news-key
     useCache: false

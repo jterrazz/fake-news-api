@@ -8,9 +8,6 @@ import {
 
 const configurationSchema = z.object({
     api: z.object({
-        gemini: z.object({
-            apiKey: z.string().min(1),
-        }),
         openRouter: z.object({
             apiKey: z.string().min(1),
         }),
