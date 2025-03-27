@@ -20,7 +20,7 @@ import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.ad
 import { createArticleGenerationJob } from '../infrastructure/inbound/job-runner/articles/article-generation.job.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/job-runner/node-cron.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
-import { GeminiAdapter } from '../infrastructure/outbound/ai/providers/gemini.adapter.js';
+import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
@@ -87,7 +87,7 @@ const aiProviderFactory = Injectable(
     ['Configuration', 'Logger'] as const,
     // TODO Fix config leak
     (config: ConfigurationPort, logger: LoggerPort) =>
-        new GeminiAdapter({
+        new OpenRouterAdapter({
             config,
             logger,
         }),

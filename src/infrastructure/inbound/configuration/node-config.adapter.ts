@@ -11,6 +11,9 @@ const configurationSchema = z.object({
         gemini: z.object({
             apiKey: z.string().min(1),
         }),
+        openRouter: z.object({
+            apiKey: z.string().min(1),
+        }),
         worldNews: z.object({
             apiKey: z.string().min(1),
             useCache: z.coerce.boolean(),

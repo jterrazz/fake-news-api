@@ -5,6 +5,9 @@ export interface ApiConfiguration {
     gemini: {
         apiKey: string;
     };
+    openRouter: {
+        apiKey: string;
+    };
     worldNews: {
         apiKey: string;
         useCache: boolean;
