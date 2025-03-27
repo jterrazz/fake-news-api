@@ -17,7 +17,7 @@ type GeminiAdapterConfig = {
     maxAttempts?: number;
 };
 
-type GeminiModelType = 'gemini-1.5-flash' | 'gemini-2.0-pro-exp';
+type GeminiModelType = 'gemini-1.5-flash' | 'gemini-2.5-pro-exp-03-25';
 
 /**
  * Adapter for Google's Gemini AI service implementing the AIProviderPort interface.
@@ -58,7 +58,7 @@ export class GeminiAdapter implements AIProviderPort {
     }
 
     private getModelType(capability: AIModelConfig['capability']): GeminiModelType {
-        return capability === 'basic' ? 'gemini-1.5-flash' : 'gemini-2.0-pro-exp';
+        return capability === 'basic' ? 'gemini-1.5-flash' : 'gemini-2.5-pro-exp-03-25';
     }
 
     private async generateModelResponse(model: GenerativeModel, prompt: string): Promise<string> {
@@ -78,6 +78,10 @@ export class GeminiAdapter implements AIProviderPort {
 
         while (attempts < this.maxAttempts) {
             try {
+                this.logger.info('Executing operation with Gemini', {
+                    attempts,
+                    maxAttempts: this.maxAttempts,
+                });
                 attempts++;
                 return await operation();
             } catch (error) {
