@@ -9,5 +9,7 @@ logging:
 api:
   gemini:
     apiKey: GEMINI_API_KEY
+  openRouter:
+    apiKey: OPEN_ROUTER_API_KEY
   worldNews:
     apiKey: WORLD_NEWS_API_KEY
