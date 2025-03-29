@@ -1,8 +1,8 @@
 import OpenAI from 'openai';
-import { z } from 'zod';
 
 import { type ConfigurationPort } from '../../../../application/ports/inbound/configuration.port.js';
 
+import { AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
 import {
     type AIModelConfig,
     type AIProviderPort,
@@ -43,22 +43,20 @@ export class OpenRouterAdapter implements AIProviderPort {
     /**
      * Generates content using OpenRouter with automatic retries for parsing errors.
      *
-     * @param prompt - The prompt to send to OpenRouter
-     * @param schema - Zod schema for validating and parsing the response
+     * @param prompt - The request to send to OpenRouter
      * @param config - Optional AI model configuration
      * @returns Parsed and validated response of type T
      * @throws {Error} If content generation or parsing fails after all retries
      */
     public async generateContent<T>(
-        prompt: string,
-        schema: z.ZodSchema<T>,
+        prompt: AIPrompt<T>,
         config: AIModelConfig = { capability: 'basic' },
     ): Promise<T> {
         const modelType = this.getModelType(config.capability);
 
         return this.executeWithRetries(async () => {
-            const response = await this.generateModelResponse(modelType, prompt);
-            return ResponseParser.parse(response, schema);
+            const response = await this.generateModelResponse(modelType, prompt.query);
+            return ResponseParser.parse(response, prompt.responseSchema);
         });
     }
 

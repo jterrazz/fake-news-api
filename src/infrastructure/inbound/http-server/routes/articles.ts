@@ -1,10 +1,9 @@
 import { Hono } from 'hono';
 
-import { getArticleController } from '../../../../di/container.js';
+import type { ArticleController } from '../controllers/article.controller.js';
 
-export const createArticlesRouter = () => {
+export const createArticlesRouter = (articleController: ArticleController) => {
     const app = new Hono();
-    const articleController = getArticleController(); // TODO: inject
 
     app.get('/', async (c) => {
         try {

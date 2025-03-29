@@ -5,7 +5,7 @@ import { setupServer, SetupServerApi } from 'msw/node';
 import { type HttpServerPort } from '../../src/application/ports/inbound/http-server.port.js';
 import { type JobRunnerPort } from '../../src/application/ports/inbound/job-runner.port.js';
 
-import { getHttpServer, getJobRunner } from '../../src/di/container.js';
+import { container } from '../../src/di/container.js';
 
 export type IntegrationTestContext = {
     httpServer: HttpServerPort;
@@ -23,8 +23,8 @@ const createMsw = (handlers: RequestHandler[] = []) => {
 export async function setupIntegrationTest(
     handlers: RequestHandler[] = [],
 ): Promise<IntegrationTestContext> {
-    const httpServer = getHttpServer();
-    const jobRunner = getJobRunner();
+    const httpServer = container.get('HttpServer');
+    const jobRunner = container.get('JobRunner');
     const msw = createMsw(handlers);
     const prisma = new PrismaClient();
 

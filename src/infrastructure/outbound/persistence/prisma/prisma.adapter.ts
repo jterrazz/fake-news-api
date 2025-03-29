@@ -27,6 +27,3 @@ export class PrismaAdapter implements DatabasePort {
         return this.client;
     }
 }
-
-// Create a singleton instance
-export const databaseAdapter = new PrismaAdapter();

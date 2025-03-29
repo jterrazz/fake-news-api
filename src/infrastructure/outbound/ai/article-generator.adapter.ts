@@ -7,12 +7,7 @@ import { type LoggerPort } from '../../../application/ports/outbound/logging/log
 
 import { Article } from '../../../domain/entities/article.js';
 
-import { ArticleGeneratorPrompt } from './prompts/article-generator.prompt.js';
-
-type Dependencies = {
-    aiProvider: AIProviderPort;
-    logger: LoggerPort;
-};
+import { ArticlePromptGenerator } from './prompts/article-prompt.generator.js';
 
 /**
  * Shuffles an array using a cryptographically secure random number generator
@@ -29,37 +24,35 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export class AIArticleGenerator implements ArticleGeneratorPort {
-    private readonly prompt: ArticleGeneratorPrompt;
+    private readonly promptGenerator: ArticlePromptGenerator;
 
-    constructor(private readonly deps: Dependencies) {
-        this.prompt = new ArticleGeneratorPrompt();
+    constructor(
+        private readonly aiProvider: AIProviderPort,
+        private readonly logger: LoggerPort,
+    ) {
+        this.promptGenerator = new ArticlePromptGenerator();
     }
 
     public async generateArticles(params: GenerateArticlesParams): Promise<Article[]> {
-        const { aiProvider, logger } = this.deps;
-
         try {
-            logger.info('Starting article generation with AI', {
+            this.logger.info('Starting article generation with AI', {
                 count: params.count,
                 country: params.country,
                 language: params.language,
             });
 
-            // Generate instructions
-            const instructions = this.prompt.generateInstructions(params);
+            const prompt = this.promptGenerator.generatePrompt(params);
 
             // Get raw articles from AI
-            let rawArticles = await aiProvider.generateContent(
-                instructions,
-                this.prompt.answerSchema,
-                { capability: 'advanced' },
-            );
+            let rawArticles = await this.aiProvider.generateContent(prompt);
+
+            console.log(rawArticles[0].headline.toString());
 
             // Ensure we have exactly the requested number of articles
             if (rawArticles.length > params.count) {
                 rawArticles = rawArticles.slice(0, params.count);
             } else if (rawArticles.length < params.count) {
-                logger.warn('AI generated fewer articles than requested', {
+                this.logger.warn('AI generated fewer articles than requested', {
                     country: params.country,
                     expected: params.count,
                     language: params.language,
@@ -91,7 +84,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             // Log generation stats for monitoring
             const realCount = articles.filter((a) => !a.isFake()).length;
             const fakeCount = articles.filter((a) => a.isFake()).length;
-            logger.info('Generated articles with AI', {
+            this.logger.info('Generated articles with AI', {
                 articleCount: articles.length,
                 country: params.country,
                 expected: params.count,
@@ -102,7 +95,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
 
             return articles;
         } catch (error) {
-            logger.error('Failed to generate articles with AI', {
+            this.logger.error('Failed to generate articles with AI', {
                 country: params.country,
                 error,
                 language: params.language,

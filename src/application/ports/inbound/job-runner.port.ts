@@ -34,11 +34,6 @@ export interface JobRunnerPort {
     initialize(): Promise<void>;
 
     /**
-     * Register a new job with the runner
-     */
-    registerJob(job: Job): void;
-
-    /**
      * Stop all scheduled jobs
      */
     stop(): Promise<void>;

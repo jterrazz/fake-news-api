@@ -1,15 +1,15 @@
-import { getConfiguration, getHttpServer, getJobRunner, getLogger } from './di/container.js';
+import { container } from './di/container.js';
 
 // Start server with proper error handling
 const start = async () => {
-    const logger = getLogger();
+    const logger = container.get('Logger');
 
     try {
         logger.info('Starting application...');
 
-        const config = getConfiguration();
-        const httpServer = getHttpServer();
-        const jobRunner = getJobRunner();
+        const config = container.get('Configuration');
+        const httpServer = container.get('HttpServer');
+        const jobRunner = container.get('JobRunner');
         const { host, port } = config.getAppConfiguration();
 
         // Initialize jobs

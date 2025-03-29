@@ -14,10 +14,6 @@ export class NodeCronAdapter implements JobRunnerPort {
         public readonly jobs: Job[],
     ) {}
 
-    public registerJob(job: Job): void {
-        this.jobs.push(job);
-    }
-
     public async initialize(): Promise<void> {
         try {
             this.logger.info('Initializing job runner');

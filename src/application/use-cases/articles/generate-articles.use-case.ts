@@ -23,27 +23,23 @@ function getTargetArticleCount(hour: number): number {
     return 12;
 }
 
-type Dependencies = {
-    articleGenerator: ArticleGeneratorPort;
-    articleRepository: ArticleRepositoryPort;
-    logger: LoggerPort;
-    newsService: NewsPort;
-};
-
 /**
  * Use case for generating articles from news sources
  */
 export class GenerateArticlesUseCase {
-    constructor(private readonly deps: Dependencies) {}
+    constructor(
+        private readonly articleGenerator: ArticleGeneratorPort,
+        private readonly articleRepository: ArticleRepositoryPort,
+        private readonly logger: LoggerPort,
+        private readonly newsService: NewsPort,
+    ) {}
 
     /**
      * Generate articles for a specific language and country
      */
     public async execute(language: ArticleLanguage, country: ArticleCountry): Promise<void> {
-        const { articleGenerator, articleRepository, logger, newsService } = this.deps;
-
         try {
-            logger.info('Starting article generation', {
+            this.logger.info('Starting article generation', {
                 country: country.toString(),
                 language: language.toString(),
             });
@@ -55,7 +51,7 @@ export class GenerateArticlesUseCase {
             const targetArticleCount = getTargetArticleCount(hour);
 
             // Check existing articles for today
-            const existingArticleCount = await articleRepository.countManyForDay({
+            const existingArticleCount = await this.articleRepository.countManyForDay({
                 country,
                 date: tzDate,
                 language,
@@ -65,7 +61,7 @@ export class GenerateArticlesUseCase {
             const articlesToGenerate = targetArticleCount - existingArticleCount;
 
             if (articlesToGenerate <= 0) {
-                logger.info('No new articles needed at this time', {
+                this.logger.info('No new articles needed at this time', {
                     country: country.toString(),
                     currentCount: existingArticleCount,
                     hour: formatInTimezone(tzDate, timezone, 'HH'),
@@ -77,13 +73,13 @@ export class GenerateArticlesUseCase {
             }
 
             // Fetch real articles from news service
-            const news = await newsService.fetchNews({
+            const news = await this.newsService.fetchNews({
                 country,
                 language,
             });
 
             if (news.length === 0) {
-                logger.warn('No articles found', {
+                this.logger.warn('No articles found', {
                     country: country.toString(),
                     language: language.toString(),
                 });
@@ -92,14 +88,14 @@ export class GenerateArticlesUseCase {
 
             // Get recent headlines for context (last 30 days)
             const since = subtractDaysInTimezone(tzDate, timezone, 30);
-            const publishedSummaries = await articleRepository.findPublishedSummaries({
+            const publishedSummaries = await this.articleRepository.findPublishedSummaries({
                 country,
                 language,
                 since,
             });
 
             // Generate AI articles based on real ones
-            const generatedArticles = await articleGenerator.generateArticles({
+            const generatedArticles = await this.articleGenerator.generateArticles({
                 articles: {
                     news: news.map((article) => ({
                         content: article.summary,
@@ -112,9 +108,9 @@ export class GenerateArticlesUseCase {
                 language,
             });
 
-            await articleRepository.createMany(generatedArticles);
+            await this.articleRepository.createMany(generatedArticles);
 
-            logger.info('Successfully stored articles', {
+            this.logger.info('Successfully stored articles', {
                 country: country.toString(),
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
@@ -124,7 +120,7 @@ export class GenerateArticlesUseCase {
                 timezone,
             });
         } catch (error) {
-            logger.error('Failed to generate articles', {
+            this.logger.error('Failed to generate articles', {
                 country: country.toString(),
                 error,
                 language: language.toString(),

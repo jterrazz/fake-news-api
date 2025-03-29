@@ -7,6 +7,7 @@ import {
 } from '../../../application/ports/inbound/http-server.port.js';
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
+import type { ArticleController } from './controllers/article.controller.js';
 import { createArticlesRouter } from './routes/articles.js';
 import { createHealthRouter } from './routes/health.js';
 
@@ -14,15 +15,17 @@ export class HonoServerAdapter implements HttpServerPort {
     private app: Hono;
     private server: ReturnType<typeof serve> | null = null;
 
-    constructor(private readonly logger: LoggerPort) {
+    constructor(
+        private readonly logger: LoggerPort,
+        private readonly articleController: ArticleController,
+    ) {
         this.app = new Hono();
         this.registerRoutes();
     }
 
     private registerRoutes(): void {
-        // Mount all HTTP routers
         this.app.route('/', createHealthRouter());
-        this.app.route('/articles', createArticlesRouter());
+        this.app.route('/articles', createArticlesRouter(this.articleController));
     }
 
     public async start(config: HttpServerConfiguration): Promise<void> {

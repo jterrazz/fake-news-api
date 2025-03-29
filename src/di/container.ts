@@ -17,7 +17,7 @@ import { GetArticlesUseCase } from '../application/use-cases/articles/get-articl
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { ArticleController } from '../infrastructure/inbound/http-server/controllers/article.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
-import { createArticleGenerationJob } from '../infrastructure/inbound/job-runner/articles/article-generation.job.js';
+import { createArticleGenerationJob } from '../infrastructure/inbound/job-runner/jobs/article-generation.job.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/job-runner/node-cron.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
@@ -25,37 +25,14 @@ import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cache
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
 import {
-    databaseAdapter,
     PrismaAdapter,
 } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
 
 /**
- * Inbound adapters
- */
-const configurationFactory = Injectable(
-    'Configuration',
-    () => new NodeConfigAdapter(nodeConfiguration),
-);
-
-const httpServerFactory = Injectable(
-    'HttpServer',
-    ['Logger'] as const,
-    (logger: LoggerPort): HttpServerPort => {
-        return new HonoServerAdapter(logger);
-    },
-);
-
-const jobRunnerFactory = Injectable(
-    'JobRunner',
-    ['Logger', 'Jobs'] as const,
-    (logger: LoggerPort, jobs: Job[]): JobRunnerPort => new NodeCronAdapter(logger, jobs),
-);
-
-/**
  * Outbound adapters
  */
-const databaseFactory = Injectable('Database', () => databaseAdapter);
+const databaseFactory = Injectable('Database', () => new PrismaAdapter());
 
 const loggerFactory = Injectable(
     'Logger',
@@ -93,6 +70,12 @@ const aiProviderFactory = Injectable(
         }),
 );
 
+const articleGeneratorFactory = Injectable(
+    'ArticleGenerator',
+    ['AIProvider', 'Logger'] as const,
+    (aiProvider: AIProviderPort, logger: LoggerPort) => new AIArticleGenerator(aiProvider, logger),
+);
+
 /**
  * Repository adapters
  */
@@ -100,16 +83,6 @@ const articleRepositoryFactory = Injectable(
     'ArticleRepository',
     ['Database'] as const,
     (db: PrismaAdapter) => new PrismaArticleRepository(db),
-);
-
-const articleGeneratorFactory = Injectable(
-    'ArticleGenerator',
-    ['AIProvider', 'Logger'] as const,
-    (aiProvider: AIProviderPort, logger: LoggerPort) =>
-        new AIArticleGenerator({
-            aiProvider,
-            logger,
-        }),
 );
 
 /**
@@ -123,13 +96,7 @@ const generateArticlesUseCaseFactory = Injectable(
         logger: LoggerPort,
         newsService: NewsPort,
         articleGenerator: ArticleGeneratorPort,
-    ) =>
-        new GenerateArticlesUseCase({
-            articleGenerator,
-            articleRepository,
-            logger,
-            newsService,
-        }),
+    ) => new GenerateArticlesUseCase(articleGenerator, articleRepository, logger, newsService),
 );
 
 const getArticlesUseCaseFactory = Injectable(
@@ -158,53 +125,52 @@ const jobsFactory = Injectable(
             createArticleGenerationJob({
                 generateArticles,
             }),
-            // Add more jobs here
         ];
     },
 );
 
 /**
- * Application container configuration
+ * Inbound adapters
+ */
+const configurationFactory = Injectable(
+    'Configuration',
+    // TODO Fix config leak
+    () => new NodeConfigAdapter(nodeConfiguration),
+);
+
+const httpServerFactory = Injectable(
+    'HttpServer',
+    ['Logger', 'ArticleController'] as const,
+    (logger: LoggerPort, articleController: ArticleController): HttpServerPort => {
+        return new HonoServerAdapter(logger, articleController);
+    },
+);
+
+const jobRunnerFactory = Injectable(
+    'JobRunner',
+    ['Logger', 'Jobs'] as const,
+    (logger: LoggerPort, jobs: Job[]): JobRunnerPort => new NodeCronAdapter(logger, jobs),
+);
+
+/**
+ * Container configuration
  */
 export const container = Container
-    // Adapters
+    // Outbound adapters
     .provides(configurationFactory)
     .provides(loggerFactory)
-    .provides(httpServerFactory)
     .provides(databaseFactory)
     .provides(newsFactory)
     .provides(aiProviderFactory)
-    // Repository adapters
-    .provides(articleRepositoryFactory)
     .provides(articleGeneratorFactory)
+    // Repositories
+    .provides(articleRepositoryFactory)
     // Use cases
     .provides(generateArticlesUseCaseFactory)
     .provides(getArticlesUseCaseFactory)
-    // Controllers
+    // Controllers and jobs
     .provides(articleControllerFactory)
-    // Jobs
     .provides(jobsFactory)
+    // Inbound adapters
+    .provides(httpServerFactory)
     .provides(jobRunnerFactory);
-
-/**
- * Type-safe dependency accessors
- */
-export const getConfiguration = (): ConfigurationPort => {
-    return container.get('Configuration');
-};
-
-export const getLogger = (): LoggerPort => {
-    return container.get('Logger');
-};
-
-export const getHttpServer = (): HttpServerPort => {
-    return container.get('HttpServer');
-};
-
-export const getJobRunner = (): JobRunnerPort => {
-    return container.get('JobRunner');
-};
-
-export const getArticleController = (): ArticleController => {
-    return container.get('ArticleController');
-};
