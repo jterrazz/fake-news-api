@@ -30,7 +30,7 @@ import { SHARED_CONTEXT_PROMPT } from './shared/context-prompt.js';
 /**
  * Raw input schema for AI responses before transformation
  */
-const rawArticleSchema = z.object({
+const generatedArticleSchema = z.object({
     category: categorySchema.describe(
         'The category of the article that strictly matches the category enum',
     ),
@@ -47,7 +47,15 @@ const rawArticleSchema = z.object({
     summary: summarySchema.describe('The summary of the article'),
 });
 
-type GeneratedArticleData = {
+/**
+ * Schema for generated articles from AI with transformations to domain objects
+ */
+const generatedSchemaDescription = zodToJsonSchema(z.array(generatedArticleSchema), {
+    $refStrategy: 'none',
+    definitionPath: 'schemas',
+});
+
+type GeneratedArticle = {
     category: ArticleCategory;
     content: ArticleContent;
     fakeStatus: ArticleFakeStatus;
@@ -58,7 +66,7 @@ type GeneratedArticleData = {
 /**
  * Schema for generated articles from AI with transformations to domain objects
  */
-const generatedArticleSchema = z.array(rawArticleSchema).transform((data) =>
+const generatedArticleArraySchema = z.array(generatedArticleSchema).transform((data) =>
     data.map((item) => ({
         category: ArticleCategory.create(item.category),
         content: ArticleContent.create(item.contentInMarkdown),
@@ -68,39 +76,24 @@ const generatedArticleSchema = z.array(rawArticleSchema).transform((data) =>
         headline: ArticleHeadline.create(item.headline),
         summary: ArticleSummary.create(item.summary),
     })),
-) as unknown as z.ZodType<GeneratedArticleData[]>;
+) as unknown as z.ZodType<GeneratedArticle[]>;
 
 /**
  * Article content generator class
  */
 export class ArticlePromptGenerator
-    implements AIPromptGenerator<GenerateArticlesParams, GeneratedArticleData[]>
+    implements AIPromptGenerator<GenerateArticlesParams, GeneratedArticle[]>
 {
     /**
-     * Returns the raw input schema expected from the AI,
-     * before any transformations are applied
+     * Generates a prompt for the AI
+     * @param params The parameters for the prompt
+     * @returns The prompt
      */
-    private getRawInputSchema() {
-        return z.array(rawArticleSchema);
-    }
-
-    /**
-     * Returns a human-readable description of the schema structure
-     */
-    private getSchemaDescription() {
-        const jsonSchema = zodToJsonSchema(this.getRawInputSchema(), {
-            $refStrategy: 'none',
-            definitionPath: 'schemas',
-        });
-
-        return JSON.stringify(jsonSchema, null, 2);
-    }
-
     public generatePrompt({
         articles: { news, publicationHistory },
         language,
         count,
-    }: GenerateArticlesParams): AIPrompt<GeneratedArticleData[]> {
+    }: GenerateArticlesParams): AIPrompt<GeneratedArticle[]> {
         const languageLabel = language.toString();
 
         return {
@@ -138,7 +131,7 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
 - Try NOT to use too much information outside of what is explicitly provided in these news, as the news are the up to date source of truth
 
 ## Output Format:
-Direct output the JSON (like a direct JSON.stringify output) following the schema: ${this.getSchemaDescription()}
+Direct output the JSON (like a direct JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription)}
 
 ## Content Strategy:
 For REAL articles:
@@ -162,7 +155,7 @@ ${JSON.stringify(news)}
 
 Past generated articles to maintain consistency:
 ${JSON.stringify(publicationHistory)}`,
-            responseSchema: generatedArticleSchema,
+            responseSchema: generatedArticleArraySchema,
         };
     }
 }
