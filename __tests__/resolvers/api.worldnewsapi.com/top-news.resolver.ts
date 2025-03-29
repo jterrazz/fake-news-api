@@ -7,7 +7,7 @@ const TEST_COUNTRY = 'us';
 const TEST_LANGUAGE = 'en';
 const TEST_DATE = '2020-01-01';
 
-interface MockArticleResponse {
+interface MockTopNewsResponse {
     country: string;
     language: string;
     top_news: Array<{
@@ -25,7 +25,7 @@ interface MockArticleResponse {
  * Mock handler for the World News API top news endpoint.
  * Returns test article data for a specific date in the correct timezone.
  */
-export const mockWorldNewsTopArticlesHandler = http.get(
+export const mockWorldNewsResolver = http.get(
     'https://api.worldnewsapi.com/top-news',
     ({ request }) => {
         const url = new URL(request.url);
@@ -57,7 +57,7 @@ export const mockWorldNewsTopArticlesHandler = http.get(
             "yyyy-MM-dd'T'HH:mm:ssXXX",
         );
 
-        const response: MockArticleResponse = {
+        const response: MockTopNewsResponse = {
             country: params.sourceCountry,
             language: params.language,
             top_news: [
