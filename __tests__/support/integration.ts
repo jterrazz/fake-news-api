@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { RequestHandler } from 'msw';
-import { setupServer } from 'msw/node';
+import { setupServer, SetupServerApi } from 'msw/node';
 
 import { type HttpServerPort } from '../../src/application/ports/inbound/http-server.port.js';
 import { type JobRunnerPort } from '../../src/application/ports/inbound/job-runner.port.js';
@@ -10,7 +10,7 @@ import { getHttpServer, getJobRunner } from '../../src/di/container.js';
 export type IntegrationTestContext = {
     httpServer: HttpServerPort;
     jobRunner: JobRunnerPort;
-    msw: ReturnType<typeof setupServer>;
+    msw: SetupServerApi;
     prisma: PrismaClient;
 };
 

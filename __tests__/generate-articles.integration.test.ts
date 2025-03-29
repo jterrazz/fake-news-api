@@ -3,7 +3,7 @@ import { TZDate } from '@date-fns/tz';
 import { getJobs } from '../src/di/container.js';
 import { getTimezoneForCountry } from '../src/shared/date/timezone.js';
 
-import { mockWorldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
+import { worldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
 import { mockGeminiGenerateContentHandler } from './resolvers/com.googleapis/gemini.resolver.js';
 import {
     cleanupIntegrationTest,
@@ -11,14 +11,14 @@ import {
     setupIntegrationTest,
 } from './support/integration.js';
 
-describe('Generate Articles Job Integration Tests', () => {
+describe('Job - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
     const EXPECTED_HOUR = 13;
     const EXPECTED_ARTICLE_COUNT = 8;
 
     beforeAll(async () => {
         testContext = await setupIntegrationTest([
-            mockWorldNewsResolver,
+            worldNewsResolver,
             mockGeminiGenerateContentHandler,
         ]);
 

@@ -5,6 +5,9 @@ import { NodeConfigAdapter } from '../node-config.adapter.js';
 describe('Node Config Adapter', () => {
     const validConfig = {
         api: {
+            openRouter: {
+                apiKey: 'test-openrouter-key',
+            },
             worldNews: {
                 apiKey: 'test-world-news-key',
                 useCache: false,

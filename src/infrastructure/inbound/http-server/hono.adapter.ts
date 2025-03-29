@@ -8,7 +8,7 @@ import {
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 import { createArticlesRouter } from './routes/articles.js';
-import { createRootRouter } from './routes/root.js';
+import { createHealthRouter } from './routes/health.js';
 
 export class HonoServerAdapter implements HttpServerPort {
     private app: Hono;
@@ -21,7 +21,7 @@ export class HonoServerAdapter implements HttpServerPort {
 
     private registerRoutes(): void {
         // Mount all HTTP routers
-        this.app.route('/', createRootRouter());
+        this.app.route('/', createHealthRouter());
         this.app.route('/articles', createArticlesRouter());
     }
 

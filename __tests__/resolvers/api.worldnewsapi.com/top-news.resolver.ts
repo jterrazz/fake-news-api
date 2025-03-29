@@ -25,7 +25,7 @@ interface MockTopNewsResponse {
  * Mock handler for the World News API top news endpoint.
  * Returns test article data for a specific date in the correct timezone.
  */
-export const mockWorldNewsResolver = http.get(
+export const worldNewsResolver = http.get(
     'https://api.worldnewsapi.com/top-news',
     ({ request }) => {
         const url = new URL(request.url);

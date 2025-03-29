@@ -11,7 +11,7 @@ export class NodeCronAdapter implements JobRunnerPort {
 
     constructor(
         private readonly logger: LoggerPort,
-        private readonly jobs: Job[],
+        public readonly jobs: Job[],
     ) {}
 
     public registerJob(job: Job): void {
