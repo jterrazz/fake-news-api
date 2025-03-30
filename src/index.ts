@@ -14,7 +14,7 @@ const start = async () => {
         const { host, port } = config.getAppConfiguration();
 
         // Initialize New Relic monitoring
-        newRelic.initialize();
+        await newRelic.initialize();
 
         // Initialize jobs
         await jobRunner.initialize();

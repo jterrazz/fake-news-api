@@ -2,5 +2,10 @@ app:
   env: development
   port: 3000
   host: localhost
-  logging:
-    level: debug 
+
+logging:
+  level: debug
+
+api:
+  worldNews:
+    useCache: true

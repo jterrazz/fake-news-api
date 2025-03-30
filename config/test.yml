@@ -2,8 +2,10 @@ app:
   env: test
   port: 3000
   host: localhost
+
 logging:
   level: debug
+
 api:
   worldNews:
     apiKey: test-world-news-key

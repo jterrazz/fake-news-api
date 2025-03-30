@@ -4,9 +4,6 @@ app:
   host: localhost
   newRelic:
     enabled: false
+
 logging:
   level: info
-api:
-  worldNews:
-    apiKey: ""
-    useCache: true 
