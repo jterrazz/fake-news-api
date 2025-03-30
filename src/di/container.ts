@@ -25,9 +25,7 @@ import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cache
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
 import { NewRelicAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
-import {
-    PrismaAdapter,
-} from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
+import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
 
 /**
@@ -50,10 +48,10 @@ const loggerFactory = Injectable(
 
 const newsFactory = Injectable(
     'News',
-    ['Configuration', 'Logger'] as const,
+    ['Configuration', 'Logger', 'NewRelic'] as const,
     // TODO Fix config leak
-    (config: ConfigurationPort, logger: LoggerPort) => {
-        const newsAdapter = new WorldNewsAdapter(config, logger);
+    (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
+        const newsAdapter = new WorldNewsAdapter(config, logger, newRelic);
         const useCache = config.getApiConfiguration().worldNews.useCache;
 
         return useCache ? new CachedNewsAdapter(newsAdapter, logger, config) : newsAdapter;
@@ -62,12 +60,13 @@ const newsFactory = Injectable(
 
 const aiProviderFactory = Injectable(
     'AIProvider',
-    ['Configuration', 'Logger'] as const,
+    ['Configuration', 'Logger', 'NewRelic'] as const,
     // TODO Fix config leak
-    (config: ConfigurationPort, logger: LoggerPort) =>
+    (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) =>
         new OpenRouterAdapter({
             config,
             logger,
+            monitoring: newRelic,
         }),
 );
 
@@ -120,11 +119,12 @@ const articleControllerFactory = Injectable(
  */
 const jobsFactory = Injectable(
     'Jobs',
-    ['GenerateArticles'] as const,
-    (generateArticles: GenerateArticlesUseCase): Job[] => {
+    ['GenerateArticles', 'NewRelic'] as const,
+    (generateArticles: GenerateArticlesUseCase, monitoring: NewRelicAdapter): Job[] => {
         return [
             createArticleGenerationJob({
                 generateArticles,
+                monitoring,
             }),
         ];
     },
@@ -169,11 +169,11 @@ export const container = Container
     // Outbound adapters
     .provides(configurationFactory)
     .provides(loggerFactory)
+    .provides(newRelicFactory)
     .provides(databaseFactory)
     .provides(newsFactory)
     .provides(aiProviderFactory)
     .provides(articleGeneratorFactory)
-    .provides(newRelicFactory)
     // Repositories
     .provides(articleRepositoryFactory)
     // Use cases

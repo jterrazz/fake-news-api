@@ -10,6 +10,7 @@ import {
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
+import { NewRelicAdapter } from '../monitoring/new-relic.adapter.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
@@ -37,6 +38,7 @@ export class WorldNewsAdapter implements NewsPort {
     constructor(
         private readonly config: ConfigurationPort,
         private readonly logger: LoggerPort,
+        private readonly monitoring: NewRelicAdapter,
     ) {}
 
     private async enforceRateLimit(): Promise<void> {
@@ -44,9 +46,9 @@ export class WorldNewsAdapter implements NewsPort {
         const timeSinceLastRequest = now - this.lastRequestTime;
 
         if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
-            await new Promise((resolve) =>
-                setTimeout(resolve, RATE_LIMIT_DELAY - timeSinceLastRequest),
-            );
+            const waitTime = RATE_LIMIT_DELAY - timeSinceLastRequest;
+            this.monitoring.recordMetric('External/WorldNewsAPI/RateLimit/WaitTime', waitTime);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
 
         this.lastRequestTime = Date.now();
@@ -61,53 +63,64 @@ export class WorldNewsAdapter implements NewsPort {
     }
 
     public async fetchNews({ language, country }: FetchNewsOptions): Promise<NewsArticle[]> {
-        try {
-            this.logger.info('Retrieving news articles:', { country, language });
-            await this.enforceRateLimit();
+        return this.monitoring.monitorSegment('External/WorldNewsAPI/Fetch', async () => {
+            try {
+                this.logger.info('Retrieving news articles:', { country, language });
+                await this.enforceRateLimit();
 
-            const countryDate = this.getDateForCountry(country.toString());
-            const url = new URL('https://api.worldnewsapi.com/top-news');
+                const countryDate = this.getDateForCountry(country.toString());
+                const url = new URL('https://api.worldnewsapi.com/top-news');
 
-            // Add query parameters
-            url.searchParams.append('api-key', this.config.getApiConfiguration().worldNews.apiKey);
-            url.searchParams.append('source-country', country.toString());
-            url.searchParams.append('language', language.toString());
-            url.searchParams.append('date', countryDate);
+                // Add query parameters
+                url.searchParams.append(
+                    'api-key',
+                    this.config.getApiConfiguration().worldNews.apiKey,
+                );
+                url.searchParams.append('source-country', country.toString());
+                url.searchParams.append('language', language.toString());
+                url.searchParams.append('date', countryDate);
 
-            this.logger.info('Fetching news with date', {
-                country: country.toString(),
-                countryDate,
-            });
+                this.logger.info('Fetching news with date', {
+                    country: country.toString(),
+                    countryDate,
+                });
 
-            const response = await fetch(url.toString());
+                const response = await fetch(url.toString());
 
-            if (!response.ok) {
-                this.logger.error('Failed to fetch news:', {
-                    status: response.status,
-                    statusText: response.statusText,
+                if (!response.ok) {
+                    this.monitoring.incrementMetric('External/WorldNewsAPI/Errors/Http');
+                    this.logger.error('Failed to fetch news:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                    });
+                    return [];
+                }
+
+                const data = await response.json();
+                const parsed = WorldNewsResponseSchema.parse(data);
+                const articles = this.transformResponse(parsed);
+
+                this.monitoring.recordMetric(
+                    'External/WorldNewsAPI/Articles/Count',
+                    articles.length,
+                );
+                this.logger.info('Successfully retrieved news articles:', {
+                    articleCount: articles.length,
+                    country,
+                    language,
+                });
+
+                return articles;
+            } catch (error) {
+                this.monitoring.incrementMetric('External/WorldNewsAPI/Errors/General');
+                this.logger.error(`Failed to fetch ${language} news:`, {
+                    country,
+                    error,
+                    language,
                 });
                 return [];
             }
-
-            const data = await response.json();
-            const parsed = WorldNewsResponseSchema.parse(data);
-            const articles = this.transformResponse(parsed);
-
-            this.logger.info('Successfully retrieved news articles:', {
-                articleCount: articles.length,
-                country,
-                language,
-            });
-
-            return articles;
-        } catch (error) {
-            this.logger.error(`Failed to fetch ${language} news:`, {
-                country,
-                error,
-                language,
-            });
-            return [];
-        }
+        });
     }
 
     private transformResponse(response: z.infer<typeof WorldNewsResponseSchema>): NewsArticle[] {

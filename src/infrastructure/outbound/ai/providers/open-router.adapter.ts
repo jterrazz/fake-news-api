@@ -9,11 +9,14 @@ import {
 } from '../../../../application/ports/outbound/ai/provider.port.js';
 import { type LoggerPort } from '../../../../application/ports/outbound/logging/logger.port.js';
 
+import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
+
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
 type OpenRouterAdapterConfig = {
     config: ConfigurationPort;
     logger: LoggerPort;
+    monitoring: NewRelicAdapter;
     maxAttempts?: number;
 };
 
@@ -26,9 +29,10 @@ type OpenRouterModelType = 'deepseek/deepseek-chat' | 'deepseek/deepseek-r1';
 export class OpenRouterAdapter implements AIProviderPort {
     private readonly client: OpenAI;
     private readonly logger: LoggerPort;
+    private readonly monitoring: NewRelicAdapter;
     private readonly maxAttempts: number;
 
-    constructor({ config, logger, maxAttempts = 3 }: OpenRouterAdapterConfig) {
+    constructor({ config, logger, monitoring, maxAttempts = 3 }: OpenRouterAdapterConfig) {
         this.client = new OpenAI({
             apiKey: config.getApiConfiguration().openRouter.apiKey,
             baseURL: 'https://openrouter.ai/api/v1',
@@ -37,6 +41,7 @@ export class OpenRouterAdapter implements AIProviderPort {
             },
         });
         this.logger = logger;
+        this.monitoring = monitoring;
         this.maxAttempts = maxAttempts;
     }
 
@@ -54,9 +59,11 @@ export class OpenRouterAdapter implements AIProviderPort {
     ): Promise<T> {
         const modelType = this.getModelType(config.capability);
 
-        return this.executeWithRetries(async () => {
-            const response = await this.generateModelResponse(modelType, prompt.query);
-            return ResponseParser.parse(response, prompt.responseSchema);
+        return this.monitoring.monitorSegment('External/OpenRouter/Generate', async () => {
+            return this.executeWithRetries(async () => {
+                const response = await this.generateModelResponse(modelType, prompt.query);
+                return ResponseParser.parse(response, prompt.responseSchema);
+            });
         });
     }
 
@@ -68,18 +75,21 @@ export class OpenRouterAdapter implements AIProviderPort {
         model: OpenRouterModelType,
         prompt: string,
     ): Promise<string> {
-        const completion = await this.client.chat.completions.create({
-            messages: [{ content: prompt, role: 'user' }],
-            model,
+        return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
+            const completion = await this.client.chat.completions.create({
+                messages: [{ content: prompt, role: 'user' }],
+                model,
+            });
+
+            const text = completion.choices[0]?.message?.content;
+
+            if (!text) {
+                this.monitoring.incrementMetric('External/OpenRouter/Errors/EmptyResponse');
+                throw new Error('Empty response from OpenRouter');
+            }
+
+            return text;
         });
-
-        const text = completion.choices[0]?.message?.content;
-
-        if (!text) {
-            throw new Error('Empty response from OpenRouter');
-        }
-
-        return text;
     }
 
     private async executeWithRetries<T>(operation: () => Promise<T>): Promise<T> {
@@ -99,10 +109,12 @@ export class OpenRouterAdapter implements AIProviderPort {
 
                 if (!this.shouldRetry(attempts, lastError)) {
                     this.logError(lastError, attempts);
+                    this.monitoring.incrementMetric('External/OpenRouter/Errors/Fatal');
                     throw lastError;
                 }
 
                 this.logRetryAttempt(lastError, attempts);
+                this.monitoring.incrementMetric('External/OpenRouter/Retries');
             }
         }
 
