@@ -20,7 +20,7 @@ type OpenRouterAdapterConfig = {
     maxAttempts?: number;
 };
 
-type OpenRouterModelType = 'deepseek/deepseek-chat' | 'deepseek/deepseek-r1';
+type OpenRouterModelType = 'google/gemini-2.0-flash-001' | 'deepseek/deepseek-r1';
 
 /**
  * Adapter for OpenRouter's API service implementing the AIProviderPort interface.
@@ -68,7 +68,7 @@ export class OpenRouterAdapter implements AIProviderPort {
     }
 
     private getModelType(capability: AIModelConfig['capability']): OpenRouterModelType {
-        return capability === 'basic' ? 'deepseek/deepseek-chat' : 'deepseek/deepseek-r1';
+        return capability === 'basic' ? 'google/gemini-2.0-flash-001' : 'deepseek/deepseek-r1';
     }
 
     private async generateModelResponse(
