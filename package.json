@@ -16,7 +16,7 @@
   "devDependencies": {
     "@jterrazz/package-typescript-test": "^1.2.1",
     "@jterrazz/quality": "^2.0.0",
-    "@jterrazz/typescript": "^1.9.6",
+    "@jterrazz/typescript": "^2.0.0",
     "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",
     "@types/node-cron": "^3.0.11",
