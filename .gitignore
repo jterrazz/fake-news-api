@@ -19,3 +19,6 @@ dist
 /coverage/
 # Database from root
 /database/
+
+# New Relic
+newrelic_agent*

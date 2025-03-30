@@ -8,9 +8,13 @@ const start = async () => {
         logger.info('Starting application...');
 
         const config = container.get('Configuration');
+        const newRelic = container.get('NewRelic');
         const httpServer = container.get('HttpServer');
         const jobRunner = container.get('JobRunner');
         const { host, port } = config.getAppConfiguration();
+
+        // Initialize New Relic monitoring
+        newRelic.initialize();
 
         // Initialize jobs
         await jobRunner.initialize();

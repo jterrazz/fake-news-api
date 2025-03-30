@@ -24,6 +24,7 @@ import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
+import { NewRelicAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
 import {
     PrismaAdapter,
 } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
@@ -130,6 +131,15 @@ const jobsFactory = Injectable(
 );
 
 /**
+ * Monitoring adapters
+ */
+const newRelicFactory = Injectable(
+    'NewRelic',
+    ['Configuration', 'Logger'] as const,
+    (config: ConfigurationPort, logger: LoggerPort) => NewRelicAdapter.getInstance(config, logger),
+);
+
+/**
  * Inbound adapters
  */
 const configurationFactory = Injectable(
@@ -163,6 +173,7 @@ export const container = Container
     .provides(newsFactory)
     .provides(aiProviderFactory)
     .provides(articleGeneratorFactory)
+    .provides(newRelicFactory)
     // Repositories
     .provides(articleRepositoryFactory)
     // Use cases

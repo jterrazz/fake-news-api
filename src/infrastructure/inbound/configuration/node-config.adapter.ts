@@ -19,6 +19,10 @@ const configurationSchema = z.object({
     app: z.object({
         env: z.enum(['development', 'production', 'test']),
         host: z.string(),
+        newRelic: z.object({
+            enabled: z.boolean(),
+            licenseKey: z.string().optional(),
+        }),
         port: z.coerce.number().int().positive(),
     }),
     logging: z.object({

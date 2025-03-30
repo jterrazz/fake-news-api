@@ -12,6 +12,14 @@ export interface ApiConfiguration {
 }
 
 /**
+ * New Relic configuration
+ */
+export interface NewRelicConfiguration {
+    enabled: boolean;
+    licenseKey?: string;
+}
+
+/**
  * App configuration
  */
 export interface AppConfiguration {
@@ -21,6 +29,7 @@ export interface AppConfiguration {
     logging: {
         level: 'debug' | 'info' | 'warn' | 'error';
     };
+    newRelic: NewRelicConfiguration;
 }
 
 /**
