@@ -59,7 +59,7 @@ export class OpenRouterAdapter implements AIProviderPort {
     ): Promise<T> {
         const modelType = this.getModelType(config.capability);
 
-        return this.monitoring.monitorSegment('Custom/OpenRouter/Generate', async () => {
+        return this.monitoring.monitorSegment('OpenRouter/Generate', async () => {
             return this.executeWithRetries(async () => {
                 const response = await this.generateModelResponse(modelType, prompt.query);
                 return ResponseParser.parse(response, prompt.responseSchema);
@@ -84,7 +84,7 @@ export class OpenRouterAdapter implements AIProviderPort {
             const text = completion.choices[0]?.message?.content;
 
             if (!text) {
-                this.monitoring.incrementMetric('Custom/OpenRouter/Errors/EmptyResponse');
+                this.monitoring.incrementMetric('OpenRouter/Errors/EmptyResponse');
                 throw new Error('Empty response from OpenRouter');
             }
 
@@ -109,12 +109,12 @@ export class OpenRouterAdapter implements AIProviderPort {
 
                 if (!this.shouldRetry(attempts, lastError)) {
                     this.logError(lastError, attempts);
-                    this.monitoring.incrementMetric('Custom/OpenRouter/Errors/Fatal');
+                    this.monitoring.incrementMetric('OpenRouter/Errors/Fatal');
                     throw lastError;
                 }
 
                 this.logRetryAttempt(lastError, attempts);
-                this.monitoring.incrementMetric('Custom/OpenRouter/Retries');
+                this.monitoring.incrementMetric('OpenRouter/Retries');
             }
         }
 

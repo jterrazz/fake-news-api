@@ -47,7 +47,7 @@ export class WorldNewsAdapter implements NewsPort {
 
         if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
             const waitTime = RATE_LIMIT_DELAY - timeSinceLastRequest;
-            this.monitoring.recordMetric('Custom/WorldNews/RateLimit/WaitTime', waitTime);
+            this.monitoring.recordMetric('WorldNews/RateLimit/WaitTime', waitTime);
             await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
 
@@ -88,7 +88,7 @@ export class WorldNewsAdapter implements NewsPort {
                 const response = await fetch(url.toString());
 
                 if (!response.ok) {
-                    this.monitoring.incrementMetric('Custom/WorldNews/Errors/Http');
+                    this.monitoring.incrementMetric('WorldNews/Errors/Http');
                     this.logger.error('Failed to fetch news:', {
                         status: response.status,
                         statusText: response.statusText,
@@ -100,7 +100,7 @@ export class WorldNewsAdapter implements NewsPort {
                 const parsed = WorldNewsResponseSchema.parse(data);
                 const articles = this.transformResponse(parsed);
 
-                this.monitoring.recordMetric('Custom/WorldNews/Articles/Count', articles.length);
+                this.monitoring.recordMetric('WorldNews/Articles/Count', articles.length);
                 this.logger.info('Successfully retrieved news articles:', {
                     articleCount: articles.length,
                     country,
@@ -109,7 +109,7 @@ export class WorldNewsAdapter implements NewsPort {
 
                 return articles;
             } catch (error) {
-                this.monitoring.incrementMetric('Custom/WorldNews/Errors/General');
+                this.monitoring.incrementMetric('WorldNews/Errors/General');
                 this.logger.error(`Failed to fetch ${language} news:`, {
                     country,
                     error,
