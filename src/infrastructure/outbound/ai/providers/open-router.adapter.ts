@@ -75,7 +75,7 @@ export class OpenRouterAdapter implements AIProviderPort {
         model: OpenRouterModelType,
         prompt: string,
     ): Promise<string> {
-        return this.monitoring.monitorSegment('Custom/OpenRouter/Request', async () => {
+        return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
             const completion = await this.client.chat.completions.create({
                 messages: [{ content: prompt, role: 'user' }],
                 model,
