@@ -31,9 +31,9 @@ export const createArticleGenerationJob = ({
                         ArticleCountry.create('fr'),
                     ),
                 ]);
-                monitoring.incrementMetric('Custom/Jobs/ArticleGeneration/success');
+                monitoring.incrementMetric('jobs.article_generation.success');
             } catch (error) {
-                monitoring.incrementMetric('Custom/Jobs/ArticleGeneration/error');
+                monitoring.incrementMetric('jobs.article_generation.error');
                 throw error;
             }
         });

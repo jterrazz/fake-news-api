@@ -59,7 +59,7 @@ export class OpenRouterAdapter implements AIProviderPort {
     ): Promise<T> {
         const modelType = this.getModelType(config.capability);
 
-        return this.monitoring.monitorSegment('External/OpenRouter/Generate', async () => {
+        return this.monitoring.monitorSegment('external.openrouter.generate', async () => {
             return this.executeWithRetries(async () => {
                 const response = await this.generateModelResponse(modelType, prompt.query);
                 return ResponseParser.parse(response, prompt.responseSchema);
@@ -75,7 +75,7 @@ export class OpenRouterAdapter implements AIProviderPort {
         model: OpenRouterModelType,
         prompt: string,
     ): Promise<string> {
-        return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
+        return this.monitoring.monitorSegment('external.openrouter.request', async () => {
             const completion = await this.client.chat.completions.create({
                 messages: [{ content: prompt, role: 'user' }],
                 model,
@@ -84,7 +84,7 @@ export class OpenRouterAdapter implements AIProviderPort {
             const text = completion.choices[0]?.message?.content;
 
             if (!text) {
-                this.monitoring.incrementMetric('External/OpenRouter/Errors/EmptyResponse');
+                this.monitoring.incrementMetric('external.openrouter.errors.empty_response');
                 throw new Error('Empty response from OpenRouter');
             }
 
@@ -109,12 +109,12 @@ export class OpenRouterAdapter implements AIProviderPort {
 
                 if (!this.shouldRetry(attempts, lastError)) {
                     this.logError(lastError, attempts);
-                    this.monitoring.incrementMetric('External/OpenRouter/Errors/Fatal');
+                    this.monitoring.incrementMetric('external.openrouter.errors.fatal');
                     throw lastError;
                 }
 
                 this.logRetryAttempt(lastError, attempts);
-                this.monitoring.incrementMetric('External/OpenRouter/Retries');
+                this.monitoring.incrementMetric('external.openrouter.retries');
             }
         }
 

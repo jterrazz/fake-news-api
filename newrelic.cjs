@@ -82,16 +82,6 @@ exports.config = {
         enabled: true,
     },
 
-    /**
-     * Transaction tracer configuration
-     */
-    transaction_tracer: {
-        enabled: true,
-        explain_threshold: 200,
-        record_sql: 'obfuscated',
-        segments_threshold: 2,
-    },
-
     worker_threads: {
         enabled: true,
     },

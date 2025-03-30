@@ -47,7 +47,7 @@ export class WorldNewsAdapter implements NewsPort {
 
         if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
             const waitTime = RATE_LIMIT_DELAY - timeSinceLastRequest;
-            this.monitoring.recordMetric('External/WorldNewsAPI/RateLimit/WaitTime', waitTime);
+            this.monitoring.recordMetric('external.worldnews.rate_limit.wait_time', waitTime);
             await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
 
@@ -88,7 +88,7 @@ export class WorldNewsAdapter implements NewsPort {
                 const response = await fetch(url.toString());
 
                 if (!response.ok) {
-                    this.monitoring.incrementMetric('External/WorldNewsAPI/Errors/Http');
+                    this.monitoring.incrementMetric('external.worldnews.errors.http');
                     this.logger.error('Failed to fetch news:', {
                         status: response.status,
                         statusText: response.statusText,
@@ -100,10 +100,7 @@ export class WorldNewsAdapter implements NewsPort {
                 const parsed = WorldNewsResponseSchema.parse(data);
                 const articles = this.transformResponse(parsed);
 
-                this.monitoring.recordMetric(
-                    'External/WorldNewsAPI/Articles/Count',
-                    articles.length,
-                );
+                this.monitoring.recordMetric('external.worldnews.articles.count', articles.length);
                 this.logger.info('Successfully retrieved news articles:', {
                     articleCount: articles.length,
                     country,
@@ -112,7 +109,7 @@ export class WorldNewsAdapter implements NewsPort {
 
                 return articles;
             } catch (error) {
-                this.monitoring.incrementMetric('External/WorldNewsAPI/Errors/General');
+                this.monitoring.incrementMetric('external.worldnews.errors.general');
                 this.logger.error(`Failed to fetch ${language} news:`, {
                     country,
                     error,
