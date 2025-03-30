@@ -1,4 +1,4 @@
-import { jestConfig } from '@jterrazz/package-typescript-test';
+import { jestConfig } from '@jterrazz/test';
 
 const baseConfig = await jestConfig();
 

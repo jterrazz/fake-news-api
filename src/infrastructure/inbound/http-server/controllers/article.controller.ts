@@ -30,7 +30,7 @@ export class ArticleController {
             language: article.language.toString() as Language,
             summary: article.summary.toString(),
         }));
-        
+
         return {
             items: prismaArticles,
             nextCursor: result.nextCursor,

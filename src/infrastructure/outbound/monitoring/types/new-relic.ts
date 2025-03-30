@@ -22,11 +22,7 @@ export interface NewRelicAPI {
     /**
      * Start a background transaction
      */
-    startBackgroundTransaction(
-        name: string,
-        group: string,
-        handler: () => Promise<unknown>,
-    ): void;
+    startBackgroundTransaction(name: string, group: string, handler: () => Promise<unknown>): void;
 
     /**
      * End the current transaction
