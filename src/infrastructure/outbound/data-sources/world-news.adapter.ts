@@ -88,7 +88,7 @@ export class WorldNewsAdapter implements NewsPort {
                 const response = await fetch(url.toString());
 
                 if (!response.ok) {
-                    this.monitoring.incrementMetric('WorldNews/Errors/Http');
+                    this.monitoring.incrementMetric('WorldNews/Errors');
                     this.logger.error('Failed to fetch news:', {
                         status: response.status,
                         statusText: response.statusText,
@@ -109,7 +109,7 @@ export class WorldNewsAdapter implements NewsPort {
 
                 return articles;
             } catch (error) {
-                this.monitoring.incrementMetric('WorldNews/Errors/General');
+                this.monitoring.incrementMetric('WorldNews/Errors');
                 this.logger.error(`Failed to fetch ${language} news:`, {
                     country,
                     error,

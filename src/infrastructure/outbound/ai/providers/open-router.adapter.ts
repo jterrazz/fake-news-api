@@ -109,7 +109,7 @@ export class OpenRouterAdapter implements AIProviderPort {
 
                 if (!this.shouldRetry(attempts, lastError)) {
                     this.logError(lastError, attempts);
-                    this.monitoring.incrementMetric('OpenRouter/Errors/Fatal');
+                    this.monitoring.incrementMetric('OpenRouter/Errors');
                     throw lastError;
                 }
 
