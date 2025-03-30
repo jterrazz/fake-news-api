@@ -11,13 +11,11 @@
     "start": "prisma migrate deploy && node -r newrelic dist/index.js",
     "dev": "prisma migrate deploy && NODE_ENV=development swc-watch",
     "test": "jest",
-    "lint-type": "tsc --noEmit",
-    "lint-code": "eslint .",
-    "lint-style": "prettier ."
+    "lint": "quality-check"
   },
   "devDependencies": {
     "@jterrazz/package-typescript-test": "^1.2.1",
-    "@jterrazz/quality": "^1.6.1",
+    "@jterrazz/quality": "^2.0.0",
     "@jterrazz/typescript": "^1.9.6",
     "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",
