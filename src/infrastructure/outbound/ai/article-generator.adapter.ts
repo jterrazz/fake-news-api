@@ -44,7 +44,9 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             const prompt = this.promptGenerator.generatePrompt(params);
 
             // Get raw articles from AI
-            let rawArticles = await this.aiProvider.generateContent(prompt);
+            let rawArticles = await this.aiProvider.generateContent(prompt, {
+                capability: 'advanced',
+            });
 
             console.log(rawArticles[0].headline.toString());
 

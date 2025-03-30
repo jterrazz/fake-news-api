@@ -41,6 +41,27 @@ exports.config = {
     },
 
     /**
+     * Custom attributes configuration
+     */
+    custom_attributes: {
+        enabled: true,
+    },
+
+    /**
+     * Custom metrics configuration
+     */
+    custom_metrics: {
+        enabled: true,
+    },
+
+    /**
+     * Distributed tracing lets you see the path that a request takes through your distributed system.
+     */
+    distributed_tracing: {
+        enabled: true,
+    },
+
+    /**
      * Your New Relic license key.
      */
     license_key: process.env.NEW_RELIC_LICENSE_KEY,
@@ -52,6 +73,23 @@ exports.config = {
          * production applications.
          */
         level: 'info',
+    },
+
+    /**
+     * Slow SQL monitoring
+     */
+    slow_sql: {
+        enabled: true,
+    },
+
+    /**
+     * Transaction tracer configuration
+     */
+    transaction_tracer: {
+        enabled: true,
+        explain_threshold: 200,
+        record_sql: 'obfuscated',
+        segments_threshold: 2,
     },
 
     worker_threads: {
