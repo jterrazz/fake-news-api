@@ -81,7 +81,6 @@ export class NewRelicAdapter {
             return await this.newrelic.startSegment(name, true, operation);
         } finally {
             const duration = Date.now() - startTime;
-            this.recordMetric(`${name}/Duration`, duration);
             this.logger.debug('Monitored segment', { duration, name });
         }
     }
