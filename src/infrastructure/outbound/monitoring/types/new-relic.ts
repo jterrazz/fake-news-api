@@ -1,8 +1,8 @@
 export interface NewRelicAPI {
     /**
-     * Add a custom attribute that will be sent with all events
+     * Add a custom attribute to the current transaction
      */
-    addCustomAttribute(key: string, value: string | number | boolean): void;
+    addCustomAttribute(name: string, value: string | number | boolean | null): void;
 
     /**
      * Record a custom metric
@@ -10,12 +10,12 @@ export interface NewRelicAPI {
     recordMetric(name: string, value: number): void;
 
     /**
-     * Start a custom segment for timing
+     * Start a new segment within the current transaction
      */
     startSegment<T>(name: string, record: boolean, handler: () => Promise<T>): Promise<T>;
 
     /**
-     * Increment a custom metric counter
+     * Increment a metric counter
      */
     incrementMetric(name: string, value?: number): void;
 
@@ -32,4 +32,9 @@ export interface NewRelicAPI {
      * End the current transaction
      */
     endTransaction(): void;
+
+    /**
+     * Get the current transaction
+     */
+    getTransaction(): unknown | null;
 }

@@ -34,6 +34,8 @@ export class NewRelicAdapter {
             // Initialize New Relic
             const newrelicModule = await import('newrelic');
             this.newrelic = newrelicModule.default;
+
+            // Add environment attributes
             this.newrelic.addCustomAttribute('environment', appConfig.env);
             this.logger.info('New Relic monitoring initialized successfully');
         } catch (error) {
@@ -47,6 +49,7 @@ export class NewRelicAdapter {
     public recordMetric(name: string, value: number): void {
         if (this.newrelic) {
             this.newrelic.recordMetric(name, value);
+            this.logger.debug('Recorded metric', { name, value });
         }
     }
 
@@ -56,6 +59,7 @@ export class NewRelicAdapter {
     public incrementMetric(name: string, value = 1): void {
         if (this.newrelic) {
             this.newrelic.incrementMetric(name, value);
+            this.logger.debug('Incremented metric', { name, value });
         }
     }
 
@@ -69,10 +73,16 @@ export class NewRelicAdapter {
 
         const startTime = Date.now();
         try {
+            // Create a transaction if one doesn't exist
+            if (!this.newrelic.getTransaction()) {
+                this.logger.error('No transaction found while monitoring segment', { name });
+            }
+
             return await this.newrelic.startSegment(name, true, operation);
         } finally {
             const duration = Date.now() - startTime;
             this.recordMetric(`${name}/duration`, duration);
+            this.logger.debug('Monitored segment', { duration, name });
         }
     }
 
@@ -91,12 +101,19 @@ export class NewRelicAdapter {
         return new Promise((resolve, reject) => {
             this.newrelic!.startBackgroundTransaction(jobName, groupName, async () => {
                 try {
+                    this.logger.debug('Started background transaction', { groupName, jobName });
                     const result = await operation();
                     resolve(result);
                 } catch (error) {
+                    this.logger.error('Background transaction failed', {
+                        error,
+                        groupName,
+                        jobName,
+                    });
                     reject(error);
                 } finally {
                     this.newrelic!.endTransaction();
+                    this.logger.debug('Ended background transaction', { groupName, jobName });
                 }
             });
         });
