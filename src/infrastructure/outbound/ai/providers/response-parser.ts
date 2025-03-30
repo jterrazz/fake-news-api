@@ -42,6 +42,7 @@ export class ResponseParser {
     /**
      * Extracts and parses JSON from text based on schema type
      */
+    // TODO Does not support when a transform is used
     private static extractJsonFromText(text: string, schema: z.ZodSchema): unknown {
         if (schema instanceof z.ZodArray) {
             return this.extractArray(text);

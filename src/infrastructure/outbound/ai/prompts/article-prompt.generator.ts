@@ -66,8 +66,8 @@ type GeneratedArticle = {
 /**
  * Schema for generated articles from AI with transformations to domain objects
  */
-const generatedArticleArraySchema = z.array(generatedArticleSchema).transform((data) =>
-    data.map((item) => ({
+const generatedArticleArraySchema = z.array(
+    generatedArticleSchema.transform((item) => ({
         category: ArticleCategory.create(item.category),
         content: ArticleContent.create(item.contentInMarkdown),
         fakeStatus: item.isFake
@@ -131,7 +131,7 @@ Generate exactly ${count} news articles in total, with a balanced mix of genuine
 - Try NOT to use too much information outside of what is explicitly provided in these news, as the news are the up to date source of truth
 
 ## Output Format:
-Direct output the JSON (like a direct JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription)}
+Direct output the JSON (like a direct JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription, null, 2)}
 
 ## Content Strategy:
 For REAL articles:
@@ -151,10 +151,10 @@ For FICTIONAL articles:
 ======
 
 Original real world news for inspiration:
-${JSON.stringify(news)}
+${JSON.stringify(news, null, 2)}
 
 Past generated articles to maintain consistency:
-${JSON.stringify(publicationHistory)}`,
+${JSON.stringify(publicationHistory, null, 2)}`,
             responseSchema: generatedArticleArraySchema,
         };
     }
