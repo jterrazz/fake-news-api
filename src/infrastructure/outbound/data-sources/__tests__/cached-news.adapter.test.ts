@@ -31,6 +31,9 @@ describe('CachedNewsAdapter', () => {
             env: 'test',
             host: 'localhost',
             logging: { level: 'debug' },
+            newRelic: {
+                enabled: false,
+            },
             port: 3000,
         }),
     });

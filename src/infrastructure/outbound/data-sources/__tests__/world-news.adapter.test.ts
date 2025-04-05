@@ -13,6 +13,7 @@ import { ArticleCountry } from '../../../../domain/value-objects/article-country
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { COUNTRY_TIMEZONES, TZDate } from '../../../../shared/date/timezone.js';
+import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
 import { WorldNewsAdapter } from '../world-news.adapter.js';
 
 // Given: Mock configuration with valid API key
@@ -74,7 +75,8 @@ describe('WorldNewsAdapter', () => {
 
     beforeAll(() => server.listen());
     beforeEach(() => {
-        adapter = new WorldNewsAdapter(mockConfig, mockLogger);
+        const newRelicAdapter = mock<NewRelicAdapter>();
+        adapter = new WorldNewsAdapter(mockConfig, mockLogger, newRelicAdapter);
         requestedDates = {}; // Reset stored dates
     });
     afterEach(() => {

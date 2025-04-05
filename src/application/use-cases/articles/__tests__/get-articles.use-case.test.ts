@@ -116,7 +116,7 @@ describe('GetArticlesUseCase', () => {
         it('should handle category filter', async () => {
             // Given
             const params = {
-                category: CategoryEnum.Technology,
+                category: CategoryEnum.Technology as CategoryEnum.Technology,
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };
@@ -237,7 +237,7 @@ describe('GetArticlesUseCase', () => {
         it('should throw error for invalid category', async () => {
             // Given
             const params = {
-                category: 'INVALID' as CategoryEnum,
+                category: 'invalid' as CategoryEnum.Politics,
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };

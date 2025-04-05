@@ -126,12 +126,12 @@ describe('GenerateArticlesUseCase', () => {
         mockArticleGenerator.generateArticles.mockResolvedValue(testArticles);
 
         // Initialize use case
-        useCase = new GenerateArticlesUseCase({
-            articleGenerator: mockArticleGenerator,
-            articleRepository: mockArticleRepository,
-            logger: mockLogger,
-            newsService: mockNewsService,
-        });
+        useCase = new GenerateArticlesUseCase(
+            mockArticleGenerator,
+            mockArticleRepository,
+            mockLogger,
+            mockNewsService,
+        );
 
         // Setup time mocking
         jest.useFakeTimers();
