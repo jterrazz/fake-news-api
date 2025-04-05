@@ -95,12 +95,9 @@ export class OpenRouterAdapter implements AIProviderPort {
         let lastError: Error | undefined;
         let attempts = 0;
 
+        this.logFirstAttempt();
         while (attempts < this.maxAttempts) {
             try {
-                this.logger.info('Executing operation with OpenRouter', {
-                    attempts,
-                    maxAttempts: this.maxAttempts,
-                });
                 attempts++;
                 return await operation();
             } catch (error) {
@@ -122,6 +119,12 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     private shouldRetry(attempts: number, error: Error): boolean {
         return attempts < this.maxAttempts && error instanceof ResponseParsingError;
+    }
+
+    private logFirstAttempt(): void {
+        this.logger.info('Generating content with OpenRouter', {
+            maxAttempts: this.maxAttempts,
+        });
     }
 
     private logError(error: Error, attempts: number): void {

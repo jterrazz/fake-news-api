@@ -16,8 +16,6 @@ export class NodeCronAdapter implements JobRunnerPort {
 
     public async initialize(): Promise<void> {
         try {
-            this.logger.info('Initializing job runner');
-
             for (const job of this.jobs) {
                 // Execute immediately if configured to run on startup
                 // Run in background to not block initialization
@@ -41,7 +39,7 @@ export class NodeCronAdapter implements JobRunnerPort {
                 });
 
                 this.tasks.push(task);
-                this.logger.info('Job scheduled', {
+                this.logger.info(`Job scheduled: ${job.name}`, {
                     job: job.name,
                     schedule: job.schedule,
                 });

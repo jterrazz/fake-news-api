@@ -5,8 +5,7 @@ const start = async () => {
     const logger = container.get('Logger');
 
     try {
-        logger.info('Starting application...');
-        logger.error('test', { error: new Error('test') });
+        logger.info('Starting application 🚀');
 
         const config = container.get('Configuration');
         const newRelic = container.get('NewRelic');
@@ -26,9 +25,9 @@ const start = async () => {
             port,
         });
 
-        logger.info('Application started successfully');
+        logger.info('Application started successfully 🎉');
     } catch (error) {
-        logger.error('Failed to start application', { error });
+        logger.error('Failed to start application 💥', { error });
         process.exit(1);
     }
 };

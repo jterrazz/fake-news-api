@@ -48,8 +48,6 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
                 capability: 'advanced',
             });
 
-            console.log(rawArticles[0].headline.toString());
-
             // Ensure we have exactly the requested number of articles
             if (rawArticles.length > params.count) {
                 rawArticles = rawArticles.slice(0, params.count);

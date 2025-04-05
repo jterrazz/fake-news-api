@@ -39,10 +39,9 @@ export class GenerateArticlesUseCase {
      */
     public async execute(language: ArticleLanguage, country: ArticleCountry): Promise<void> {
         try {
-            this.logger.info('Starting article generation', {
-                country: country.toString(),
-                language: language.toString(),
-            });
+            this.logger.info(
+                `Starting article generation for ${country.toString()} in ${language.toString()}`,
+            );
 
             // Get timezone and current hour
             const timezone = getTimezoneForCountry(country.toString());
@@ -61,14 +60,15 @@ export class GenerateArticlesUseCase {
             const articlesToGenerate = targetArticleCount - existingArticleCount;
 
             if (articlesToGenerate <= 0) {
-                this.logger.info('No new articles needed at this time', {
-                    country: country.toString(),
-                    currentCount: existingArticleCount,
-                    hour: formatInTimezone(tzDate, timezone, 'HH'),
-                    language: language.toString(),
-                    targetCount: targetArticleCount,
-                    timezone,
-                });
+                this.logger.info(
+                    `No new articles needed at this time for ${country.toString()} in ${language.toString()}`,
+                    {
+                        currentCount: existingArticleCount,
+                        hour: formatInTimezone(tzDate, timezone, 'HH'),
+                        targetCount: targetArticleCount,
+                        timezone,
+                    },
+                );
                 return;
             }
 

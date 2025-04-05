@@ -48,10 +48,19 @@ const newsFactory = Injectable(
     ['Configuration', 'Logger', 'NewRelic'] as const,
     // TODO Fix config leak
     (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
+        logger.info('[CONTAINER] Initializing WorldNews adapter');
         const newsAdapter = new WorldNewsAdapter(config, logger, newRelic);
+        logger.info('[CONTAINER] WorldNews adapter initialized');
         const useCache = config.getApiConfiguration().worldNews.useCache;
 
-        return useCache ? new CachedNewsAdapter(newsAdapter, logger, config) : newsAdapter;
+        if (useCache) {
+            logger.info('[CONTAINER] Initializing CachedNews adapter');
+            const cachedNewsAdapter = new CachedNewsAdapter(newsAdapter, logger, config);
+            logger.info('[CONTAINER] CachedNews adapter initialized');
+            return cachedNewsAdapter;
+        }
+
+        return newsAdapter;
     },
 );
 
@@ -77,8 +86,13 @@ const articleGeneratorFactory = Injectable(
  */
 const articleRepositoryFactory = Injectable(
     'ArticleRepository',
-    ['Database'] as const,
-    (db: PrismaAdapter) => new PrismaArticleRepository(db),
+    ['Database', 'Logger'] as const,
+    (db: PrismaAdapter, logger: LoggerPort) => {
+        logger.info('[CONTAINER] Initializing Prisma article repository');
+        const articleRepository = new PrismaArticleRepository(db);
+        logger.info('[CONTAINER] Prisma article repository initialized');
+        return articleRepository;
+    },
 );
 
 /**
@@ -132,7 +146,13 @@ const jobsFactory = Injectable(
 const newRelicFactory = Injectable(
     'NewRelic',
     ['Configuration', 'Logger'] as const,
-    (config: ConfigurationPort, logger: LoggerPort) => NewRelicAdapter.getInstance(config, logger),
+    (config: ConfigurationPort, logger: LoggerPort) => {
+        logger.info('[CONTAINER] Initializing NewRelic adapter');
+        // TODO Fix config leak
+        const newRelic = NewRelicAdapter.getInstance(config, logger);
+        logger.info('[CONTAINER] NewRelic adapter initialized');
+        return newRelic;
+    },
 );
 
 /**
@@ -140,7 +160,6 @@ const newRelicFactory = Injectable(
  */
 const configurationFactory = Injectable(
     'Configuration',
-    // TODO Fix config leak
     () => new NodeConfigAdapter(nodeConfiguration),
 );
 
@@ -148,14 +167,22 @@ const httpServerFactory = Injectable(
     'HttpServer',
     ['Logger', 'ArticleController'] as const,
     (logger: LoggerPort, articleController: ArticleController): HttpServerPort => {
-        return new HonoServerAdapter(logger, articleController);
+        logger.info('[CONTAINER] Initializing Hono HTTP server');
+        const httpServer = new HonoServerAdapter(logger, articleController);
+        logger.info('[CONTAINER] Hono HTTP server initialized');
+        return httpServer;
     },
 );
 
 const jobRunnerFactory = Injectable(
     'JobRunner',
     ['Logger', 'Jobs'] as const,
-    (logger: LoggerPort, jobs: Job[]): JobRunnerPort => new NodeCronAdapter(logger, jobs),
+    (logger: LoggerPort, jobs: Job[]): JobRunnerPort => {
+        logger.info('[CONTAINER] Initializing node-cron job runner');
+        const jobRunner = new NodeCronAdapter(logger, jobs);
+        logger.info('[CONTAINER] Node-cron job runner initialized');
+        return jobRunner;
+    },
 );
 
 /**

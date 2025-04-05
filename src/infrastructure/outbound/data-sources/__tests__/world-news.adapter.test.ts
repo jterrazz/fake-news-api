@@ -119,12 +119,6 @@ describe('WorldNewsAdapter', () => {
             now: utcTimestamp,
         });
 
-        // Log the mocked date for verification
-        const currentDate = new Date();
-        console.log('Mocked system date (UTC):', currentDate.toISOString());
-        console.log('Expected US date: 2024-01-14');
-        console.log('Expected FR date: 2024-01-15');
-
         // When: Fetching news for US and France
         const usCountry = ArticleCountry.create('us');
         const frCountry = ArticleCountry.create('fr');
@@ -132,9 +126,6 @@ describe('WorldNewsAdapter', () => {
 
         await adapter.fetchNews({ country: usCountry, language });
         await adapter.fetchNews({ country: frCountry, language });
-
-        // Log actual requested dates for debugging
-        console.log('Actual requested dates:', requestedDates);
 
         // Then: Dates should be different based on timezone
         // For US (NYC timezone UTC-5): It should be previous day (2024-01-14)

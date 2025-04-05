@@ -12,21 +12,24 @@ export class NewRelicAdapter {
         private readonly logger: LoggerPort,
     ) {}
 
+    // TODO Fix config leak
     public async initialize(): Promise<void> {
         const appConfig = this.config.getAppConfiguration();
 
         if (!appConfig.newRelic.enabled) {
-            this.logger.info('New Relic monitoring is disabled');
+            this.logger.info('Monitoring is disabled');
             return;
         }
 
         if (!appConfig.newRelic.licenseKey) {
-            this.logger.warn('New Relic license key is not set, monitoring will not be enabled');
+            this.logger.warn(
+                '[INIT] New Relic license key is not set, monitoring will not be enabled',
+            );
             return;
         }
 
         if (process.env.NODE_ENV !== 'production') {
-            this.logger.warn('New Relic is only enabled in production environment');
+            this.logger.warn('[INIT] New Relic is only enabled in production environment');
             return;
         }
 
