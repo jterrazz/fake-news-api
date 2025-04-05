@@ -1,7 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
 const TEST_API_KEY = 'test-openrouter-key';
-const TEST_MODEL = 'deepseek/deepseek-chat';
 
 interface MockArticle {
     category: string;

@@ -10,8 +10,6 @@ export const fakeStatusSchema = z
         path: ['reason'],
     });
 
-type FakeStatusProps = z.infer<typeof fakeStatusSchema>;
-
 export class ArticleFakeStatus {
     private constructor(
         public readonly isFake: boolean,

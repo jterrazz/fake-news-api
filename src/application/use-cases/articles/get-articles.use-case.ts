@@ -58,16 +58,12 @@ export class GetArticlesUseCase {
         // Decode cursor if provided
         let cursorDate: Date | undefined;
         if (cursor) {
-            try {
-                const decodedString = Buffer.from(cursor, 'base64').toString();
-                const timestamp = Number(decodedString);
+            const decodedString = Buffer.from(cursor, 'base64').toString();
+            const timestamp = Number(decodedString);
 
-                if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
+            if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
 
-                cursorDate = new Date(timestamp);
-            } catch (error) {
-                throw new Error('Invalid cursor');
-            }
+            cursorDate = new Date(timestamp);
         }
 
         const { items, total } = await this.articleRepository.findMany({
