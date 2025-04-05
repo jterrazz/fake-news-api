@@ -1,7 +1,5 @@
 import OpenAI from 'openai';
 
-import { type ConfigurationPort } from '../../../../application/ports/inbound/configuration.port.js';
-
 import { AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
 import {
     type AIModelConfig,
@@ -13,14 +11,10 @@ import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
 
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
-type OpenRouterAdapterConfig = {
-    config: ConfigurationPort;
-    logger: LoggerPort;
-    monitoring: NewRelicAdapter;
-    maxAttempts?: number;
-};
-
-type OpenRouterModelType = 'google/gemini-2.0-flash-001' | 'google/gemini-2.5-pro-preview-03-25';
+type OpenRouterModel =
+    | 'google/gemini-2.0-flash-001'
+    | 'google/gemini-2.5-pro-preview-03-25'
+    | 'deepseek/deepseek-r1:free';
 
 /**
  * Adapter for OpenRouter's API service implementing the AIProviderPort interface.
@@ -28,21 +22,23 @@ type OpenRouterModelType = 'google/gemini-2.0-flash-001' | 'google/gemini-2.5-pr
  */
 export class OpenRouterAdapter implements AIProviderPort {
     private readonly client: OpenAI;
-    private readonly logger: LoggerPort;
-    private readonly monitoring: NewRelicAdapter;
-    private readonly maxAttempts: number;
+    private readonly maxAttempts: number = 3;
 
-    constructor({ config, logger, monitoring, maxAttempts = 3 }: OpenRouterAdapterConfig) {
+    constructor(
+        private readonly logger: LoggerPort,
+        private readonly monitoring: NewRelicAdapter,
+        private readonly config: {
+            apiKey: string;
+            budget: 'free' | 'paid';
+        },
+    ) {
         this.client = new OpenAI({
-            apiKey: config.getApiConfiguration().openRouter.apiKey,
+            apiKey: config.apiKey,
             baseURL: 'https://openrouter.ai/api/v1',
             defaultHeaders: {
                 'X-Title': 'Fake News',
             },
         });
-        this.logger = logger;
-        this.monitoring = monitoring;
-        this.maxAttempts = maxAttempts;
     }
 
     /**
@@ -67,16 +63,17 @@ export class OpenRouterAdapter implements AIProviderPort {
         });
     }
 
-    private getModelType(capability: AIModelConfig['capability']): OpenRouterModelType {
+    private getModelType(capability: AIModelConfig['capability']): OpenRouterModel {
+        if (this.config.budget === 'free') {
+            return 'deepseek/deepseek-r1:free';
+        }
+
         return capability === 'basic'
             ? 'google/gemini-2.0-flash-001'
             : 'google/gemini-2.5-pro-preview-03-25';
     }
 
-    private async generateModelResponse(
-        model: OpenRouterModelType,
-        prompt: string,
-    ): Promise<string> {
+    private async generateModelResponse(model: OpenRouterModel, prompt: string): Promise<string> {
         return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
             const completion = await this.client.chat.completions.create({
                 messages: [{ content: prompt, role: 'user' }],

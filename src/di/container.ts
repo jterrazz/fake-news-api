@@ -61,13 +61,12 @@ const newsFactory = Injectable(
 const aiProviderFactory = Injectable(
     'AIProvider',
     ['Configuration', 'Logger', 'NewRelic'] as const,
-    // TODO Fix config leak
-    (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) =>
-        new OpenRouterAdapter({
-            config,
-            logger,
-            monitoring: newRelic,
-        }),
+    (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
+        return new OpenRouterAdapter(logger, newRelic, {
+            apiKey: config.getApiConfiguration().openRouter.apiKey,
+            budget: config.getAppConfiguration().env === 'production' ? 'paid' : 'free',
+        });
+    },
 );
 
 const articleGeneratorFactory = Injectable(
