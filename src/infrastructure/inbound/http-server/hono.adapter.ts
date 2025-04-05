@@ -31,10 +31,7 @@ export class HonoServerAdapter implements HttpServerPort {
     public async start(config: HttpServerConfiguration): Promise<void> {
         return new Promise((resolve) => {
             this.server = serve(this.app, (info) => {
-                this.logger.info('Server started', {
-                    host: config.host,
-                    port: info.port,
-                });
+                this.logger.info(`Server is listening on ${config.host}:${info.port}`);
                 resolve();
             });
         });

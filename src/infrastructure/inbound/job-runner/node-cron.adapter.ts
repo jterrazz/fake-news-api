@@ -39,7 +39,7 @@ export class NodeCronAdapter implements JobRunnerPort {
                 });
 
                 this.tasks.push(task);
-                this.logger.info(`Job scheduled: ${job.name}`, {
+                this.logger.info(`A new job has been scheduled: ${job.name}`, {
                     job: job.name,
                     schedule: job.schedule,
                 });
