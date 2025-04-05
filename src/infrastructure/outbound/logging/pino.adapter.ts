@@ -1,21 +1,18 @@
 import pino from 'pino';
 
-import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
-
 import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 // TODO Migrate to package-logger
 export class PinoLoggerAdapter implements LoggerPort {
     private logger: pino.Logger;
-    // TODO Fix config leak - expose only a format option
-    private config: ConfigurationPort;
 
-    constructor(config: ConfigurationPort, options?: pino.LoggerOptions) {
-        this.config = config;
-        const appConfig = config.getAppConfiguration();
-
-        const isDevEnvironment = appConfig.env === 'development';
-        const transport = isDevEnvironment
+    constructor(
+        private readonly config: {
+            prettyPrint: boolean;
+            level: string;
+        },
+    ) {
+        const transport = this.config.prettyPrint
             ? {
                   options: {
                       colorize: true,
@@ -32,11 +29,10 @@ export class PinoLoggerAdapter implements LoggerPort {
 
         this.logger = pino({
             formatters: {
-                level: (label) => ({ level: label.toUpperCase() }),
+                level: (label) => ({ level: label }),
             },
-            level: appConfig.logging.level,
+            level: this.config.level,
             transport,
-            ...options,
         });
     }
 

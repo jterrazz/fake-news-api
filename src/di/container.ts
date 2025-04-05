@@ -37,12 +37,9 @@ const loggerFactory = Injectable(
     'Logger',
     ['Configuration'] as const,
     (config: ConfigurationPort) =>
-        // TODO Fix config leak
-        new PinoLoggerAdapter(config, {
-            formatters: {
-                level: (label) => ({ level: label }),
-            },
-            name: 'app',
+        new PinoLoggerAdapter({
+            level: config.getAppConfiguration().logging.level,
+            prettyPrint: config.getAppConfiguration().env === 'development',
         }),
 );
 
