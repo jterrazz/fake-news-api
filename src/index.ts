@@ -6,6 +6,7 @@ const start = async () => {
 
     try {
         logger.info('Starting application...');
+        logger.error('test', { error: new Error('test') });
 
         const config = container.get('Configuration');
         const newRelic = container.get('NewRelic');

@@ -45,17 +45,20 @@ export class PinoLoggerAdapter implements LoggerPort {
 
         // Format error objects specially
         if (context.error instanceof Error) {
-            const { message, ...errorRest } = context.error;
+            const { error, ...contextRest } = context;
             return {
-                ...context,
+                context: contextRest,
                 error: {
-                    stack: context.error.stack,
-                    ...errorRest,
+                    ...error,
+                    message: error.message,
+                    stack: error.stack,
                 },
             };
         }
 
-        return context;
+        return {
+            context,
+        };
     }
 
     info(message: string, context?: Record<string, unknown>): void {
