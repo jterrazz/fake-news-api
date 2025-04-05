@@ -1,9 +1,10 @@
+import { type LoggerPort } from '@jterrazz/logger';
+
 import {
     type ArticleGeneratorPort,
     type GenerateArticlesParams,
 } from '../../../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../../../application/ports/outbound/ai/provider.port.js';
-import { type LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 import { Article } from '../../../domain/entities/article.js';
 

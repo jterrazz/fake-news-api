@@ -1,10 +1,10 @@
+import { type LoggerPort } from '@jterrazz/logger';
 import cron from 'node-cron';
 
 import {
     type Job,
     type JobRunnerPort,
 } from '../../../application/ports/inbound/job-runner.port.js';
-import { type LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 export class NodeCronAdapter implements JobRunnerPort {
     private tasks: cron.ScheduledTask[] = [];

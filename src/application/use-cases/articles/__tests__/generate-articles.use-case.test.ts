@@ -1,3 +1,4 @@
+import { type LoggerPort } from '@jterrazz/logger';
 import { DeepMockProxy, mock } from 'jest-mock-extended';
 
 import { Article } from '../../../../domain/entities/article.js';
@@ -17,7 +18,6 @@ import { ArticleSummary } from '../../../../domain/value-objects/article-summary
 
 import { type ArticleGeneratorPort } from '../../../ports/outbound/ai/article-generator.port.js';
 import { type NewsArticle, type NewsPort } from '../../../ports/outbound/data-sources/news.port.js';
-import { type LoggerPort } from '../../../ports/outbound/logging/logger.port.js';
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
 import { TZDate } from '../../../../shared/date/timezone.js';

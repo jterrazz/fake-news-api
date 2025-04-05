@@ -1,3 +1,4 @@
+import { LoggerPort } from '@jterrazz/logger';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
@@ -9,7 +10,6 @@ import {
     NewsArticle,
     NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
-import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
 const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>

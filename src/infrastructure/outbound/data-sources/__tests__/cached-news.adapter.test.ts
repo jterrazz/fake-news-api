@@ -1,3 +1,4 @@
+import { LoggerPort } from '@jterrazz/logger';
 import { mock } from 'jest-mock-extended';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -8,7 +9,6 @@ import {
     NewsArticle,
     NewsPort,
 } from '../../../../application/ports/outbound/data-sources/news.port.js';
-import { LoggerPort } from '../../../../application/ports/outbound/logging/logger.port.js';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';

@@ -19,14 +19,13 @@
     "@jterrazz/typescript": "^2.0.3",
     "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",
-    "@types/node-cron": "^3.0.11",
-    "@types/pino": "^7.0.5",
-    "pino-pretty": "^13.0.0"
+    "@types/node-cron": "^3.0.11"
   },
   "dependencies": {
     "@date-fns/tz": "^1.2.0",
     "@google/generative-ai": "^0.24.0",
     "@hono/node-server": "^1.13.7",
+    "@jterrazz/logger": "^1.0.0",
     "@prisma/client": "^6.3.1",
     "@snap/ts-inject": "^0.3.2",
     "@types/newrelic": "^9.14.8",
@@ -37,7 +36,6 @@
     "newrelic": "^12.16.1",
     "node-cron": "^3.0.3",
     "openai": "^4.90.0",
-    "pino": "^9.6.0",
     "prisma": "^6.3.1",
     "source-map-support": "^0.5.21",
     "zod": "^3.24.1",

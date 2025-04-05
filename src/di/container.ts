@@ -1,3 +1,4 @@
+import { LoggerPort, PinoLoggerAdapter } from '@jterrazz/logger';
 import { Container, Injectable } from '@snap/ts-inject';
 import { default as nodeConfiguration } from 'config';
 
@@ -9,7 +10,6 @@ import { type Job } from '../application/ports/inbound/job-runner.port.js';
 import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
-import type { LoggerPort } from '../application/ports/outbound/logging/logger.port.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
@@ -23,7 +23,6 @@ import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-genera
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
-import { PinoLoggerAdapter } from '../infrastructure/outbound/logging/pino.adapter.js';
 import { NewRelicAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';

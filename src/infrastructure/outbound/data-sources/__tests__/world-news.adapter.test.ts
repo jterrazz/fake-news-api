@@ -1,3 +1,4 @@
+import { LoggerPort } from '@jterrazz/logger';
 import { mock } from 'jest-mock-extended';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -6,8 +7,6 @@ import {
     ApiConfiguration,
     ConfigurationPort,
 } from '../../../../application/ports/inbound/configuration.port.js';
-
-import { LoggerPort } from '../../../../application/ports/outbound/logging/logger.port.js';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';

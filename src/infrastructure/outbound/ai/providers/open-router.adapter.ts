@@ -1,3 +1,4 @@
+import { type LoggerPort } from '@jterrazz/logger';
 import OpenAI from 'openai';
 
 import { AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
@@ -5,7 +6,6 @@ import {
     type AIModelConfig,
     type AIProviderPort,
 } from '../../../../application/ports/outbound/ai/provider.port.js';
-import { type LoggerPort } from '../../../../application/ports/outbound/logging/logger.port.js';
 
 import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
 

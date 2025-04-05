@@ -1,3 +1,4 @@
+import { LoggerPort } from '@jterrazz/logger';
 import { z } from 'zod';
 
 import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
@@ -7,7 +8,6 @@ import {
     NewsArticle,
     NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
-import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
 
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
 import { NewRelicAdapter } from '../monitoring/new-relic.adapter.js';

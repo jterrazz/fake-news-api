@@ -1,6 +1,6 @@
-import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
+import { LoggerPort } from '@jterrazz/logger';
 
-import { LoggerPort } from '../../../application/ports/outbound/logging/logger.port.js';
+import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
 
 import type { NewRelicAPI } from './types/new-relic.js';
 
