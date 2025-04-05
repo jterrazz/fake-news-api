@@ -16,7 +16,7 @@
   "devDependencies": {
     "@jterrazz/quality": "^2.0.3",
     "@jterrazz/test": "^2.0.3",
-    "@jterrazz/typescript": "^2.0.3",
+    "@jterrazz/typescript": "^2.0.4",
     "@types/config": "^3.3.5",
     "@types/node": "^22.13.4",
     "@types/node-cron": "^3.0.11"
@@ -25,7 +25,7 @@
     "@date-fns/tz": "^1.2.0",
     "@google/generative-ai": "^0.24.0",
     "@hono/node-server": "^1.13.7",
-    "@jterrazz/logger": "^1.0.0",
+    "@jterrazz/logger": "^1.1.0",
     "@prisma/client": "^6.3.1",
     "@snap/ts-inject": "^0.3.2",
     "@types/newrelic": "^9.14.8",
