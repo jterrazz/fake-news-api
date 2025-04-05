@@ -1,15 +1,15 @@
 {
   "name": "fake-news-api",
   "version": "1.0.0",
-  "author": "Jean-Baptiste Terrazzoni <jterrazzoni@gmail.com>",
+  "author": "Jean-Baptiste Terrazzoni <contact@jterrazz.com>",
   "type": "module",
   "engines": {
     "node": "22.x.x"
   },
   "scripts": {
-    "build": "prisma generate && swc-compile",
+    "build": "prisma generate && ts-compile",
     "start": "prisma migrate deploy && node -r newrelic dist/index.js",
-    "dev": "prisma migrate deploy && NODE_ENV=development swc-watch",
+    "dev": "prisma migrate deploy && NODE_ENV=development ts-watch",
     "test": "jest",
     "lint": "quality-check"
   },
