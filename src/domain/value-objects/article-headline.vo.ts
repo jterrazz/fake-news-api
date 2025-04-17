@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const headlineSchema = z
     .string()
-    .min(30, 'Article headline must be at least 30 characters long');
+    .min(1, 'Article headline must be at least 1 characters long');
 
 export class ArticleHeadline {
     private constructor(public readonly value: string) {}

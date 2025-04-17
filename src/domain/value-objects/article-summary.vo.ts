@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const summarySchema = z
     .string()
-    .min(100, 'Article summary must be at least 100 characters long');
+    .min(30, 'Article summary must be at least 30 characters long');
 
 export class ArticleSummary {
     private constructor(public readonly value: string) {}

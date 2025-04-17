@@ -11,10 +11,7 @@ import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
 
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
-type OpenRouterModel =
-    | 'deepseek/deepseek-r1:free'
-    | 'google/gemini-2.0-flash-001'
-    | 'google/gemini-2.5-pro-preview-03-25';
+type OpenRouterModel = 'deepseek/deepseek-r1:free' | 'openai/o4-mini' | 'openai/o4-mini-high';
 
 /**
  * Adapter for OpenRouter's API service implementing the AIProviderPort interface.
@@ -112,9 +109,7 @@ export class OpenRouterAdapter implements AIProviderPort {
             return 'deepseek/deepseek-r1:free';
         }
 
-        return capability === 'basic'
-            ? 'google/gemini-2.0-flash-001'
-            : 'google/gemini-2.5-pro-preview-03-25';
+        return capability === 'basic' ? 'openai/o4-mini' : 'openai/o4-mini-high';
     }
 
     private logError(error: Error, attempts: number): void {
