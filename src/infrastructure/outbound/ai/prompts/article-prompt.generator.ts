@@ -105,7 +105,7 @@ Context: These articles are part of a larger game news publication, where the pl
 It's important to maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives. This adds an educational layer about media literacy and bias recognition.
 
 ## Core Requirements:
-1. Start each article with a one-sentence context
+1. Start each article with a one-sentence context (without saying "context:" or anything similar, but a phrase that helps the reader understand what the article is about, even if he doesn't know anything about the topic)
 2. Never reveal if an article is fake/real in its content
 3. Maintain identical writing quality for both real and fake articles
 4. Use ONLY the provided real-world news as source material, but rewrite with strict neutrality
