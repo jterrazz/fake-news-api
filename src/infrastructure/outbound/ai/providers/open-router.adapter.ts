@@ -93,11 +93,32 @@ export class OpenRouterAdapter implements AIProviderPort {
                 model,
             });
 
-            const text = completion.choices[0]?.message?.content;
+            if (!completion) {
+                this.monitoring.incrementMetric('OpenRouter/Errors/NoResponse');
+                throw new Error('No response received from OpenRouter');
+            }
 
+            if (
+                !completion.choices ||
+                !Array.isArray(completion.choices) ||
+                completion.choices.length === 0
+            ) {
+                this.monitoring.incrementMetric('OpenRouter/Errors/NoChoices');
+                this.logger.error('Invalid response format from OpenRouter', { completion });
+                throw new Error('Invalid response format from OpenRouter: No choices array');
+            }
+
+            const firstChoice = completion.choices[0];
+            if (!firstChoice || !firstChoice.message) {
+                this.monitoring.incrementMetric('OpenRouter/Errors/InvalidChoice');
+                this.logger.error('Invalid choice format from OpenRouter', { firstChoice });
+                throw new Error('Invalid choice format from OpenRouter');
+            }
+
+            const text = firstChoice.message.content;
             if (!text) {
                 this.monitoring.incrementMetric('OpenRouter/Errors/EmptyResponse');
-                throw new Error('Empty response from OpenRouter');
+                throw new Error('Empty response content from OpenRouter');
             }
 
             return text;
