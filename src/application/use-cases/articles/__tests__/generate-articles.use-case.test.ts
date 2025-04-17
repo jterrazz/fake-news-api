@@ -121,7 +121,12 @@ describe('GenerateArticlesUseCase', () => {
 
         // Setup mock responses
         mockNewsService.fetchNews.mockResolvedValue(testNews);
-        mockArticleRepository.findPublishedSummaries.mockResolvedValue(testPublishedSummaries);
+        mockArticleRepository.findPublishedSummaries.mockResolvedValue(
+            testPublishedSummaries.map((summary) => ({
+                headline: summary,
+                summary: summary,
+            })),
+        );
         mockArticleRepository.countManyForDay.mockResolvedValue(0);
         mockArticleGenerator.generateArticles.mockResolvedValue(testArticles);
 
