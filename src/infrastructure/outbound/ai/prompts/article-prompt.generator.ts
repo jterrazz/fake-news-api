@@ -142,8 +142,8 @@ For FAKE articles:
 ## Markdown Usage:
 - **bold** for key concepts only
 - Two newlines between paragraphs
-- For fake information, use: %%[text](explanation why this precise part is fake)
-  Example: The company reported %%[a 500% increase in profits](This growth rate is unrealistic and no company in this sector has ever achieved such growth)
+- For fake information, use: %%[text](explanation why this context is fake)
+  Example: The company %%[reported a 500% increase in profits](This growth rate is unrealistic and no company in this sector has ever achieved such growth)
 - Metadata annotations in %% format don't count towards word limits
 - Keep metadata explanations concise and factual
 
