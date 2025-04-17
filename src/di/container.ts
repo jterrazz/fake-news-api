@@ -45,7 +45,6 @@ const loggerFactory = Injectable(
 const newsFactory = Injectable(
     'News',
     ['Configuration', 'Logger', 'NewRelic'] as const,
-    // TODO Fix config leak
     (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
         logger.info('Initializing WorldNews adapter');
         const newsAdapter = new WorldNewsAdapter(config, logger, newRelic);
@@ -53,7 +52,11 @@ const newsFactory = Injectable(
 
         if (useCache) {
             logger.info('Initializing CachedNews adapter');
-            const cachedNewsAdapter = new CachedNewsAdapter(newsAdapter, logger, config);
+            const cachedNewsAdapter = new CachedNewsAdapter(
+                newsAdapter,
+                logger,
+                config.getAppConfiguration().env
+            );
             return cachedNewsAdapter;
         }
 

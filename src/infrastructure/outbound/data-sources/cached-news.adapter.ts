@@ -3,8 +3,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
 
-import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
-
 import {
     FetchNewsOptions,
     NewsArticle,
@@ -28,7 +26,7 @@ export class CachedNewsAdapter implements NewsPort {
     constructor(
         private readonly newsSource: NewsPort,
         private readonly logger: LoggerPort,
-        private readonly config: ConfigurationPort,
+        private readonly environment: string,
     ) {}
 
     private ensureDirectoryExists(filePath: string): void {
@@ -40,7 +38,7 @@ export class CachedNewsAdapter implements NewsPort {
 
     private readCache(language: string): CacheData | null {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE(this.config.getAppConfiguration().env, language);
+            const cachePath = CACHE_PATH_TEMPLATE(this.environment, language);
             if (!existsSync(cachePath)) return null;
 
             const cacheContent = readFileSync(cachePath, 'utf-8');
@@ -58,7 +56,7 @@ export class CachedNewsAdapter implements NewsPort {
 
     private writeCache(data: NewsArticle[], language: string): void {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE(this.config.getAppConfiguration().env, language);
+            const cachePath = CACHE_PATH_TEMPLATE(this.environment, language);
             this.ensureDirectoryExists(cachePath);
 
             const cacheData: CacheData = {

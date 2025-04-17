@@ -2,8 +2,6 @@ import { LoggerPort } from '@jterrazz/logger';
 import { mock } from 'jest-mock-extended';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-import { ConfigurationPort } from '../../../../application/ports/inbound/configuration.port.js';
-
 import {
     FetchNewsOptions,
     NewsArticle,
@@ -25,17 +23,6 @@ jest.mock('node:fs', () => ({
 describe('CachedNewsAdapter', () => {
     const mockNewsSource = mock<NewsPort>();
     const mockLogger = mock<LoggerPort>();
-    const mockConfig = mock<ConfigurationPort>({
-        getAppConfiguration: () => ({
-            env: 'test',
-            host: 'localhost',
-            logging: { level: 'debug' },
-            newRelic: {
-                enabled: false,
-            },
-            port: 3000,
-        }),
-    });
 
     const mockOptions: FetchNewsOptions = {
         country: ArticleCountry.create('us'),
@@ -55,7 +42,7 @@ describe('CachedNewsAdapter', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        adapter = new CachedNewsAdapter(mockNewsSource, mockLogger, mockConfig);
+        adapter = new CachedNewsAdapter(mockNewsSource, mockLogger, 'test');
     });
 
     describe('fetchNews', () => {
@@ -101,15 +88,13 @@ describe('CachedNewsAdapter', () => {
                 language: 'en',
             });
             expect(writeFileSync).toHaveBeenCalledWith(
-                expect.stringContaining('/articles/en.json'),
+                expect.stringContaining('test/articles/en.json'),
                 expect.stringContaining('"timestamp"'),
             );
         });
 
         it('should fetch fresh data if cache does not exist', async () => {
-            (existsSync as jest.Mock)
-                .mockReturnValueOnce(false) // Cache file doesn't exist
-                .mockReturnValueOnce(true); // Directory exists
+            (existsSync as jest.Mock).mockReturnValueOnce(false);
             mockNewsSource.fetchNews.mockResolvedValue(mockArticles);
 
             const result = await adapter.fetchNews(mockOptions);
