@@ -99,7 +99,7 @@ export class ArticlePromptGenerator
         return {
             query: `${SHARED_CONTEXT_PROMPT}
 
-Generate exactly ${count} news articles in total, mixing genuine and fictional articles. Each article should be SHORT (30-70 words) and focus on simple key points that are verifiable, while maintaining a journalistic tone and feel.
+Generate exactly ${count} news articles in total, mixing genuine and fictional articles. Each article should be SHORT (30-90 words) and focus on simple key points that are verifiable, while maintaining a journalistic tone and feel.
 
 Context: These articles are part of a larger game news publication, where the player can read them and try to spot the fake ones.
 It's important to maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives. This adds an educational layer about media literacy and bias recognition.
@@ -135,7 +135,7 @@ For FAKE articles:
 ## Format:
 - Headline: 3-10 words, journalistic style
 - Context: One sentence background, used to help the AI understand the published article in future generations
-- Content: 30-50 words in markdown
+- Content: 30-90 words in markdown
 - Language: ${languageLabel}
 - Category: politics, technology, science, health, entertainment, sports, business, world, or other
 
