@@ -15,15 +15,14 @@ import { ArticleLanguage } from '../../../../domain/value-objects/article-langua
 
 import { CachedNewsAdapter } from '../cached-news.adapter.js';
 
-// Mock fs module
 jest.mock('node:fs', () => ({
     existsSync: jest.fn(),
+    mkdirSync: jest.fn(),
     readFileSync: jest.fn(),
     writeFileSync: jest.fn(),
 }));
 
 describe('CachedNewsAdapter', () => {
-    // Mock news source and logger with proper types
     const mockNewsSource = mock<NewsPort>();
     const mockLogger = mock<LoggerPort>();
     const mockConfig = mock<ConfigurationPort>({
@@ -45,7 +44,7 @@ describe('CachedNewsAdapter', () => {
 
     const mockArticles: NewsArticle[] = [
         {
-            publishedAt: new Date('2024-03-08'),
+            publishedAt: new Date('2024-03-08T00:00:00.000Z'),
             summary: 'Test summary',
             title: 'Test title',
             url: 'https://test.com',
@@ -61,18 +60,22 @@ describe('CachedNewsAdapter', () => {
 
     describe('fetchNews', () => {
         it('should return cached data if valid cache exists', async () => {
-            // Mock cache exists and is valid
             (existsSync as jest.Mock).mockReturnValue(true);
             (readFileSync as jest.Mock).mockReturnValue(
                 JSON.stringify({
                     data: mockArticles,
-                    timestamp: Date.now(), // Recent timestamp
+                    timestamp: Date.now(),
                 }),
             );
 
             const result = await adapter.fetchNews(mockOptions);
 
-            expect(result).toEqual(mockArticles);
+            expect(
+                result.map((article) => ({
+                    ...article,
+                    publishedAt: new Date(article.publishedAt),
+                })),
+            ).toEqual(mockArticles);
             expect(mockNewsSource.fetchNews).not.toHaveBeenCalled();
             expect(mockLogger.info).toHaveBeenCalledWith('Using cached news data', {
                 language: 'en',
@@ -97,12 +100,16 @@ describe('CachedNewsAdapter', () => {
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
                 language: 'en',
             });
-            expect(writeFileSync).toHaveBeenCalled();
+            expect(writeFileSync).toHaveBeenCalledWith(
+                expect.stringContaining('/articles/en.json'),
+                expect.stringContaining('"timestamp"'),
+            );
         });
 
         it('should fetch fresh data if cache does not exist', async () => {
-            // Mock cache doesn't exist
-            (existsSync as jest.Mock).mockReturnValue(false);
+            (existsSync as jest.Mock)
+                .mockReturnValueOnce(false) // Cache file doesn't exist
+                .mockReturnValueOnce(true); // Directory exists
             mockNewsSource.fetchNews.mockResolvedValue(mockArticles);
 
             const result = await adapter.fetchNews(mockOptions);

@@ -16,6 +16,9 @@ describe('Node Config Adapter', () => {
         app: {
             env: 'development',
             host: 'localhost',
+            newRelic: {
+                enabled: false,
+            },
             port: 3000,
         },
         logging: {
