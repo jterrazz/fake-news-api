@@ -2,6 +2,7 @@ import { LoggerPort } from '@jterrazz/logger';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
+import { z } from 'zod';
 
 import {
     FetchNewsOptions,
@@ -14,10 +15,22 @@ const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>
     `${CACHE_DIR(env)}/articles/${lang}.json`;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
-type CacheData = {
-    timestamp: number;
-    data: NewsArticle[];
-};
+const NewsArticleSchema = z.object({
+    publishedAt: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date)),
+    summary: z.string(),
+    title: z.string(),
+    url: z.string(),
+});
+
+const CacheDataSchema = z.object({
+    data: z.array(NewsArticleSchema),
+    timestamp: z.number(),
+});
+
+type CacheData = z.infer<typeof CacheDataSchema>;
 
 /**
  * Decorator that adds caching behavior to any news data source
@@ -42,7 +55,8 @@ export class CachedNewsAdapter implements NewsPort {
             if (!existsSync(cachePath)) return null;
 
             const cacheContent = readFileSync(cachePath, 'utf-8');
-            const cache = JSON.parse(cacheContent) as CacheData;
+            const parsedCache = JSON.parse(cacheContent);
+            const cache = CacheDataSchema.parse(parsedCache);
 
             // Check if cache is still valid
             if (Date.now() - cache.timestamp > CACHE_TTL) return null;
