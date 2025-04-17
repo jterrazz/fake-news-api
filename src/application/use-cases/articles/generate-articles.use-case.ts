@@ -15,16 +15,6 @@ import {
 } from '../../../shared/date/timezone.js';
 
 /**
- * Determines the target number of articles based on the hour
- */
-function getTargetArticleCount(hour: number): number {
-    if (hour < 6) return 0;
-    if (hour < 12) return 4;
-    if (hour < 17) return 8;
-    return 12;
-}
-
-/**
  * Use case for generating articles from news sources
  */
 export class GenerateArticlesUseCase {
@@ -129,4 +119,14 @@ export class GenerateArticlesUseCase {
             throw error;
         }
     }
+}
+
+/**
+ * Determines the target number of articles based on the hour
+ */
+function getTargetArticleCount(hour: number): number {
+    if (hour < 6) return 0;
+    if (hour < 12) return 4;
+    if (hour < 17) return 8;
+    return 12;
 }

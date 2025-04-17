@@ -10,20 +10,6 @@ import { Article } from '../../../domain/entities/article.js';
 
 import { ArticlePromptGenerator } from './prompts/article-prompt.generator.js';
 
-/**
- * Shuffles an array using a cryptographically secure random number generator
- */
-function shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(
-            (crypto.getRandomValues(new Uint32Array(1))[0] / (0xffffffff + 1)) * (i + 1),
-        );
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
-
 export class AIArticleGenerator implements ArticleGeneratorPort {
     private readonly promptGenerator: ArticlePromptGenerator;
 
@@ -104,4 +90,18 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             throw error;
         }
     }
+}
+
+/**
+ * Shuffles an array using a cryptographically secure random number generator
+ */
+function shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(
+            (crypto.getRandomValues(new Uint32Array(1))[0] / (0xffffffff + 1)) * (i + 1),
+        );
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
 }

@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 export enum CountryEnum {
-    UnitedStates = 'us',
-    UnitedKingdom = 'uk',
     France = 'fr',
     Germany = 'de',
-    Spain = 'es',
     Italy = 'it',
+    Spain = 'es',
+    UnitedKingdom = 'uk',
+    UnitedStates = 'us',
 }
 
 export const countrySchema = z.nativeEnum(CountryEnum);

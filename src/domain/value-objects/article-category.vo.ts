@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
 export enum CategoryEnum {
-    Politics = 'politics',
-    Technology = 'technology',
-    Science = 'science',
-    Health = 'health',
-    Entertainment = 'entertainment',
-    Sports = 'sports',
     Business = 'business',
-    World = 'world',
+    Entertainment = 'entertainment',
+    Health = 'health',
     Other = 'other',
+    Politics = 'politics',
+    Science = 'science',
+    Sports = 'sports',
+    Technology = 'technology',
+    World = 'world',
 }
 
 export const categorySchema = z.nativeEnum(CategoryEnum);

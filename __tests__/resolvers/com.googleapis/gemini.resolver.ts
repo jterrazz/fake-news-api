@@ -5,7 +5,7 @@ const TEST_API_KEY = 'test-openrouter-key';
 interface MockArticle {
     category: string;
     content: string;
-    fakeReason: string | null;
+    fakeReason: null | string;
     headline: string;
     isFake: boolean;
     summary: string;
@@ -20,14 +20,14 @@ interface MockOpenRouterRequest {
 }
 
 interface MockOpenRouterResponse {
-    id: string;
     choices: Array<{
+        finish_reason: 'stop';
         message: {
             content: string;
             role: 'assistant';
         };
-        finish_reason: 'stop';
     }>;
+    id: string;
     model: string;
 }
 

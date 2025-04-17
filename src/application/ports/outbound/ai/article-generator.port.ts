@@ -3,19 +3,6 @@ import { ArticleCountry } from '../../../../domain/value-objects/article-country
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 /**
- * Parameters for generating articles
- */
-export type GenerateArticlesParams = {
-    articles: {
-        publicationHistory: string[];
-        news: Array<{ title: string; content: string }>;
-    };
-    language: ArticleLanguage;
-    country: ArticleCountry;
-    count: number;
-};
-
-/**
  * Port for generating articles using AI
  */
 export interface ArticleGeneratorPort {
@@ -26,3 +13,16 @@ export interface ArticleGeneratorPort {
      */
     generateArticles(params: GenerateArticlesParams): Promise<Article[]>;
 }
+
+/**
+ * Parameters for generating articles
+ */
+export type GenerateArticlesParams = {
+    articles: {
+        news: Array<{ content: string; title: string }>;
+        publicationHistory: string[];
+    };
+    count: number;
+    country: ArticleCountry;
+    language: ArticleLanguage;
+};

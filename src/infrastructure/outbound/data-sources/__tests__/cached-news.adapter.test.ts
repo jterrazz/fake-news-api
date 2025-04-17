@@ -56,7 +56,9 @@ describe('CachedNewsAdapter', () => {
             // Then
             expect(result).toEqual([mockArticle]);
             expect(mockNewsSource.fetchNews).not.toHaveBeenCalled();
-            expect(mockLogger.info).toHaveBeenCalledWith('Using cached news data', { language: 'en' });
+            expect(mockLogger.info).toHaveBeenCalledWith('Using cached news data', {
+                language: 'en',
+            });
         });
 
         it('should fetch fresh data when cache is expired', async () => {

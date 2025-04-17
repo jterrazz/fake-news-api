@@ -13,7 +13,7 @@ import { createHealthRouter } from './routes/health.js';
 
 export class HonoServerAdapter implements HttpServerPort {
     private app: Hono;
-    private server: ReturnType<typeof serve> | null = null;
+    private server: null | ReturnType<typeof serve> = null;
 
     constructor(
         private readonly logger: LoggerPort,
@@ -23,9 +23,16 @@ export class HonoServerAdapter implements HttpServerPort {
         this.registerRoutes();
     }
 
-    private registerRoutes(): void {
-        this.app.route('/', createHealthRouter());
-        this.app.route('/articles', createArticlesRouter(this.articleController));
+    public async request(
+        path: `/${string}`,
+        options?: { body?: object | string; headers?: Record<string, string>; method?: string },
+    ): Promise<Response> {
+        const init: RequestInit = {
+            body: options?.body ? JSON.stringify(options.body) : undefined,
+            headers: options?.headers,
+            method: options?.method,
+        };
+        return this.app.request(path, init);
     }
 
     public async start(config: HttpServerConfiguration): Promise<void> {
@@ -45,15 +52,8 @@ export class HonoServerAdapter implements HttpServerPort {
         }
     }
 
-    public async request(
-        path: `/${string}`,
-        options?: { method?: string; body?: string | object; headers?: Record<string, string> },
-    ): Promise<Response> {
-        const init: RequestInit = {
-            body: options?.body ? JSON.stringify(options.body) : undefined,
-            headers: options?.headers,
-            method: options?.method,
-        };
-        return this.app.request(path, init);
+    private registerRoutes(): void {
+        this.app.route('/', createHealthRouter());
+        this.app.route('/articles', createArticlesRouter(this.articleController));
     }
 }

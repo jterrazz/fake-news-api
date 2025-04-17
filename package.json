@@ -11,10 +11,10 @@
     "start": "prisma migrate deploy && node -r source-map-support/register -r newrelic dist/index.js",
     "dev": "prisma migrate deploy && NODE_ENV=development ts-watch",
     "test": "jest",
-    "lint": "quality-check"
+    "lint": "code-standards"
   },
   "devDependencies": {
-    "@jterrazz/quality": "^2.0.3",
+    "@jterrazz/quality": "^2.1.1",
     "@jterrazz/test": "^2.0.3",
     "@jterrazz/typescript": "^2.0.4",
     "@types/config": "^3.3.5",

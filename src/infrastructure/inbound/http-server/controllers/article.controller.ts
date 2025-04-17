@@ -7,7 +7,7 @@ import {
 
 type PaginatedResponse<T> = {
     items: T[];
-    nextCursor: string | null;
+    nextCursor: null | string;
     total: number;
 };
 

@@ -1,20 +1,6 @@
 import { z } from 'zod';
 
 /**
- * Custom error for response parsing failures
- */
-export class ResponseParsingError extends Error {
-    constructor(
-        message: string,
-        public readonly cause?: unknown,
-        public readonly text?: string,
-    ) {
-        super(message);
-        this.name = 'ResponseParsingError';
-    }
-}
-
-/**
  * Parses AI response text into structured data based on Zod schema
  */
 export class ResponseParser {
@@ -36,6 +22,82 @@ export class ResponseParser {
                 );
             }
             throw error;
+        }
+    }
+
+    /**
+     * Cleans text and finds the largest schema-compatible structure
+     */
+    private static cleanText(text: string): string {
+        // First try to extract from markdown code blocks
+        const codeBlocks = text.match(/```(?:json)?\r?\n([^`]*?)\r?\n```/g);
+        if (codeBlocks) {
+            // Try each code block and return the largest valid one
+            const validBlocks = codeBlocks
+                .map((block) => this.extractJsonFromCodeBlock(block))
+                .filter((block): block is string => block !== null);
+
+            if (validBlocks.length > 0) {
+                return this.findLargestString(validBlocks);
+            }
+        }
+
+        // If no valid code blocks, try to find JSON-like structures in the text
+        const jsonMatches = this.findJsonStructures(text);
+        if (jsonMatches.length > 0) {
+            return this.findLargestString(jsonMatches);
+        }
+
+        // If no JSON structures found, clean and return the original text
+        return text.replace(/\s+/g, ' ').trim();
+    }
+
+    /**
+     * Converts value to appropriate primitive type based on schema
+     */
+    private static convertToPrimitive(value: unknown, schema: z.ZodType): unknown {
+        if (schema instanceof z.ZodString) {
+            return String(value);
+        }
+        if (schema instanceof z.ZodNumber) {
+            return Number(value);
+        }
+        if (schema instanceof z.ZodBoolean) {
+            return Boolean(value);
+        }
+        if (schema instanceof z.ZodNull) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * Extracts array from text
+     */
+    private static extractArray(text: string): unknown {
+        const arrayStart = text.indexOf('[');
+        const arrayEnd = text.lastIndexOf(']');
+        if (arrayStart === -1 || arrayEnd === -1) {
+            throw new ResponseParsingError('No array found in response', undefined, text);
+        }
+        try {
+            return JSON.parse(text.slice(arrayStart, arrayEnd + 1));
+        } catch (error) {
+            throw new ResponseParsingError('Failed to parse array JSON', error, text);
+        }
+    }
+
+    /**
+     * Extracts and validates JSON content from a code block
+     */
+    private static extractJsonFromCodeBlock(block: string): null | string {
+        const content = block.replace(/```(?:json)?\r?\n([^`]*?)\r?\n```/, '$1').trim();
+        try {
+            // Attempt to parse as JSON to validate structure
+            JSON.parse(content);
+            return content;
+        } catch {
+            return null;
         }
     }
 
@@ -62,22 +124,6 @@ export class ResponseParser {
         }
 
         throw new ResponseParsingError('Unsupported schema type', undefined, text);
-    }
-
-    /**
-     * Extracts array from text
-     */
-    private static extractArray(text: string): unknown {
-        const arrayStart = text.indexOf('[');
-        const arrayEnd = text.lastIndexOf(']');
-        if (arrayStart === -1 || arrayEnd === -1) {
-            throw new ResponseParsingError('No array found in response', undefined, text);
-        }
-        try {
-            return JSON.parse(text.slice(arrayStart, arrayEnd + 1));
-        } catch (error) {
-            throw new ResponseParsingError('Failed to parse array JSON', error, text);
-        }
     }
 
     /**
@@ -109,70 +155,6 @@ export class ResponseParser {
         } catch {
             // If not valid JSON, use the raw string
             return this.convertToPrimitive(trimmed, schema);
-        }
-    }
-
-    /**
-     * Converts value to appropriate primitive type based on schema
-     */
-    private static convertToPrimitive(value: unknown, schema: z.ZodType): unknown {
-        if (schema instanceof z.ZodString) {
-            return String(value);
-        }
-        if (schema instanceof z.ZodNumber) {
-            return Number(value);
-        }
-        if (schema instanceof z.ZodBoolean) {
-            return Boolean(value);
-        }
-        if (schema instanceof z.ZodNull) {
-            return null;
-        }
-        return value;
-    }
-
-    /**
-     * Unescapes common escaped characters in text
-     */
-    private static unescapeText(text: string): string {
-        return text
-            .replace(/\\"/g, '"') // Unescape quotes
-            .replace(/\\n/g, '\n') // Unescape newlines
-            .replace(/\\r/g, '\r') // Unescape carriage returns
-            .replace(/\\t/g, '\t') // Unescape tabs
-            .replace(/\\\\/g, '\\') // Unescape backslashes
-            .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16))); // Unescape unicode
-    }
-
-    /**
-     * Recursively unescapes all string values in a JSON object/array
-     */
-    private static unescapeJsonValues(json: unknown): unknown {
-        if (typeof json === 'string') {
-            return this.unescapeText(json);
-        }
-        if (Array.isArray(json)) {
-            return json.map((item) => this.unescapeJsonValues(item));
-        }
-        if (typeof json === 'object' && json !== null) {
-            return Object.fromEntries(
-                Object.entries(json).map(([key, value]) => [key, this.unescapeJsonValues(value)]),
-            );
-        }
-        return json;
-    }
-
-    /**
-     * Extracts and validates JSON content from a code block
-     */
-    private static extractJsonFromCodeBlock(block: string): string | null {
-        const content = block.replace(/```(?:json)?\r?\n([^`]*?)\r?\n```/, '$1').trim();
-        try {
-            // Attempt to parse as JSON to validate structure
-            JSON.parse(content);
-            return content;
-        } catch {
-            return null;
         }
     }
 
@@ -217,29 +199,47 @@ export class ResponseParser {
     }
 
     /**
-     * Cleans text and finds the largest schema-compatible structure
+     * Recursively unescapes all string values in a JSON object/array
      */
-    private static cleanText(text: string): string {
-        // First try to extract from markdown code blocks
-        const codeBlocks = text.match(/```(?:json)?\r?\n([^`]*?)\r?\n```/g);
-        if (codeBlocks) {
-            // Try each code block and return the largest valid one
-            const validBlocks = codeBlocks
-                .map((block) => this.extractJsonFromCodeBlock(block))
-                .filter((block): block is string => block !== null);
-
-            if (validBlocks.length > 0) {
-                return this.findLargestString(validBlocks);
-            }
+    private static unescapeJsonValues(json: unknown): unknown {
+        if (typeof json === 'string') {
+            return this.unescapeText(json);
         }
-
-        // If no valid code blocks, try to find JSON-like structures in the text
-        const jsonMatches = this.findJsonStructures(text);
-        if (jsonMatches.length > 0) {
-            return this.findLargestString(jsonMatches);
+        if (Array.isArray(json)) {
+            return json.map((item) => this.unescapeJsonValues(item));
         }
+        if (typeof json === 'object' && json !== null) {
+            return Object.fromEntries(
+                Object.entries(json).map(([key, value]) => [key, this.unescapeJsonValues(value)]),
+            );
+        }
+        return json;
+    }
 
-        // If no JSON structures found, clean and return the original text
-        return text.replace(/\s+/g, ' ').trim();
+    /**
+     * Unescapes common escaped characters in text
+     */
+    private static unescapeText(text: string): string {
+        return text
+            .replace(/\\"/g, '"') // Unescape quotes
+            .replace(/\\n/g, '\n') // Unescape newlines
+            .replace(/\\r/g, '\r') // Unescape carriage returns
+            .replace(/\\t/g, '\t') // Unescape tabs
+            .replace(/\\\\/g, '\\') // Unescape backslashes
+            .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16))); // Unescape unicode
+    }
+}
+
+/**
+ * Custom error for response parsing failures
+ */
+export class ResponseParsingError extends Error {
+    constructor(
+        message: string,
+        public readonly cause?: unknown,
+        public readonly text?: string,
+    ) {
+        super(message);
+        this.name = 'ResponseParsingError';
     }
 }

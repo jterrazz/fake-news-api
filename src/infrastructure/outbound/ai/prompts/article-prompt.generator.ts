@@ -91,8 +91,8 @@ export class ArticlePromptGenerator
      */
     public generatePrompt({
         articles: { news, publicationHistory },
-        language,
         count,
+        language,
     }: GenerateArticlesParams): AIPrompt<GeneratedArticle[]> {
         const languageLabel = language.toString();
 

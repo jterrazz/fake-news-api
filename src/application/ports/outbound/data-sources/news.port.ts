@@ -13,15 +13,15 @@ export const NewsArticleSchema = z.object({
     url: z.string(),
 });
 
-export type NewsArticle = z.output<typeof NewsArticleSchema>;
-
 /**
  * Options for fetching news articles
  */
 export interface FetchNewsOptions {
-    language: ArticleLanguage;
     country: ArticleCountry;
+    language: ArticleLanguage;
 }
+
+export type NewsArticle = z.output<typeof NewsArticleSchema>;
 
 /**
  * News data source port - defines how to fetch news articles from external providers

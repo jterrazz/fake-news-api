@@ -39,7 +39,7 @@ export type GetArticlesParams = z.infer<typeof getArticlesParamsSchema>;
 
 export type PaginatedResponse<T> = {
     items: T[];
-    nextCursor: string | null;
+    nextCursor: null | string;
     total: number;
 };
 
@@ -53,7 +53,7 @@ export class GetArticlesUseCase {
             throw new Error('Invalid pagination parameters');
         }
 
-        const { cursor, limit, category, language, country } = validatedParams.data;
+        const { category, country, cursor, language, limit } = validatedParams.data;
 
         // Decode cursor if provided
         let cursorDate: Date | undefined;

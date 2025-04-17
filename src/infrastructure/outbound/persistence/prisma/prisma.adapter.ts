@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { DatabasePort } from '../../../../application/ports/outbound/persistence/database.port.js';
 
 export class PrismaAdapter implements DatabasePort {
-    private static instance: PrismaClient | null = null;
+    private static instance: null | PrismaClient = null;
     private client: PrismaClient;
 
     constructor() {

@@ -3,14 +3,9 @@
  */
 export interface Job {
     /**
-     * Unique name of the job
+     * The function to execute when the job runs
      */
-    name: string;
-
-    /**
-     * Cron expression defining when the job should run
-     */
-    schedule: string;
+    execute: () => Promise<void>;
 
     /**
      * Whether the job should be executed immediately on startup
@@ -19,9 +14,14 @@ export interface Job {
     executeOnStartup?: boolean;
 
     /**
-     * The function to execute when the job runs
+     * Unique name of the job
      */
-    execute: () => Promise<void>;
+    name: string;
+
+    /**
+     * Cron expression defining when the job should run
+     */
+    schedule: string;
 }
 
 /**

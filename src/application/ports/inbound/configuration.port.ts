@@ -12,24 +12,16 @@ export interface ApiConfiguration {
 }
 
 /**
- * New Relic configuration
- */
-export interface NewRelicConfiguration {
-    enabled: boolean;
-    licenseKey?: string;
-}
-
-/**
  * App configuration
  */
 export interface AppConfiguration {
     env: 'development' | 'production' | 'test';
-    port: number;
     host: string;
     logging: {
-        level: 'debug' | 'info' | 'warn' | 'error';
+        level: 'debug' | 'error' | 'info' | 'warn';
     };
     newRelic: NewRelicConfiguration;
+    port: number;
 }
 
 /**
@@ -45,4 +37,12 @@ export interface ConfigurationPort {
      * Get the application configuration
      */
     getAppConfiguration(): AppConfiguration;
+}
+
+/**
+ * New Relic configuration
+ */
+export interface NewRelicConfiguration {
+    enabled: boolean;
+    licenseKey?: string;
 }

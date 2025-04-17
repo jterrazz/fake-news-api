@@ -13,12 +13,8 @@ export const fakeStatusSchema = z
 export class ArticleFakeStatus {
     private constructor(
         public readonly isFake: boolean,
-        public readonly reason: string | null,
+        public readonly reason: null | string,
     ) {}
-
-    public static createNonFake(): ArticleFakeStatus {
-        return new ArticleFakeStatus(false, null);
-    }
 
     public static createFake(reason: string): ArticleFakeStatus {
         const result = fakeStatusSchema.safeParse({
@@ -33,12 +29,16 @@ export class ArticleFakeStatus {
         return new ArticleFakeStatus(true, result.data.reason);
     }
 
-    public markAsFake(reason: string): ArticleFakeStatus {
-        return ArticleFakeStatus.createFake(reason);
+    public static createNonFake(): ArticleFakeStatus {
+        return new ArticleFakeStatus(false, null);
     }
 
     public equals(other: ArticleFakeStatus): boolean {
         return this.isFake === other.isFake && this.reason === other.reason;
+    }
+
+    public markAsFake(reason: string): ArticleFakeStatus {
+        return ArticleFakeStatus.createFake(reason);
     }
 
     public toString(): string {

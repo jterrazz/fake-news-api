@@ -33,6 +33,24 @@ export class CachedNewsAdapter implements NewsPort {
         private readonly environment: string,
     ) {}
 
+    public async fetchNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
+        // Try to read from cache first
+        const cache = this.readCache(options.language.toString());
+        if (cache) {
+            this.logger.info('Using cached news data', { language: options.language.toString() });
+            return cache.data;
+        }
+
+        // If no cache or expired, fetch fresh data
+        this.logger.info('Fetching fresh news data', { language: options.language.toString() });
+        const articles = await this.newsSource.fetchNews(options);
+
+        // Cache the response
+        this.writeCache(articles, options.language.toString());
+
+        return articles;
+    }
+
     private ensureDirectoryExists(filePath: string): void {
         const directory = dirname(filePath);
         if (!existsSync(directory)) {
@@ -72,23 +90,5 @@ export class CachedNewsAdapter implements NewsPort {
         } catch (error) {
             this.logger.error('Failed to write news cache', { error });
         }
-    }
-
-    public async fetchNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
-        // Try to read from cache first
-        const cache = this.readCache(options.language.toString());
-        if (cache) {
-            this.logger.info('Using cached news data', { language: options.language.toString() });
-            return cache.data;
-        }
-
-        // If no cache or expired, fetch fresh data
-        this.logger.info('Fetching fresh news data', { language: options.language.toString() });
-        const articles = await this.newsSource.fetchNews(options);
-
-        // Cache the response
-        this.writeCache(articles, options.language.toString());
-
-        return articles;
     }
 }

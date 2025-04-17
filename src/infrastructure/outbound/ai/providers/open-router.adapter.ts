@@ -12,9 +12,9 @@ import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
 type OpenRouterModel =
+    | 'deepseek/deepseek-r1:free'
     | 'google/gemini-2.0-flash-001'
-    | 'google/gemini-2.5-pro-preview-03-25'
-    | 'deepseek/deepseek-r1:free';
+    | 'google/gemini-2.5-pro-preview-03-25';
 
 /**
  * Adapter for OpenRouter's API service implementing the AIProviderPort interface.
@@ -63,34 +63,6 @@ export class OpenRouterAdapter implements AIProviderPort {
         });
     }
 
-    private getModelType(capability: AIModelConfig['capability']): OpenRouterModel {
-        if (this.config.budget === 'free') {
-            return 'deepseek/deepseek-r1:free';
-        }
-
-        return capability === 'basic'
-            ? 'google/gemini-2.0-flash-001'
-            : 'google/gemini-2.5-pro-preview-03-25';
-    }
-
-    private async generateModelResponse(model: OpenRouterModel, prompt: string): Promise<string> {
-        return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
-            const completion = await this.client.chat.completions.create({
-                messages: [{ content: prompt, role: 'user' }],
-                model,
-            });
-
-            const text = completion.choices[0]?.message?.content;
-
-            if (!text) {
-                this.monitoring.incrementMetric('OpenRouter/Errors/EmptyResponse');
-                throw new Error('Empty response from OpenRouter');
-            }
-
-            return text;
-        });
-    }
-
     private async executeWithRetries<T>(operation: () => Promise<T>): Promise<T> {
         let lastError: Error | undefined;
         let attempts = 0;
@@ -117,14 +89,32 @@ export class OpenRouterAdapter implements AIProviderPort {
         throw lastError ?? new Error('Failed to generate content with OpenRouter');
     }
 
-    private shouldRetry(attempts: number, error: Error): boolean {
-        return attempts < this.maxAttempts && error instanceof ResponseParsingError;
+    private async generateModelResponse(model: OpenRouterModel, prompt: string): Promise<string> {
+        return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
+            const completion = await this.client.chat.completions.create({
+                messages: [{ content: prompt, role: 'user' }],
+                model,
+            });
+
+            const text = completion.choices[0]?.message?.content;
+
+            if (!text) {
+                this.monitoring.incrementMetric('OpenRouter/Errors/EmptyResponse');
+                throw new Error('Empty response from OpenRouter');
+            }
+
+            return text;
+        });
     }
 
-    private logFirstAttempt(): void {
-        this.logger.info('Generating content with OpenRouter', {
-            maxAttempts: this.maxAttempts,
-        });
+    private getModelType(capability: AIModelConfig['capability']): OpenRouterModel {
+        if (this.config.budget === 'free') {
+            return 'deepseek/deepseek-r1:free';
+        }
+
+        return capability === 'basic'
+            ? 'google/gemini-2.0-flash-001'
+            : 'google/gemini-2.5-pro-preview-03-25';
     }
 
     private logError(error: Error, attempts: number): void {
@@ -134,11 +124,21 @@ export class OpenRouterAdapter implements AIProviderPort {
         });
     }
 
+    private logFirstAttempt(): void {
+        this.logger.info('Generating content with OpenRouter', {
+            maxAttempts: this.maxAttempts,
+        });
+    }
+
     private logRetryAttempt(error: Error, attempt: number): void {
         this.logger.warn('Retrying OpenRouter content generation', {
             attempt,
             error,
             maxAttempts: this.maxAttempts,
         });
+    }
+
+    private shouldRetry(attempts: number, error: Error): boolean {
+        return attempts < this.maxAttempts && error instanceof ResponseParsingError;
     }
 }

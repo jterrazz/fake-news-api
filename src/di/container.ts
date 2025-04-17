@@ -55,7 +55,7 @@ const newsFactory = Injectable(
             const cachedNewsAdapter = new CachedNewsAdapter(
                 newsAdapter,
                 logger,
-                config.getAppConfiguration().env
+                config.getAppConfiguration().env,
             );
             return cachedNewsAdapter;
         }

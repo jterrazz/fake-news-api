@@ -35,15 +35,15 @@ export const articleSchema = z.object({
 export type ArticleProps = z.input<typeof articleSchema>;
 
 export class Article {
-    public readonly id: string;
-    public readonly headline: ArticleHeadline;
-    public readonly summary: ArticleSummary;
-    public readonly content: ArticleContent;
     public readonly category: ArticleCategory;
+    public readonly content: ArticleContent;
     public readonly country: ArticleCountry;
-    public readonly language: ArticleLanguage;
-    public readonly fakeStatus: ArticleFakeStatus;
     public readonly createdAt: Date;
+    public readonly fakeStatus: ArticleFakeStatus;
+    public readonly headline: ArticleHeadline;
+    public readonly id: string;
+    public readonly language: ArticleLanguage;
+    public readonly summary: ArticleSummary;
 
     private constructor(props: ArticleProps) {
         const validatedProps = articleSchema.parse(props);
@@ -66,6 +66,10 @@ export class Article {
         });
     }
 
+    public isFake(): boolean {
+        return this.fakeStatus.isFake;
+    }
+
     public toObject(): ArticleProps {
         return {
             category: this.category,
@@ -78,9 +82,5 @@ export class Article {
             language: this.language,
             summary: this.summary,
         };
-    }
-
-    public isFake(): boolean {
-        return this.fakeStatus.isFake;
     }
 }

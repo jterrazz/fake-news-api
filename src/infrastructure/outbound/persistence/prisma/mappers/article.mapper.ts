@@ -10,6 +10,30 @@ import { ArticleLanguage } from '../../../../../domain/value-objects/article-lan
 import { ArticleSummary } from '../../../../../domain/value-objects/article-summary.vo.js';
 
 export class ArticleMapper {
+    mapCategoryToDomain(category: Category): ArticleCategory {
+        return ArticleCategory.create(category.toLowerCase());
+    }
+
+    mapCategoryToPrisma(category: ArticleCategory): Category {
+        return category.toString().toUpperCase() as Category;
+    }
+
+    mapCountryToDomain(country: Country): ArticleCountry {
+        return ArticleCountry.create(country.toLowerCase());
+    }
+
+    mapCountryToPrisma(country: ArticleCountry): Country {
+        return country.toString().toLowerCase() as Country;
+    }
+
+    mapLanguageToDomain(language: Language): ArticleLanguage {
+        return ArticleLanguage.create(language.toLowerCase());
+    }
+
+    mapLanguageToPrisma(language: ArticleLanguage): Language {
+        return language.toString().toLowerCase() as Language;
+    }
+
     toDomain(prisma: PrismaArticle): Article {
         return Article.create({
             category: this.mapCategoryToDomain(prisma.category),
@@ -26,7 +50,7 @@ export class ArticleMapper {
         });
     }
 
-    toPrisma(domain: Article): Omit<PrismaArticle, 'id' | 'createdAt'> {
+    toPrisma(domain: Article): Omit<PrismaArticle, 'createdAt' | 'id'> {
         return {
             article: domain.content.toString(),
             category: this.mapCategoryToPrisma(domain.category),
@@ -37,29 +61,5 @@ export class ArticleMapper {
             language: this.mapLanguageToPrisma(domain.language),
             summary: domain.summary.toString(),
         };
-    }
-
-    mapCategoryToDomain(category: Category): ArticleCategory {
-        return ArticleCategory.create(category.toLowerCase());
-    }
-
-    mapCountryToDomain(country: Country): ArticleCountry {
-        return ArticleCountry.create(country.toLowerCase());
-    }
-
-    mapLanguageToDomain(language: Language): ArticleLanguage {
-        return ArticleLanguage.create(language.toLowerCase());
-    }
-
-    mapCategoryToPrisma(category: ArticleCategory): Category {
-        return category.toString().toUpperCase() as Category;
-    }
-
-    mapCountryToPrisma(country: ArticleCountry): Country {
-        return country.toString().toLowerCase() as Country;
-    }
-
-    mapLanguageToPrisma(language: ArticleLanguage): Language {
-        return language.toString().toLowerCase() as Language;
     }
 }

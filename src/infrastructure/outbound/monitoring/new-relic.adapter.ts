@@ -12,6 +12,20 @@ export class NewRelicAdapter {
         private readonly logger: LoggerPort,
     ) {}
 
+    public static getInstance(config: ConfigurationPort, logger: LoggerPort): NewRelicAdapter {
+        return new NewRelicAdapter(config, logger);
+    }
+
+    /**
+     * Increment a counter metric
+     */
+    public incrementMetric(name: string, value = 1): void {
+        if (this.newrelic) {
+            this.newrelic.incrementMetric(name, value);
+            this.logger.debug('Incremented metric', { name, value });
+        }
+    }
+
     // TODO Fix config leak
     public async initialize(): Promise<void> {
         const appConfig = this.config.getAppConfiguration();
@@ -43,48 +57,6 @@ export class NewRelicAdapter {
             this.logger.info('New Relic monitoring initialized successfully');
         } catch (error) {
             this.logger.error('Failed to initialize New Relic monitoring', { error });
-        }
-    }
-
-    /**
-     * Record a custom metric with a specific value
-     */
-    public recordMetric(name: string, value: number): void {
-        if (this.newrelic) {
-            this.newrelic.recordMetric(name, value);
-            this.logger.debug('Recorded metric', { name, value });
-        }
-    }
-
-    /**
-     * Increment a counter metric
-     */
-    public incrementMetric(name: string, value = 1): void {
-        if (this.newrelic) {
-            this.newrelic.incrementMetric(name, value);
-            this.logger.debug('Incremented metric', { name, value });
-        }
-    }
-
-    /**
-     * Monitor an async operation with timing
-     */
-    public async monitorSegment<T>(name: string, operation: () => Promise<T>): Promise<T> {
-        if (!this.newrelic) {
-            return operation();
-        }
-
-        const startTime = Date.now();
-        try {
-            // Create a transaction if one doesn't exist
-            if (!this.newrelic.getTransaction()) {
-                this.logger.error('No transaction found while monitoring segment', { name });
-            }
-
-            return await this.newrelic.startSegment(name, true, operation);
-        } finally {
-            const duration = Date.now() - startTime;
-            this.logger.debug('Monitored segment', { duration, name });
         }
     }
 
@@ -121,7 +93,35 @@ export class NewRelicAdapter {
         });
     }
 
-    public static getInstance(config: ConfigurationPort, logger: LoggerPort): NewRelicAdapter {
-        return new NewRelicAdapter(config, logger);
+    /**
+     * Monitor an async operation with timing
+     */
+    public async monitorSegment<T>(name: string, operation: () => Promise<T>): Promise<T> {
+        if (!this.newrelic) {
+            return operation();
+        }
+
+        const startTime = Date.now();
+        try {
+            // Create a transaction if one doesn't exist
+            if (!this.newrelic.getTransaction()) {
+                this.logger.error('No transaction found while monitoring segment', { name });
+            }
+
+            return await this.newrelic.startSegment(name, true, operation);
+        } finally {
+            const duration = Date.now() - startTime;
+            this.logger.debug('Monitored segment', { duration, name });
+        }
+    }
+
+    /**
+     * Record a custom metric with a specific value
+     */
+    public recordMetric(name: string, value: number): void {
+        if (this.newrelic) {
+            this.newrelic.recordMetric(name, value);
+            this.logger.debug('Recorded metric', { name, value });
+        }
     }
 }

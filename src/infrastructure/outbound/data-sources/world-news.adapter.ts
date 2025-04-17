@@ -41,28 +41,7 @@ export class WorldNewsAdapter implements NewsPort {
         private readonly monitoring: NewRelicAdapter,
     ) {}
 
-    private async enforceRateLimit(): Promise<void> {
-        const now = Date.now();
-        const timeSinceLastRequest = now - this.lastRequestTime;
-
-        if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
-            const waitTime = RATE_LIMIT_DELAY - timeSinceLastRequest;
-            this.monitoring.recordMetric('WorldNews/RateLimit/WaitTime', waitTime);
-            await new Promise((resolve) => setTimeout(resolve, waitTime));
-        }
-
-        this.lastRequestTime = Date.now();
-    }
-
-    /**
-     * Gets the current date in the timezone of the specified country
-     */
-    private getDateForCountry(countryCode: string): string {
-        const timezone = getTimezoneForCountry(countryCode);
-        return formatInTimezone(new Date(), timezone, 'yyyy-MM-dd');
-    }
-
-    public async fetchNews({ language, country }: FetchNewsOptions): Promise<NewsArticle[]> {
+    public async fetchNews({ country, language }: FetchNewsOptions): Promise<NewsArticle[]> {
         return this.monitoring.monitorSegment('External/WorldNewsAPI/Fetch', async () => {
             try {
                 this.logger.info('Retrieving news articles:', { country, language });
@@ -118,6 +97,27 @@ export class WorldNewsAdapter implements NewsPort {
                 return [];
             }
         });
+    }
+
+    private async enforceRateLimit(): Promise<void> {
+        const now = Date.now();
+        const timeSinceLastRequest = now - this.lastRequestTime;
+
+        if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+            const waitTime = RATE_LIMIT_DELAY - timeSinceLastRequest;
+            this.monitoring.recordMetric('WorldNews/RateLimit/WaitTime', waitTime);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
+
+        this.lastRequestTime = Date.now();
+    }
+
+    /**
+     * Gets the current date in the timezone of the specified country
+     */
+    private getDateForCountry(countryCode: string): string {
+        const timezone = getTimezoneForCountry(countryCode);
+        return formatInTimezone(new Date(), timezone, 'yyyy-MM-dd');
     }
 
     private transformResponse(response: z.infer<typeof WorldNewsResponseSchema>): NewsArticle[] {

@@ -153,7 +153,7 @@ describe('GenerateArticlesUseCase', () => {
             { existingCount: 0, expectedToGenerate: 12, hour: 18 },
         ])(
             'should generate correct number of articles based on time - $hour:00 with $existingCount existing (US)',
-            async ({ existingCount, hour, expectedToGenerate }) => {
+            async ({ existingCount, expectedToGenerate, hour }) => {
                 // Given
                 const testDate = createDateAtHour(hour, 'America/New_York');
                 jest.setSystemTime(testDate);
@@ -224,7 +224,7 @@ describe('GenerateArticlesUseCase', () => {
             { existingCount: 0, expectedToGenerate: 12, hour: 18 },
         ])(
             'should generate correct number of articles based on time - $hour:00 with $existingCount existing (France)',
-            async ({ existingCount, hour, expectedToGenerate }) => {
+            async ({ existingCount, expectedToGenerate, hour }) => {
                 // Given
                 const testDate = createDateAtHour(hour, 'Europe/Paris');
                 jest.setSystemTime(testDate);

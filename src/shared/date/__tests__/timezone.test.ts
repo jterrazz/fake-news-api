@@ -106,7 +106,7 @@ describe('Timezone Utilities', () => {
         it.each([
             { expectedHour: 13, timezone: parisTimezone }, // UTC+1
             { expectedHour: 7, timezone: newYorkTimezone }, // UTC-5
-        ])('should return correct hour for $timezone', ({ timezone, expectedHour }) => {
+        ])('should return correct hour for $timezone', ({ expectedHour, timezone }) => {
             // Given
             const fixedDate = new Date('2024-01-01T12:00:00Z'); // Noon UTC
             jest.setSystemTime(fixedDate);

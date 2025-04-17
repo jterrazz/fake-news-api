@@ -26,6 +26,47 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         this.mapper = new ArticleMapper();
     }
 
+    async countManyForDay(params: CountManyForDayParams): Promise<number> {
+        const countryCode = params.country.toString().toLowerCase();
+        const timezone = COUNTRY_TIMEZONES[countryCode];
+
+        if (!timezone) {
+            throw new Error(`Unsupported country: ${countryCode}`);
+        }
+
+        // Create a timezone-aware date
+        const tzDate = new TZDate(params.date, timezone);
+
+        // Get start and end of day in the target timezone
+        const start = startOfDay(tzDate);
+        const end = endOfDay(tzDate);
+
+        return this.prisma.getPrismaClient().article.count({
+            where: {
+                country: this.mapper.mapCountryToPrisma(params.country),
+                createdAt: {
+                    gte: start,
+                    lte: end,
+                },
+                language: this.mapper.mapLanguageToPrisma(params.language),
+            },
+        });
+    }
+
+    async createMany(articles: Article[]): Promise<Article[]> {
+        const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
+
+        const createdArticles = await this.prisma.getPrismaClient().$transaction(
+            prismaArticles.map((article) =>
+                this.prisma.getPrismaClient().article.create({
+                    data: article,
+                }),
+            ),
+        );
+
+        return createdArticles.map((article) => this.mapper.toDomain(article));
+    }
+
     async findMany(params: FindManyParams): Promise<{
         items: Article[];
         total: number;
@@ -77,46 +118,5 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         });
 
         return articles.map((article) => article.summary);
-    }
-
-    async countManyForDay(params: CountManyForDayParams): Promise<number> {
-        const countryCode = params.country.toString().toLowerCase();
-        const timezone = COUNTRY_TIMEZONES[countryCode];
-
-        if (!timezone) {
-            throw new Error(`Unsupported country: ${countryCode}`);
-        }
-
-        // Create a timezone-aware date
-        const tzDate = new TZDate(params.date, timezone);
-
-        // Get start and end of day in the target timezone
-        const start = startOfDay(tzDate);
-        const end = endOfDay(tzDate);
-
-        return this.prisma.getPrismaClient().article.count({
-            where: {
-                country: this.mapper.mapCountryToPrisma(params.country),
-                createdAt: {
-                    gte: start,
-                    lte: end,
-                },
-                language: this.mapper.mapLanguageToPrisma(params.language),
-            },
-        });
-    }
-
-    async createMany(articles: Article[]): Promise<Article[]> {
-        const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
-
-        const createdArticles = await this.prisma.getPrismaClient().$transaction(
-            prismaArticles.map((article) =>
-                this.prisma.getPrismaClient().article.create({
-                    data: article,
-                }),
-            ),
-        );
-
-        return createdArticles.map((article) => this.mapper.toDomain(article));
     }
 }

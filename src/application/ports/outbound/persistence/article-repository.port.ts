@@ -4,38 +4,21 @@ import { ArticleCountry } from '../../../../domain/value-objects/article-country
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 /**
- * Parameters for finding many articles
- */
-export interface FindManyParams {
-    language?: ArticleLanguage;
-    category?: ArticleCategory;
-    country: ArticleCountry;
-    cursor?: Date;
-    limit: number;
-}
-
-/**
- * Parameters for finding published summaries
- */
-export interface FindPublishedSummariesParams {
-    language: ArticleLanguage;
-    country: ArticleCountry;
-    since: Date;
-}
-
-/**
- * Parameters for counting articles for a specific day
- */
-export interface CountArticlesForDayParams {
-    language: ArticleLanguage;
-    country: ArticleCountry;
-    date: Date;
-}
-
-/**
  * Article repository port
  */
 export interface ArticleRepositoryPort {
+    /**
+     * Count articles for a specific day
+     */
+    countManyForDay(params: CountArticlesForDayParams): Promise<number>;
+
+    /**
+     * Create multiple articles in a single transaction
+     * @param articles Array of articles to create
+     * @returns Created articles with their IDs
+     */
+    createMany(articles: Article[]): Promise<Article[]>;
+
     /**
      * Find many articles
      */
@@ -48,16 +31,33 @@ export interface ArticleRepositoryPort {
      * Find published article summaries since a given date
      */
     findPublishedSummaries(params: FindPublishedSummariesParams): Promise<Array<string>>;
+}
 
-    /**
-     * Count articles for a specific day
-     */
-    countManyForDay(params: CountArticlesForDayParams): Promise<number>;
+/**
+ * Parameters for counting articles for a specific day
+ */
+export interface CountArticlesForDayParams {
+    country: ArticleCountry;
+    date: Date;
+    language: ArticleLanguage;
+}
 
-    /**
-     * Create multiple articles in a single transaction
-     * @param articles Array of articles to create
-     * @returns Created articles with their IDs
-     */
-    createMany(articles: Article[]): Promise<Article[]>;
+/**
+ * Parameters for finding many articles
+ */
+export interface FindManyParams {
+    category?: ArticleCategory;
+    country: ArticleCountry;
+    cursor?: Date;
+    language?: ArticleLanguage;
+    limit: number;
+}
+
+/**
+ * Parameters for finding published summaries
+ */
+export interface FindPublishedSummariesParams {
+    country: ArticleCountry;
+    language: ArticleLanguage;
+    since: Date;
 }

@@ -14,6 +14,13 @@ export const COUNTRY_TIMEZONES: Record<string, string> = {
 export type CountryTimezone = keyof typeof COUNTRY_TIMEZONES;
 
 /**
+ * Creates a timezone-aware date for the current time
+ */
+export function createCurrentTZDate(timezone: string): TZDate {
+    return createTZDate(new Date(), timezone);
+}
+
+/**
  * Creates a timezone-aware date from a regular Date object
  */
 export function createTZDate(date: Date, timezone: string): TZDate {
@@ -30,10 +37,21 @@ export function createTZDate(date: Date, timezone: string): TZDate {
 }
 
 /**
- * Creates a timezone-aware date for the current time
+ * Formats a date in a specific timezone using the provided format string
  */
-export function createCurrentTZDate(timezone: string): TZDate {
-    return createTZDate(new Date(), timezone);
+export function formatInTimezone(date: Date | TZDate, timezone: string, formatStr: string): string {
+    const tzDate = date instanceof TZDate ? date : createTZDate(date, timezone);
+    return format(tzDate, formatStr);
+}
+
+/**
+ * Gets the current hour in a specific timezone
+ */
+export function getCurrentHourInTimezone(timezone: string): number {
+    const now = new Date();
+    // Create a TZDate directly from UTC timestamp to ensure correct timezone conversion
+    const tzDate = new TZDate(now.getTime(), timezone);
+    return tzDate.getHours();
 }
 
 /**
@@ -51,24 +69,6 @@ export function getTimezoneForCountry(countryCode: string): string {
     }
 
     return timezone;
-}
-
-/**
- * Gets the current hour in a specific timezone
- */
-export function getCurrentHourInTimezone(timezone: string): number {
-    const now = new Date();
-    // Create a TZDate directly from UTC timestamp to ensure correct timezone conversion
-    const tzDate = new TZDate(now.getTime(), timezone);
-    return tzDate.getHours();
-}
-
-/**
- * Formats a date in a specific timezone using the provided format string
- */
-export function formatInTimezone(date: Date | TZDate, timezone: string, formatStr: string): string {
-    const tzDate = date instanceof TZDate ? date : createTZDate(date, timezone);
-    return format(tzDate, formatStr);
 }
 
 /**

@@ -4,8 +4,8 @@ export enum LanguageEnum {
     English = 'en',
     French = 'fr',
     German = 'de',
-    Spanish = 'es',
     Italian = 'it',
+    Spanish = 'es',
 }
 
 export const languageSchema = z.nativeEnum(LanguageEnum);
