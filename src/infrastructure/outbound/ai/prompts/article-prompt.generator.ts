@@ -140,11 +140,11 @@ For FAKE articles:
 - Category: politics, technology, science, health, entertainment, sports, business, world, or other
 
 ## Markdown Usage:
-- **bold** for key concepts only
+- **bold** for better readability
 - Two newlines between paragraphs
-- For fake information, use: %%[text](explanation why this context is fake)
+- For fake information, use: %%[the fake information](explanation why this information is fake)
   Example: The company %%[reported a 500% increase in profits](This growth rate is unrealistic and no company in this sector has ever achieved such growth)
-- Metadata annotations in %% format don't count towards word limits
+- Metadata annotations in %% format don't count towards word limits. Annotate the entire fake information, not just a part of it.
 - Keep metadata explanations concise and factual
 
 ## Summary Field:
