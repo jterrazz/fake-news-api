@@ -7,6 +7,7 @@ import { z } from 'zod';
 import {
     FetchNewsOptions,
     NewsArticle,
+    NewsArticleSchema,
     NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
@@ -14,16 +15,6 @@ const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
 const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>
     `${CACHE_DIR(env)}/articles/${lang}.json`;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
-
-const NewsArticleSchema = z.object({
-    publishedAt: z
-        .string()
-        .datetime()
-        .transform((date) => new Date(date)),
-    summary: z.string(),
-    title: z.string(),
-    url: z.string(),
-});
 
 const CacheDataSchema = z.object({
     data: z.array(NewsArticleSchema),

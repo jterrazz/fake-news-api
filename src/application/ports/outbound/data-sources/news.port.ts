@@ -1,15 +1,19 @@
+import { z } from 'zod';
+
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-/**
- * Represents a news article
- */
-export interface NewsArticle {
-    publishedAt: Date;
-    summary: string;
-    title: string;
-    url: string;
-}
+export const NewsArticleSchema = z.object({
+    publishedAt: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date)),
+    summary: z.string(),
+    title: z.string(),
+    url: z.string(),
+});
+
+export type NewsArticle = z.output<typeof NewsArticleSchema>;
 
 /**
  * Options for fetching news articles
