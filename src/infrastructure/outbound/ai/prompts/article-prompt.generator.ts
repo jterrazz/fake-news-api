@@ -101,27 +101,36 @@ export class ArticlePromptGenerator
 
 Generate exactly ${count} news articles in total, mixing genuine and fictional articles. Each article should be SHORT (30-70 words) and focus on simple key points that are verifiable, while maintaining a journalistic tone and feel.
 
-Context: These articles are part of a larger game news publication, where the player can read them and try to spot the fake ones. It's important to maintain a journalistic tone and feel, while making the articles easy to read and understand. And the game enjoyable.
+Context: These articles are part of a larger game news publication, where the player can read them and try to spot the fake ones.
+It's important to maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives. This adds an educational layer about media literacy and bias recognition.
 
 ## Core Requirements:
 1. Start each article with a one-sentence context
 2. Never reveal if an article is fake/real in its content
 3. Maintain identical writing quality for both real and fake articles
-4. Use ONLY the provided real-world news as source material
+4. Use ONLY the provided real-world news as source material, but rewrite with strict neutrality
 5. Multiple articles can cover different angles of the same story
 6. Order articles thoughtfully as they will be read sequentially by users, from first to last
+7. Present all information with complete neutrality, using balanced language and objective reporting
 
 ## Article Guidelines:
 For REAL articles:
 - Simplify original news while keeping core facts accurate
 - Never fabricate quotes or statements
 - Focus on one verifiable claim
+- Strip away any existing bias from source materials
+- Use neutral language that avoids loaded terms or implicit judgments
 
 For FAKE articles:
 - Build upon real news with plausible twists
 - Create subtle, believable alterations
 - Mimic real media bias and clickbait tactics
 - Avoid obvious fabrications
+- When applicable, demonstrate how factual information can be subtly reframed to appeal to different political biases:
+  * Use selective emphasis of facts
+  * Employ loaded language while maintaining journalistic tone
+  * Mirror real-world patterns of information manipulation
+  * Never explicitly state political leanings
 
 ## Format:
 - Headline: 3-10 words, journalistic style
