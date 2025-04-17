@@ -5,6 +5,16 @@ import {
     type GetArticlesUseCase,
 } from '../../../../application/use-cases/articles/get-articles.use-case.js';
 
+// Extend PrismaArticle to include our new field while keeping type safety
+type ArticleResponse = Omit<PrismaArticle, 'article'> & {
+    /** @deprecated Use contentWithAnnotations instead for rich content or contentRaw for plain text */
+    article: string;
+    /** Raw content without metadata annotations */
+    contentRaw: string;
+    /** Content with fake news annotations and metadata */
+    contentWithAnnotations: string;
+};
+
 type PaginatedResponse<T> = {
     items: T[];
     nextCursor: null | string;
@@ -14,25 +24,34 @@ type PaginatedResponse<T> = {
 export class ArticleController {
     constructor(private readonly getArticlesUseCase: GetArticlesUseCase) {}
 
-    async getArticles(params: GetArticlesParams): Promise<PaginatedResponse<PrismaArticle>> {
+    async getArticles(params: GetArticlesParams): Promise<PaginatedResponse<ArticleResponse>> {
         const result = await this.getArticlesUseCase.execute(params);
 
-        // Convert domain articles to Prisma articles
-        const prismaArticles: PrismaArticle[] = result.items.map((article) => ({
-            article: article.content.toString(),
-            category: article.category.toString() as Category,
-            country: article.country.toString() as Country,
-            createdAt: article.createdAt,
-            fakeReason: article.fakeStatus.reason,
-            headline: article.headline.toString(),
-            id: article.id,
-            isFake: article.isFake(),
-            language: article.language.toString() as Language,
-            summary: article.summary.toString(),
-        }));
+        // Convert domain articles to response format
+        const articles: ArticleResponse[] = result.items.map((article) => {
+            const content = article.content.toString();
+
+            // Remove metadata annotations for raw content
+            const contentRaw = content.replace(/%%\[(.*?)\]\(.*?\)/g, '$1');
+
+            return {
+                article: contentRaw, // Deprecated: Keep for backward compatibility
+                category: article.category.toString() as Category,
+                contentRaw,
+                contentWithAnnotations: content,
+                country: article.country.toString() as Country,
+                createdAt: article.createdAt,
+                fakeReason: article.fakeStatus.reason,
+                headline: article.headline.toString(),
+                id: article.id,
+                isFake: article.isFake(),
+                language: article.language.toString() as Language,
+                summary: article.summary.toString(),
+            };
+        });
 
         return {
-            items: prismaArticles,
+            items: articles,
             nextCursor: result.nextCursor,
             total: result.total,
         };
