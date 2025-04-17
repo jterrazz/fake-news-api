@@ -30,7 +30,9 @@ export interface ArticleRepositoryPort {
     /**
      * Find published article summaries since a given date
      */
-    findPublishedSummaries(params: FindPublishedSummariesParams): Promise<Array<string>>;
+    findPublishedSummaries(
+        params: FindPublishedSummariesParams,
+    ): Promise<Array<{ headline: string; summary: string }>>;
 }
 
 /**

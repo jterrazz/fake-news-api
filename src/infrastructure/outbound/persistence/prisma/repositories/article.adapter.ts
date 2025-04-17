@@ -103,9 +103,15 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         };
     }
 
-    async findPublishedSummaries(params: FindPublishedSummariesParams): Promise<Array<string>> {
+    async findPublishedSummaries(
+        params: FindPublishedSummariesParams,
+    ): Promise<Array<{ headline: string; summary: string }>> {
         const articles = await this.prisma.getPrismaClient().article.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
             select: {
+                headline: true,
                 summary: true,
             },
             where: {
@@ -117,6 +123,9 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
             },
         });
 
-        return articles.map((article) => article.summary);
+        return articles.map((article) => ({
+            headline: article.headline,
+            summary: article.summary,
+        }));
     }
 }

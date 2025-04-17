@@ -109,6 +109,7 @@ Context: These articles are part of a larger game news publication, where the pl
 3. Maintain identical writing quality for both real and fake articles
 4. Use ONLY the provided real-world news as source material
 5. Multiple articles can cover different angles of the same story
+6. Order articles thoughtfully as they will be read sequentially by users, from first to last
 
 ## Article Guidelines:
 For REAL articles:

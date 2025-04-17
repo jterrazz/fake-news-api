@@ -20,7 +20,7 @@ export interface ArticleGeneratorPort {
 export type GenerateArticlesParams = {
     articles: {
         news: Array<{ content: string; title: string }>;
-        publicationHistory: string[];
+        publicationHistory: Array<{ headline: string; summary: string }>;
     };
     count: number;
     country: ArticleCountry;

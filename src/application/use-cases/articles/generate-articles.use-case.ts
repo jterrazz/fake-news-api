@@ -92,7 +92,10 @@ export class GenerateArticlesUseCase {
                         content: article.summary,
                         title: article.title,
                     })),
-                    publicationHistory: publishedSummaries,
+                    publicationHistory: publishedSummaries.map((summary) => ({
+                        headline: summary.headline,
+                        summary: summary.summary,
+                    })),
                 },
                 count: articlesToGenerate,
                 country,

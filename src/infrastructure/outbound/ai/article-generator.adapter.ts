@@ -50,14 +50,11 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             // Base date from current time
             const baseDate = new Date();
 
-            // Shuffle articles to randomize real/fake order
-            const shuffledArticles = shuffleArray(rawArticles);
-
             // Add metadata to each article
-            const articles = shuffledArticles.map((article, index) => {
+            const articles = rawArticles.map((article, index) => {
                 const uniqueDate = new Date(baseDate);
                 // Add index * 1 second to ensure unique timestamps
-                uniqueDate.setSeconds(uniqueDate.getSeconds() + index);
+                uniqueDate.setSeconds(uniqueDate.getSeconds() - index);
 
                 return Article.create({
                     ...article,
@@ -90,18 +87,4 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             throw error;
         }
     }
-}
-
-/**
- * Shuffles an array using a cryptographically secure random number generator
- */
-function shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(
-            (crypto.getRandomValues(new Uint32Array(1))[0] / (0xffffffff + 1)) * (i + 1),
-        );
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
 }
