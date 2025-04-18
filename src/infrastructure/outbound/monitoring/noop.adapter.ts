@@ -7,21 +7,25 @@ export class NoopMonitoringAdapter implements MonitoringPort {
         this.logger.info('Monitoring is disabled');
     }
 
+    public endTransaction(): void {}
+
     public incrementMetric(_name: string, _value?: number): void {}
 
     public async initialize(): Promise<void> {}
-
-    public async monitorBackgroundJob<T>(
-        _groupName: string,
-        _jobName: string,
-        operation: () => Promise<T>,
-    ): Promise<T> {
-        return operation();
-    }
 
     public async monitorSegment<T>(_name: string, operation: () => Promise<T>): Promise<T> {
         return operation();
     }
 
+    public async monitorTransaction<T>(
+        _name: string,
+        _category: string,
+        operation: () => Promise<T>,
+    ): Promise<T> {
+        return operation();
+    }
+
     public recordMetric(_name: string, _value: number): void {}
+
+    public startTransaction(_name: string, _category: string): void {}
 }

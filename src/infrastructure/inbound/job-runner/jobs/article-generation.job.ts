@@ -19,7 +19,7 @@ export const createArticleGenerationJob = ({
     monitoring,
 }: Dependencies): Job => ({
     execute: async () => {
-        return monitoring.monitorBackgroundJob('Jobs', 'ArticleGeneration', async () => {
+        return monitoring.monitorTransaction('ArticleGeneration', 'Jobs', async () => {
             try {
                 await Promise.all([
                     generateArticles.execute(
