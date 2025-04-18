@@ -3,112 +3,114 @@ import { LoggerPort } from '@jterrazz/logger';
 import type * as NewRelic from 'newrelic';
 import type { TransactionHandle } from 'newrelic';
 
-import { MonitoringPort } from './monitoring.port.js';
+import { MonitoringService } from './monitoring.port.js';
 
-interface NewRelicAdapterOptions {
+interface MonitoringOptions {
     environment: string;
     licenseKey?: string;
     logger?: LoggerPort;
 }
 
-export class NewRelicAdapter implements MonitoringPort {
+/**
+ * NewRelic implementation of the monitoring service.
+ * Provides application monitoring and observability through NewRelic's APM.
+ */
+export class NewRelicMonitoring implements MonitoringService {
+    private agent: null | typeof NewRelic = null;
     private readonly logger?: LoggerPort;
-    private newrelic: null | typeof NewRelic = null;
 
-    constructor(private readonly options: NewRelicAdapterOptions) {
+    constructor(private readonly options: MonitoringOptions) {
         this.logger = options.logger;
-    }
-
-    public incrementMetric(name: string, value = 1): void {
-        if (!this.newrelic) {
-            return;
-        }
-
-        this.newrelic.incrementMetric(name, value);
-        this.logger?.debug('Incremented metric', { name, value });
     }
 
     public async initialize(): Promise<void> {
         if (!this.options.licenseKey) {
             this.logger?.warn(
-                '[INIT] New Relic license key is not set, monitoring will not be enabled',
+                '[INIT] Monitoring license key is not set, monitoring will not be enabled',
             );
             return;
         }
 
         if (process.env.NODE_ENV !== 'production') {
-            this.logger?.warn('[INIT] New Relic is only enabled in production environment');
+            this.logger?.warn('[INIT] Monitoring is only enabled in production environment');
             return;
         }
 
         try {
-            // Initialize New Relic
+            // Initialize monitoring agent
             const newrelicModule = await import('newrelic');
-            this.newrelic = newrelicModule.default;
+            this.agent = newrelicModule.default;
 
             // Add environment attributes
-            this.newrelic.addCustomAttribute('environment', this.options.environment);
-            this.logger?.info('New Relic monitoring initialized successfully');
+            this.agent.addCustomAttribute('environment', this.options.environment);
+            this.logger?.info('Monitoring initialized successfully');
         } catch (error) {
-            this.logger?.error('Failed to initialize New Relic monitoring', { error });
+            this.logger?.error('Failed to initialize monitoring', { error });
         }
     }
 
-    public async monitorSegment<T>(name: string, operation: () => Promise<T>): Promise<T> {
-        if (!this.newrelic) {
-            return operation();
-        }
-
-        const startTime = Date.now();
-        try {
-            const transaction = this.newrelic.getTransaction() as null | TransactionHandle;
-            if (!transaction) {
-                this.logger?.error('No transaction found while monitoring segment', { name });
-            }
-
-            return await this.newrelic.startSegment(name, true, operation);
-        } finally {
-            const duration = Date.now() - startTime;
-            this.logger?.debug('Monitored segment', { duration, name });
-        }
-    }
-
-    public async monitorTransaction<T>(
-        name: string,
+    public async monitorOperation<T>(
         category: string,
+        name: string,
         operation: () => Promise<T>,
     ): Promise<T> {
-        if (!this.newrelic) {
+        if (!this.agent) {
             return operation();
         }
 
         return new Promise((resolve, reject) => {
-            this.newrelic!.startBackgroundTransaction(name, category, async () => {
+            this.agent!.startBackgroundTransaction(name, category, async () => {
                 try {
-                    this.logger?.debug('Started transaction', { category, name });
+                    this.logger?.debug('Started operation monitoring', { category, name });
                     const result = await operation();
                     resolve(result);
                 } catch (error) {
-                    this.logger?.error('Transaction failed', {
-                        category,
-                        error,
-                        name,
-                    });
                     reject(error);
                 } finally {
-                    this.newrelic!.endTransaction();
-                    this.logger?.debug('Ended transaction', { category, name });
+                    this.agent!.endTransaction();
+                    this.logger?.debug('Ended operation monitoring', { category, name });
                 }
             });
         });
     }
 
-    public recordMetric(name: string, value: number): void {
-        if (!this.newrelic) {
+    public async monitorSubOperation<T>(name: string, operation: () => Promise<T>): Promise<T> {
+        if (!this.agent) {
+            return operation();
+        }
+
+        const startTime = Date.now();
+        try {
+            const transaction = this.agent.getTransaction() as null | TransactionHandle;
+            if (!transaction) {
+                this.logger?.error('No parent operation found while monitoring sub-operation', {
+                    name,
+                });
+            }
+
+            return await this.agent.startSegment(name, true, operation);
+        } finally {
+            const duration = Date.now() - startTime;
+            this.logger?.debug('Monitored sub-operation', { duration, name });
+        }
+    }
+
+    public recordCount(category: string, name: string, value = 1): void {
+        if (!this.agent) {
             return;
         }
 
-        this.newrelic.recordMetric(name, value);
-        this.logger?.debug('Recorded metric', { name, value });
+        this.agent.recordMetric(`${category}/${name}`, value);
+        this.logger?.debug('Recorded count metric', { category, name, value });
+    }
+
+    public recordMeasurement(category: string, name: string, value: number): void {
+        if (!this.agent) {
+            return;
+        }
+
+        const metricName = `${category}/${name}`;
+        this.agent.recordMetric(metricName, value);
+        this.logger?.debug('Recorded measurement', { category, name, value });
     }
 }

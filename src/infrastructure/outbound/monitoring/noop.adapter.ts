@@ -1,23 +1,20 @@
 import { LoggerPort } from '@jterrazz/logger';
 
-import { MonitoringPort } from './monitoring.port.js';
+import { MonitoringService } from './monitoring.port.js';
 
-export class NoopMonitoringAdapter implements MonitoringPort {
-    constructor(private readonly logger: LoggerPort) {
-        this.logger.info('Monitoring is disabled');
+/**
+ * No-operation implementation of the monitoring service.
+ * Used when monitoring is disabled or not configured.
+ * All operations are no-ops except for optional logging.
+ */
+export class NoopMonitoring implements MonitoringService {
+    constructor(private readonly logger?: LoggerPort) {
+        this.logger?.info('Monitoring is disabled');
     }
-
-    public endTransaction(): void {}
-
-    public incrementMetric(_name: string, _value?: number): void {}
 
     public async initialize(): Promise<void> {}
 
-    public async monitorSegment<T>(_name: string, operation: () => Promise<T>): Promise<T> {
-        return operation();
-    }
-
-    public async monitorTransaction<T>(
+    public async monitorOperation<T>(
         _name: string,
         _category: string,
         operation: () => Promise<T>,
@@ -25,7 +22,11 @@ export class NoopMonitoringAdapter implements MonitoringPort {
         return operation();
     }
 
-    public recordMetric(_name: string, _value: number): void {}
+    public async monitorSubOperation<T>(_name: string, operation: () => Promise<T>): Promise<T> {
+        return operation();
+    }
 
-    public startTransaction(_name: string, _category: string): void {}
+    public recordCount(_category: string, _name: string, _value?: number): void {}
+
+    public recordMeasurement(_category: string, _name: string, _value: number): void {}
 }
