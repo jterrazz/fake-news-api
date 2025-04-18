@@ -139,9 +139,9 @@ For FAKE articles:
 ## Markdown Capabilities:
 - If needed, use **bold** for better readability
 - If needed, use two newlines between paragraphs
-- Give me metadata about each fake information, use format: %%[THE_FAKE_INFORMATION](ANNOTATION_OF_WHY_THIS_INFORMATION_IS_FAKE)
-  Example: This is a usual phrase but %%[now the information is fake](The information is fake because it's not true)
-- All fake information MUST be encoded in %% format: it will be used visually to highlight the fake information
+- Annotate each fake information in the content with a metadata annotation formatted as %%[some fake information](an annotation about why this information is fake)
+  Example: "SpaceX successfully launched its latest mission to Mars, but %%[the spacecraft carried 12 astronauts on board](SpaceX's current Mars missions are uncrewed - they have not yet sent humans to Mars)"
+- Each piece of misleading or false information MUST be wrapped in the %% format: %%[fake content](explanation). This special markup will allow the game to visually highlight these sections when revealing the truth to players
 - Metadata annotations in %% format don't count towards word limits.
 - Keep metadata annotations concise and factual
 
