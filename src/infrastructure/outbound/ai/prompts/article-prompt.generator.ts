@@ -134,15 +134,15 @@ For FAKE articles:
 
 ## Format:
 - Headline: 8-14 words
-- Content: Around 40-70 words encoded in markdown
-- Language: ${languageLabel}
+- Content: Around 40-80 words encoded in markdown
+- Language: All generated text, summary, etc etc MUST be in ${languageLabel} (but enums must still follow the given enum values)
 
 ## Markdown Capabilities:
 - If needed, use **bold** for better readability
 - If needed, use two newlines between paragraphs
 - Annotate each fake information in the content with a metadata annotation formatted as %%[some fake information](an annotation about why this information is fake)
   Example: "SpaceX successfully launched its latest mission to Mars, but %%[the spacecraft carried 12 astronauts on board](SpaceX's current Mars missions are uncrewed - they have not yet sent humans to Mars)"
-- Each piece of misleading or false information MUST be wrapped in the %% format: %%[fake content](explanation). This special markup will allow the game to visually highlight these sections when revealing the truth to players
+- Each misleading or false information MUST be wrapped in the %% format: %%[fake content](explanation). This special markup will allow the game to visually highlight these sections when revealing the truth to players. So do not hesitate to use large sections of it. You can still use **bold** inside the %% tags text.
 - Metadata annotations in %% format don't count towards word limits.
 - Keep metadata annotations concise and factual
 
