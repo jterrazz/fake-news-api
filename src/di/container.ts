@@ -70,7 +70,7 @@ const aiProviderFactory = Injectable(
     (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
         return new OpenRouterAdapter(logger, newRelic, {
             apiKey: config.getApiConfiguration().openRouter.apiKey,
-            budget: config.getAppConfiguration().env === 'production' ? 'paid' : 'free',
+            budget: config.getApiConfiguration().openRouter.budget,
         });
     },
 );

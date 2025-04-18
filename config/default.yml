@@ -6,4 +6,10 @@ app:
     enabled: false
 
 logging:
-  level: info
+  level: debug
+
+api:
+  openRouter:
+    budget: free
+  worldNews:
+    useCache: true

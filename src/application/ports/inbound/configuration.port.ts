@@ -4,6 +4,7 @@
 export interface ApiConfiguration {
     openRouter: {
         apiKey: string;
+        budget: 'free' | 'paid';
     };
     worldNews: {
         apiKey: string;

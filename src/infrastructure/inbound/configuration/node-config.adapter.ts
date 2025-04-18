@@ -10,6 +10,7 @@ const configurationSchema = z.object({
     api: z.object({
         openRouter: z.object({
             apiKey: z.string().min(1),
+            budget: z.enum(['free', 'paid']),
         }),
         worldNews: z.object({
             apiKey: z.string().min(1),
