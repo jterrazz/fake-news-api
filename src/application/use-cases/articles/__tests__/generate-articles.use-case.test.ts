@@ -176,7 +176,7 @@ describe('GenerateArticlesUseCase', () => {
                     expect(mockArticleGenerator.generateArticles).toHaveBeenCalledWith({
                         articles: {
                             news: testNews.map((article) => ({
-                                content: article.summary,
+                                content: article.text,
                                 title: article.title,
                             })),
                             publicationHistory: testPublishedSummaries,
@@ -250,7 +250,7 @@ describe('GenerateArticlesUseCase', () => {
                     expect(mockArticleGenerator.generateArticles).toHaveBeenCalledWith({
                         articles: {
                             news: testNews.map((article) => ({
-                                content: article.summary,
+                                content: article.text,
                                 title: article.title,
                             })),
                             publicationHistory: testPublishedSummaries,

@@ -28,7 +28,7 @@ describe('CachedNewsAdapter', () => {
 
     const mockArticle: NewsArticle = {
         publishedAt: new Date('2024-03-08T00:00:00.000Z'),
-        summary: 'Test summary',
+        text: 'Test summary',
         title: 'Test title',
         url: 'https://test.com',
     };

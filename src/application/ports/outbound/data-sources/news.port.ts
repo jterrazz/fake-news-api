@@ -8,9 +8,8 @@ export const NewsArticleSchema = z.object({
         .string()
         .datetime()
         .transform((date) => new Date(date)),
-    summary: z.string(),
+    text: z.string(),
     title: z.string(),
-    url: z.string(),
 });
 
 /**

@@ -16,10 +16,8 @@ const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
 const WorldNewsArticleSchema = z.object({
     publish_date: z.string(),
-    summary: z.string().nullish(),
     text: z.string(),
     title: z.string(),
-    url: z.string(),
 });
 
 const WorldNewsResponseSchema = z.object({
@@ -125,9 +123,8 @@ export class WorldNewsAdapter implements NewsPort {
             .map((section) => section.news[0])
             .map((article) => ({
                 publishedAt: new Date(article.publish_date),
-                summary: article.summary ?? article.text,
+                text: article.text,
                 title: article.title,
-                url: article.url,
             }));
     }
 }

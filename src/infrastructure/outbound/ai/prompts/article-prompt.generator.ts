@@ -128,6 +128,7 @@ For FAKE articles:
 - Mimic real media bias and clickbait tactics
 - Maybe avoid obvious fabrications, but don't be afraid to make some creative twists
 - When applicable, demonstrate how factual information can be subtly reframed to appeal to any political biases, left or right
+- Do not base fake news based on super small details, try to create believable fake news
 
 ## Format:
 - Headline: 8-14 words
@@ -137,8 +138,9 @@ For FAKE articles:
 ## Markdown Capabilities:
 - **bold** for better readability
 - Two newlines between paragraphs
-- Give me metadata about each fake information, use format: %%[the fake information](annotation why this information is fake)
-  Example: Something something ... %%[The company reported a 500% increase in profits](This growth rate is unrealistic and no company in this sector has ever achieved such growth)
+- Give me metadata about each fake information, use format: %%[THE_FAKE_INFORMATION](ANNOTATION_OF_WHY_THIS_INFORMATION_IS_FAKE)
+  Example: This is a usual phrase but %%[now the information is fake](The information is fake because it's not true)
+- All fake information MUST be encoded in %% format: it will be used visually to highlight the fake information
 - Metadata annotations in %% format don't count towards word limits.
 - Keep metadata annotations concise and factual
 
