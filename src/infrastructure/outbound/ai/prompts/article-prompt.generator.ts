@@ -142,7 +142,7 @@ For FAKE articles:
 - If needed, use two newlines between paragraphs
 - Annotate each fake information in the content with a metadata annotation formatted as %%[some fake information](an annotation about why this information is fake)
   Example: "SpaceX successfully launched its latest mission to Mars, but %%[the spacecraft carried 12 astronauts on board](SpaceX's current Mars missions are uncrewed - they have not yet sent humans to Mars)"
-- Each misleading or false information MUST be wrapped in the %% format: %%[fake content](explanation). This special markup will allow the game to visually highlight these sections when revealing the truth to players. So do not hesitate to use large sections of it. You can still use **bold** inside the %% tags text.
+- The ENTIRE false information in the content MUST be wrapped in the %% format: %%[fake content](explanation). This special markup will allow the game to visually highlight these sections when revealing the truth to players. DO NOT leave any false information unannotated. So do not hesitate to use large sections of it, and even annotate the entire content if needed. You can still make **bold** text inside the %% tags text if needed.
 - Metadata annotations in %% format don't count towards word limits.
 - Keep metadata annotations concise and factual
 
