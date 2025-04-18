@@ -1,41 +1,33 @@
 import { LoggerPort } from '@jterrazz/logger';
 
-import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
-
 import type { NewRelicAPI } from './types/new-relic.js';
 
-export class NewRelicAdapter {
+import { MonitoringPort } from './monitoring.port.js';
+
+interface NewRelicAdapterOptions {
+    environment: 'development' | 'production' | 'test';
+    licenseKey?: string;
+}
+
+export class NewRelicAdapter implements MonitoringPort {
     private newrelic: NewRelicAPI | null = null;
 
     constructor(
-        private readonly config: ConfigurationPort,
+        private readonly options: NewRelicAdapterOptions,
         private readonly logger: LoggerPort,
     ) {}
 
-    public static getInstance(config: ConfigurationPort, logger: LoggerPort): NewRelicAdapter {
-        return new NewRelicAdapter(config, logger);
-    }
-
-    /**
-     * Increment a counter metric
-     */
     public incrementMetric(name: string, value = 1): void {
-        if (this.newrelic) {
-            this.newrelic.incrementMetric(name, value);
-            this.logger.debug('Incremented metric', { name, value });
-        }
-    }
-
-    // TODO Fix config leak
-    public async initialize(): Promise<void> {
-        const appConfig = this.config.getAppConfiguration();
-
-        if (!appConfig.newRelic.enabled) {
-            this.logger.info('Monitoring is disabled');
+        if (!this.newrelic) {
             return;
         }
 
-        if (!appConfig.newRelic.licenseKey) {
+        this.newrelic.incrementMetric(name, value);
+        this.logger.debug('Incremented metric', { name, value });
+    }
+
+    public async initialize(): Promise<void> {
+        if (!this.options.licenseKey) {
             this.logger.warn(
                 '[INIT] New Relic license key is not set, monitoring will not be enabled',
             );
@@ -53,7 +45,7 @@ export class NewRelicAdapter {
             this.newrelic = newrelicModule.default;
 
             // Add environment attributes
-            this.newrelic.addCustomAttribute('environment', appConfig.env);
+            this.newrelic.addCustomAttribute('environment', this.options.environment);
             this.logger.info('New Relic monitoring initialized successfully');
         } catch (error) {
             this.logger.error('Failed to initialize New Relic monitoring', { error });
@@ -119,9 +111,11 @@ export class NewRelicAdapter {
      * Record a custom metric with a specific value
      */
     public recordMetric(name: string, value: number): void {
-        if (this.newrelic) {
-            this.newrelic.recordMetric(name, value);
-            this.logger.debug('Recorded metric', { name, value });
+        if (!this.newrelic) {
+            return;
         }
+
+        this.newrelic.recordMetric(name, value);
+        this.logger.debug('Recorded metric', { name, value });
     }
 }

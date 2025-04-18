@@ -4,11 +4,11 @@ import { type GenerateArticlesUseCase } from '../../../../application/use-cases/
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-import { NewRelicAdapter } from '../../../outbound/monitoring/new-relic.adapter.js';
+import type { MonitoringPort } from '../../../outbound/monitoring/monitoring.port.js';
 
 type Dependencies = {
     generateArticles: GenerateArticlesUseCase;
-    monitoring: NewRelicAdapter;
+    monitoring: MonitoringPort;
 };
 
 /**

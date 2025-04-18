@@ -10,7 +10,7 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
-import { NewRelicAdapter } from '../monitoring/new-relic.adapter.js';
+import type { MonitoringPort } from '../monitoring/monitoring.port.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
@@ -36,7 +36,7 @@ export class WorldNewsAdapter implements NewsPort {
     constructor(
         private readonly config: ConfigurationPort,
         private readonly logger: LoggerPort,
-        private readonly monitoring: NewRelicAdapter,
+        private readonly monitoring: MonitoringPort,
     ) {}
 
     public async fetchNews({ country, language }: FetchNewsOptions): Promise<NewsArticle[]> {

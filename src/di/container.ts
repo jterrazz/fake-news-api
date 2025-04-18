@@ -23,7 +23,9 @@ import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-genera
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
+import type { MonitoringPort } from '../infrastructure/outbound/monitoring/monitoring.port.js';
 import { NewRelicAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
+import { NoopMonitoringAdapter } from '../infrastructure/outbound/monitoring/noop.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
 
@@ -45,9 +47,9 @@ const loggerFactory = Injectable(
 const newsFactory = Injectable(
     'News',
     ['Configuration', 'Logger', 'NewRelic'] as const,
-    (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
+    (config: ConfigurationPort, logger: LoggerPort, monitoring: MonitoringPort) => {
         logger.info('Initializing WorldNews adapter');
-        const newsAdapter = new WorldNewsAdapter(config, logger, newRelic);
+        const newsAdapter = new WorldNewsAdapter(config, logger, monitoring);
         const useCache = config.getApiConfiguration().worldNews.useCache;
 
         if (useCache) {
@@ -67,8 +69,8 @@ const newsFactory = Injectable(
 const aiProviderFactory = Injectable(
     'AIProvider',
     ['Configuration', 'Logger', 'NewRelic'] as const,
-    (config: ConfigurationPort, logger: LoggerPort, newRelic: NewRelicAdapter) => {
-        return new OpenRouterAdapter(logger, newRelic, {
+    (config: ConfigurationPort, logger: LoggerPort, monitoring: MonitoringPort) => {
+        return new OpenRouterAdapter(logger, monitoring, {
             apiKey: config.getApiConfiguration().openRouter.apiKey,
             budget: config.getApiConfiguration().openRouter.budget,
         });
@@ -129,7 +131,7 @@ const articleControllerFactory = Injectable(
 const jobsFactory = Injectable(
     'Jobs',
     ['GenerateArticles', 'NewRelic'] as const,
-    (generateArticles: GenerateArticlesUseCase, monitoring: NewRelicAdapter): Job[] => {
+    (generateArticles: GenerateArticlesUseCase, monitoring: MonitoringPort): Job[] => {
         return [
             createArticleGenerationJob({
                 generateArticles,
@@ -145,11 +147,21 @@ const jobsFactory = Injectable(
 const newRelicFactory = Injectable(
     'NewRelic',
     ['Configuration', 'Logger'] as const,
-    (config: ConfigurationPort, logger: LoggerPort) => {
+    (config: ConfigurationPort, logger: LoggerPort): MonitoringPort => {
+        const appConfig = config.getAppConfiguration();
+
+        if (!appConfig.newRelic.enabled) {
+            return new NoopMonitoringAdapter(logger);
+        }
+
         logger.info('Initializing NewRelic adapter');
-        // TODO Fix config leak
-        const newRelic = NewRelicAdapter.getInstance(config, logger);
-        return newRelic;
+        return new NewRelicAdapter(
+            {
+                environment: appConfig.env,
+                licenseKey: appConfig.newRelic.licenseKey,
+            },
+            logger,
+        );
     },
 );
 

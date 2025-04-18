@@ -7,7 +7,7 @@ import {
     type AIProviderPort,
 } from '../../../../application/ports/outbound/ai/provider.port.js';
 
-import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
+import type { MonitoringPort } from '../../monitoring/monitoring.port.js';
 
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
@@ -23,7 +23,7 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     constructor(
         private readonly logger: LoggerPort,
-        private readonly monitoring: NewRelicAdapter,
+        private readonly monitoring: MonitoringPort,
         private readonly config: {
             apiKey: string;
             budget: 'free' | 'paid';
