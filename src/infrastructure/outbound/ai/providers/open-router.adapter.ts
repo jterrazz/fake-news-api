@@ -11,7 +11,7 @@ import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
 
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
-type OpenRouterModel = 'deepseek/deepseek-r1:free' | 'openai/o4-mini' | 'openai/o4-mini-high';
+type OpenRouterModel = 'deepseek/deepseek-r1' | 'openai/o4-mini' | 'openai/o4-mini-high';
 
 /**
  * Adapter for OpenRouter's API service implementing the AIProviderPort interface.
@@ -127,7 +127,7 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     private getModelType(capability: AIModelConfig['capability']): OpenRouterModel {
         if (this.config.budget === 'free') {
-            return 'deepseek/deepseek-r1:free';
+            return 'deepseek/deepseek-r1';
         }
 
         return capability === 'basic' ? 'openai/o4-mini' : 'openai/o4-mini-high';

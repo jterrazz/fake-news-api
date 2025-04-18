@@ -111,11 +111,8 @@ export class ArticlePromptGenerator
 
 In order to create a dynamic and engaging news feed experience:
 - Order articles thoughtfully as they will be read sequentially by users in the same order they are generated
-- Order distribution of real/fake articles unpredictably
-- Vary the distribution of real/fake articles unpredictably
-- Mix article categories strategically to maintain reader interest
-- Create thematic connections between some articles while keeping others independent
-- Do not create duplicated articles
+- DO NOT group real articles together, and do not group fake articles together. Mix them unpredictably
+- Do not create duplicated articles talking about the exact same story
 
 ## Article Guidelines:
 For REAL articles:
@@ -141,10 +138,15 @@ For FAKE articles:
 ## Markdown Capabilities:
 - If needed, use **bold** for better readability
 - If needed, use two newlines between paragraphs
-- Annotate each fake information in the content with a metadata annotation formatted as %%[some fake information](an annotation about why this information is fake)
+
+## Markdown Annotations:
+- Annotate each fake information in the "content" field with a metadata annotation
+- The format is %%[the annotated information](the annotation)
   Example: "SpaceX successfully launched its latest mission to Mars, but %%[the spacecraft carried 12 astronauts on board](SpaceX's current Mars missions are uncrewed - they have not yet sent humans to Mars)"
-- The ENTIRE false information in the content MUST be wrapped in the %% format: %%[fake content](explanation). This special markup will allow the game to visually highlight these sections when revealing the truth to players. DO NOT leave any false information unannotated. So do not hesitate to use large sections of it, and even annotate the entire content if needed. You can still make **bold** text inside the %% tags text if needed.
-- Metadata annotations in %% format don't count towards word limits.
+- You can still use **bold** for the "the annotated information" part if some fake information is bolded in the original content.
+- The ENTIRE false information in the content MUST be annotated. DO NOT leave any false information unannotated. So do not hesitate to use large sections of it, and even annotate the entire content if needed.
+- This will allow the game to visually highlight these sections when revealing the truth to players.
+- Metadata annotations don't count towards word limits.
 - Keep metadata annotations concise and factual
 
 ## Summary Field:
