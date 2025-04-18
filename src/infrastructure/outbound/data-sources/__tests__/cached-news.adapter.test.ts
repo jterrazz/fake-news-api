@@ -30,7 +30,6 @@ describe('CachedNewsAdapter', () => {
         publishedAt: new Date('2024-03-08T00:00:00.000Z'),
         text: 'Test summary',
         title: 'Test title',
-        url: 'https://test.com',
     };
 
     let adapter: CachedNewsAdapter;
