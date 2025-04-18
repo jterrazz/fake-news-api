@@ -110,7 +110,8 @@ export class ArticlePromptGenerator
 - Multiple articles could eventually cover different angles of the same story if you think it's interesting
 
 In order to create a dynamic and engaging news feed experience:
-- Order articles thoughtfully as they will be read sequentially by users, from first to last
+- Order articles thoughtfully as they will be read sequentially by users in the same order they are generated
+- Order distribution of real/fake articles unpredictably
 - Vary the distribution of real/fake articles unpredictably
 - Mix article categories strategically to maintain reader interest
 - Create thematic connections between some articles while keeping others independent
