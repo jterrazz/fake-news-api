@@ -136,8 +136,8 @@ For FAKE articles:
 - Language: ${languageLabel}
 
 ## Markdown Capabilities:
-- **bold** for better readability
-- Two newlines between paragraphs
+- If needed, use **bold** for better readability
+- If needed, use two newlines between paragraphs
 - Give me metadata about each fake information, use format: %%[THE_FAKE_INFORMATION](ANNOTATION_OF_WHY_THIS_INFORMATION_IS_FAKE)
   Example: This is a usual phrase but %%[now the information is fake](The information is fake because it's not true)
 - All fake information MUST be encoded in %% format: it will be used visually to highlight the fake information
