@@ -112,6 +112,13 @@ It's important to maintain a strictly neutral and impartial journalistic tone, p
 5. Multiple articles can cover different angles of the same story
 6. Order articles thoughtfully as they will be read sequentially by users, from first to last
 7. Present all information with complete neutrality, using balanced language and objective reporting
+8. Create a dynamic and engaging news feed experience:
+   * Vary the distribution of real/fake articles unpredictably
+   * Mix article categories strategically to maintain reader interest
+   * Create thematic connections between some articles while keeping others independent
+   * Include occasional surprising twists or unexpected angles in legitimate stories
+   * Balance serious topics with lighter, yet informative content
+   * Use narrative tension and pacing to keep readers engaged
 
 ## Article Guidelines:
 For REAL articles:
