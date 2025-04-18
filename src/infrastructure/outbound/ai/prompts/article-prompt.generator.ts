@@ -110,9 +110,9 @@ export class ArticlePromptGenerator
 - Multiple articles could eventually cover different angles of the same story if you think it's interesting
 
 In order to create a dynamic and engaging news feed experience:
-- Order articles thoughtfully as they will be read sequentially by users in the same order they are generated
-- DO NOT group real articles together, and do not group fake articles together. Mix them unpredictably
-- Do not create duplicated articles talking about the exact same story
+- The articles will be read by the player in the same order they are generated.
+- DO NOT group fake/real articles together. MIX their order RANDOMLY / UNPREDICTABLY.
+- Do not create duplicated articles talking about the exact same story.
 
 ## Article Guidelines:
 For REAL articles:
@@ -141,7 +141,7 @@ For FAKE articles:
 
 ## Markdown Annotations:
 - Annotate each fake information in the "content" field with a metadata annotation
-- The format is %%[the annotated information](the annotation)
+- The format is %%[the annotated information](the annotation): only %%[]() but do not put a %% in the end
   Example: "SpaceX successfully launched its latest mission to Mars, but %%[the spacecraft carried 12 astronauts on board](SpaceX's current Mars missions are uncrewed - they have not yet sent humans to Mars)"
 - You can still use **bold** for the "the annotated information" part if some fake information is bolded in the original content.
 - The ENTIRE false information in the content MUST be annotated. DO NOT leave any false information unannotated. So do not hesitate to use large sections of it, and even annotate the entire content if needed.
