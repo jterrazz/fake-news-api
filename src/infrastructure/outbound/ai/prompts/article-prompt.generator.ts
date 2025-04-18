@@ -115,6 +115,7 @@ In order to create a dynamic and engaging news feed experience:
 - Vary the distribution of real/fake articles unpredictably
 - Mix article categories strategically to maintain reader interest
 - Create thematic connections between some articles while keeping others independent
+- Do not create duplicated articles
 
 ## Article Guidelines:
 For REAL articles:
@@ -130,11 +131,11 @@ For FAKE articles:
 - Maybe avoid obvious fabrications, but don't be afraid to make some creative twists
 - When applicable, demonstrate how factual information can be subtly reframed to appeal to any political biases, left or right
 - Do not base fake news based on super small details, try to create believable fake news
-- For SOME of the fake news, you can use a "The Babylon Bee" style of fake news
+- For SOME of the fake news, you can use a "The Babylon Bee" / "The Onion" style of funny article. For these articles only, you can totally invent the content, the headline, the summary, etc.
 
 ## Format:
-- Headline: 8-14 words
-- Content: Around 40-80 words encoded in markdown
+- Headline: 8-16 words
+- Content: Around 40-100 words encoded in markdown
 - Language: All generated text, summary, etc etc MUST be in ${languageLabel} (but enums must still follow the given enum values)
 
 ## Markdown Capabilities:
