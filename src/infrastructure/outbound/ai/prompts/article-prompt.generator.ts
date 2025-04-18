@@ -25,8 +25,6 @@ import {
     summarySchema,
 } from '../../../../domain/value-objects/article-summary.vo.js';
 
-import { SHARED_CONTEXT_PROMPT } from './shared/context-prompt.js';
-
 /**
  * Raw input schema for AI responses before transformation
  */
@@ -95,78 +93,69 @@ export class ArticlePromptGenerator
         language,
     }: GenerateArticlesParams): AIPrompt<GeneratedArticle[]> {
         const languageLabel = language.toString();
+        const NEWS_KEY = '"RealWorldNews"';
+        const HISTORY_KEY = '"ArticlesAlreadyPublishedInTheGame"';
 
         return {
-            query: `${SHARED_CONTEXT_PROMPT}
-
-Generate exactly ${count} news articles in total, mixing genuine and fictional articles. Each article should be SHORT (30-90 words) and focus on simple key points that are verifiable, while maintaining a journalistic tone and feel.
-
-Context: These articles are part of a larger game news publication, where the player can read them and try to spot the fake ones.
-It's important to maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives. This adds an educational layer about media literacy and bias recognition.
+            query: `Your job is to create articles for a "Spot the Fake News" game where the player will read articles and try to spot which ones are fake.
 
 ## Core Requirements:
-1. Start each article with a one-sentence context (without saying "context:" or anything similar, but a phrase that helps the reader understand what the article is about, even if he doesn't know anything about the topic)
-2. Never reveal if an article is fake/real in its content
-3. Maintain identical writing quality for both real and fake articles
-4. Use ONLY the provided real-world news as source material, but rewrite with strict neutrality
-5. Multiple articles can cover different angles of the same story
-6. Order articles thoughtfully as they will be read sequentially by users, from first to last
-7. Present all information with complete neutrality, using balanced language and objective reporting
-8. Create a dynamic and engaging news feed experience:
-   * Vary the distribution of real/fake articles unpredictably
-   * Mix article categories strategically to maintain reader interest
-   * Create thematic connections between some articles while keeping others independent
-   * Include occasional surprising twists or unexpected angles in legitimate stories
-   * Balance serious topics with lighter, yet informative content
-   * Use narrative tension and pacing to keep readers engaged
+- Generate exactly ${count} news articles in total, mixing genuine and fictional articles.
+- All articles should be believable and derived from current events.
+- Write each article professionally in the same style as would Reuters, BBC, etc, maintaining identical writing quality all articles.
+- Maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives.
+- If needed, give a short general context in each article (without explicitly saying context, but like a journalistic would introduce a subject to readers that are not familiar with the topic)
+- Never reveal if an article is fake/real in its content
+- Use ONLY the provided news ${NEWS_KEY} as the source of current events happening in the world
+- Multiple articles could eventually cover different angles of the same story if you think it's interesting
+
+In order to create a dynamic and engaging news feed experience:
+- Order articles thoughtfully as they will be read sequentially by users, from first to last
+- Vary the distribution of real/fake articles unpredictably
+- Mix article categories strategically to maintain reader interest
+- Create thematic connections between some articles while keeping others independent
 
 ## Article Guidelines:
 For REAL articles:
-- Simplify original news while keeping core facts accurate
-- Never fabricate quotes or statements
-- Focus on one verifiable claim
+- Never fabricate information
+- You can simplify original news while focusing on interesting points
 - Strip away any existing bias from source materials
 - Use neutral language that avoids loaded terms or implicit judgments
 
 For FAKE articles:
-- Build upon real news with plausible twists
-- Create subtle, believable alterations
+- Build upon the up to date real news
+- Create alterations that you think are interesting and engaging
 - Mimic real media bias and clickbait tactics
-- Avoid obvious fabrications
-- When applicable, demonstrate how factual information can be subtly reframed to appeal to different political biases:
-  * Use selective emphasis of facts
-  * Employ loaded language while maintaining journalistic tone
-  * Mirror real-world patterns of information manipulation
-  * Never explicitly state political leanings
+- Maybe avoid obvious fabrications, but don't be afraid to make some creative twists
+- When applicable, demonstrate how factual information can be subtly reframed to appeal to any political biases, left or right
 
 ## Format:
-- Headline: 3-10 words, journalistic style
-- Context: One sentence background, used to help the AI understand the published article in future generations
-- Content: 30-90 words in markdown
+- Headline: 8-14 words
+- Content: Around 40-70 words encoded in markdown
 - Language: ${languageLabel}
-- Category: politics, technology, science, health, entertainment, sports, business, world, or other
 
-## Markdown Usage:
+## Markdown Capabilities:
 - **bold** for better readability
 - Two newlines between paragraphs
-- For fake information, use: %%[the fake information](explanation why this information is fake)
-  Example: The company %%[reported a 500% increase in profits](This growth rate is unrealistic and no company in this sector has ever achieved such growth)
-- Metadata annotations in %% format don't count towards word limits. Annotate the entire fake information, not just a part of it.
-- Keep metadata explanations concise and factual
+- Give me metadata about each fake information, use format: %%[the fake information](annotation why this information is fake)
+  Example: Something something ... %%[The company reported a 500% increase in profits](This growth rate is unrealistic and no company in this sector has ever achieved such growth)
+- Metadata annotations in %% format don't count towards word limits.
+- Keep metadata annotations concise and factual
 
 ## Summary Field:
-Create an informative summary that:
+Create an informative summary that will be used in future generations in the field ${HISTORY_KEY}
 - Reveals the article's authenticity status
-- Captures key information for AI history tracking
-- Helps maintain consistency across articles in future generations
+- Captures key information that will help the AI in future generations: it will avoir duplicated ideas and will be used to create a good article feed
 
 ## Knowledge Base:
-Use ONLY the news provided below:
+Here is the source of current events happening in the world:
 
-Original real world news for inspiration:
+"${NEWS_KEY}":
 ${JSON.stringify(news, null, 2)}
 
-Past generated articles for information to maintain consistency:
+Here is the list of articles already published in the game:
+
+"${HISTORY_KEY}":
 ${JSON.stringify(publicationHistory, null, 2)}
 
 ## Output Format:
