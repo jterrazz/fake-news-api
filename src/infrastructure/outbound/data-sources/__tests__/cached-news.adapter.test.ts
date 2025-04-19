@@ -50,11 +50,11 @@ describe('CachedNewsAdapter', () => {
             (readFileSync as jest.Mock).mockReturnValue(JSON.stringify(validCache));
 
             // When
-            const result = await adapter.fetchNews(defaultOptions);
+            const result = await adapter.fetchTopNews(defaultOptions);
 
             // Then
             expect(result).toEqual([mockArticle]);
-            expect(mockNewsSource.fetchNews).not.toHaveBeenCalled();
+            expect(mockNewsSource.fetchTopNews).not.toHaveBeenCalled();
             expect(mockLogger.info).toHaveBeenCalledWith('Using cached news data', {
                 language: 'en',
             });
@@ -68,14 +68,14 @@ describe('CachedNewsAdapter', () => {
             };
             (existsSync as jest.Mock).mockReturnValue(true);
             (readFileSync as jest.Mock).mockReturnValue(JSON.stringify(expiredCache));
-            mockNewsSource.fetchNews.mockResolvedValue([mockArticle]);
+            mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
             // When
-            const result = await adapter.fetchNews(defaultOptions);
+            const result = await adapter.fetchTopNews(defaultOptions);
 
             // Then
             expect(result).toEqual([mockArticle]);
-            expect(mockNewsSource.fetchNews).toHaveBeenCalledWith(defaultOptions);
+            expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
                 language: 'en',
             });
@@ -88,14 +88,14 @@ describe('CachedNewsAdapter', () => {
         it('should fetch fresh data when cache does not exist', async () => {
             // Given
             (existsSync as jest.Mock).mockReturnValue(false);
-            mockNewsSource.fetchNews.mockResolvedValue([mockArticle]);
+            mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
             // When
-            const result = await adapter.fetchNews(defaultOptions);
+            const result = await adapter.fetchTopNews(defaultOptions);
 
             // Then
             expect(result).toEqual([mockArticle]);
-            expect(mockNewsSource.fetchNews).toHaveBeenCalledWith(defaultOptions);
+            expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
                 language: 'en',
             });
@@ -108,17 +108,17 @@ describe('CachedNewsAdapter', () => {
                 (readFileSync as jest.Mock).mockImplementation(() => {
                     throw new Error('Read error');
                 });
-                mockNewsSource.fetchNews.mockResolvedValue([mockArticle]);
+                mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
                 // When
-                const result = await adapter.fetchNews(defaultOptions);
+                const result = await adapter.fetchTopNews(defaultOptions);
 
                 // Then
                 expect(result).toEqual([mockArticle]);
                 expect(mockLogger.error).toHaveBeenCalledWith('Failed to read news cache', {
                     error: expect.any(Error),
                 });
-                expect(mockNewsSource.fetchNews).toHaveBeenCalledWith(defaultOptions);
+                expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
             });
 
             it('should return data even when cache write fails', async () => {
@@ -127,10 +127,10 @@ describe('CachedNewsAdapter', () => {
                 (writeFileSync as jest.Mock).mockImplementation(() => {
                     throw new Error('Write error');
                 });
-                mockNewsSource.fetchNews.mockResolvedValue([mockArticle]);
+                mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
                 // When
-                const result = await adapter.fetchNews(defaultOptions);
+                const result = await adapter.fetchTopNews(defaultOptions);
 
                 // Then
                 expect(result).toEqual([mockArticle]);

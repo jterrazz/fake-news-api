@@ -29,5 +29,5 @@ export interface NewsPort {
     /**
      * Fetch news articles based on language and country
      */
-    fetchNews(options: FetchNewsOptions): Promise<NewsArticle[]>;
+    fetchTopNews(options: FetchNewsOptions): Promise<NewsArticle[]>;
 }

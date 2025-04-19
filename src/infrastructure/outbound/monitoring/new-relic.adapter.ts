@@ -3,7 +3,7 @@ import { LoggerPort } from '@jterrazz/logger';
 import type * as NewRelic from 'newrelic';
 import type { TransactionHandle } from 'newrelic';
 
-import { MonitoringService } from './monitoring.port.js';
+import { MonitoringPort } from './monitoring.port.js';
 
 interface MonitoringOptions {
     environment: string;
@@ -15,7 +15,7 @@ interface MonitoringOptions {
  * NewRelic implementation of the monitoring service.
  * Provides application monitoring and observability through NewRelic's APM.
  */
-export class NewRelicMonitoring implements MonitoringService {
+export class NewRelicMonitoringAdapter implements MonitoringPort {
     private agent: null | typeof NewRelic = null;
     private readonly logger?: LoggerPort;
 
@@ -25,14 +25,7 @@ export class NewRelicMonitoring implements MonitoringService {
 
     public async initialize(): Promise<void> {
         if (!this.options.licenseKey) {
-            this.logger?.warn(
-                '[INIT] Monitoring license key is not set, monitoring will not be enabled',
-            );
-            return;
-        }
-
-        if (process.env.NODE_ENV !== 'production') {
-            this.logger?.warn('[INIT] Monitoring is only enabled in production environment');
+            this.logger?.warn('Monitoring license key is not set, monitoring will not be enabled');
             return;
         }
 
@@ -49,7 +42,28 @@ export class NewRelicMonitoring implements MonitoringService {
         }
     }
 
-    public async monitorOperation<T>(
+    public async monitorSegment<T>(name: string, operation: () => Promise<T>): Promise<T> {
+        if (!this.agent) {
+            return operation();
+        }
+
+        const startTime = Date.now();
+        try {
+            const transaction = this.agent.getTransaction() as null | TransactionHandle;
+            if (!transaction) {
+                this.logger?.error('No parent operation found while monitoring sub-operation', {
+                    name,
+                });
+            }
+
+            return await this.agent.startSegment(name, true, operation);
+        } finally {
+            const duration = Date.now() - startTime;
+            this.logger?.debug('Monitored sub-operation', { duration, name });
+        }
+    }
+
+    public async monitorTransaction<T>(
         category: string,
         name: string,
         operation: () => Promise<T>,
@@ -72,27 +86,6 @@ export class NewRelicMonitoring implements MonitoringService {
                 }
             });
         });
-    }
-
-    public async monitorSubOperation<T>(name: string, operation: () => Promise<T>): Promise<T> {
-        if (!this.agent) {
-            return operation();
-        }
-
-        const startTime = Date.now();
-        try {
-            const transaction = this.agent.getTransaction() as null | TransactionHandle;
-            if (!transaction) {
-                this.logger?.error('No parent operation found while monitoring sub-operation', {
-                    name,
-                });
-            }
-
-            return await this.agent.startSegment(name, true, operation);
-        } finally {
-            const duration = Date.now() - startTime;
-            this.logger?.debug('Monitored sub-operation', { duration, name });
-        }
     }
 
     public recordCount(category: string, name: string, value = 1): void {

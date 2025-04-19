@@ -119,7 +119,7 @@ describe('GenerateArticlesUseCase', () => {
         );
 
         // Setup mock responses
-        mockNewsService.fetchNews.mockResolvedValue(testNews);
+        mockNewsService.fetchTopNews.mockResolvedValue(testNews);
         mockArticleRepository.findPublishedSummaries.mockResolvedValue(
             testPublishedSummaries.map((summary) => ({
                 headline: summary,
@@ -330,7 +330,7 @@ describe('GenerateArticlesUseCase', () => {
             const testDate = createDateAtHour(7, 'America/New_York');
             jest.setSystemTime(testDate);
 
-            mockNewsService.fetchNews.mockResolvedValue([]);
+            mockNewsService.fetchTopNews.mockResolvedValue([]);
 
             // When
             await useCase.execute(TEST_LANGUAGE, TEST_COUNTRY);
@@ -350,7 +350,7 @@ describe('GenerateArticlesUseCase', () => {
             jest.setSystemTime(testDate);
 
             const testError = new Error('Test error');
-            mockNewsService.fetchNews.mockRejectedValue(testError);
+            mockNewsService.fetchTopNews.mockRejectedValue(testError);
 
             // When/Then
             await expect(useCase.execute(TEST_LANGUAGE, TEST_COUNTRY)).rejects.toThrow(testError);

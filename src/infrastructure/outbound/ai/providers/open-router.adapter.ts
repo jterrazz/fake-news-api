@@ -52,7 +52,7 @@ export class OpenRouterAdapter implements AIProviderPort {
     ): Promise<T> {
         const modelType = this.getModelType(config.capability);
 
-        return this.monitoring.monitorSegment('OpenRouter/Generate', async () => {
+        return this.monitoring.monitorSegment('ai:open-router:generate', async () => {
             return this.executeWithRetries(async () => {
                 const response = await this.generateModelResponse(modelType, prompt.query);
                 return ResponseParser.parse(response, prompt.responseSchema);
@@ -74,12 +74,12 @@ export class OpenRouterAdapter implements AIProviderPort {
 
                 if (!this.shouldRetry(attempts, lastError)) {
                     this.logError(lastError, attempts);
-                    this.monitoring.incrementMetric('OpenRouter/Errors');
+                    this.monitoring.recordCount('OpenRouter', 'Errors');
                     throw lastError;
                 }
 
                 this.logRetryAttempt(lastError, attempts);
-                this.monitoring.incrementMetric('OpenRouter/Retries');
+                this.monitoring.recordCount('OpenRouter', 'Retries');
             }
         }
 
@@ -87,14 +87,14 @@ export class OpenRouterAdapter implements AIProviderPort {
     }
 
     private async generateModelResponse(model: OpenRouterModel, prompt: string): Promise<string> {
-        return this.monitoring.monitorSegment('External/OpenRouter/Request', async () => {
+        return this.monitoring.monitorSegment('ai:open-router:request', async () => {
             const completion = await this.client.chat.completions.create({
                 messages: [{ content: prompt, role: 'user' }],
                 model,
             });
 
             if (!completion) {
-                this.monitoring.incrementMetric('OpenRouter/Errors/NoResponse');
+                this.monitoring.recordCount('OpenRouter', 'Errors/NoResponse');
                 throw new Error('No response received from OpenRouter');
             }
 
@@ -103,21 +103,21 @@ export class OpenRouterAdapter implements AIProviderPort {
                 !Array.isArray(completion.choices) ||
                 completion.choices.length === 0
             ) {
-                this.monitoring.incrementMetric('OpenRouter/Errors/NoChoices');
+                this.monitoring.recordCount('OpenRouter', 'Errors/NoChoices');
                 this.logger.error('Invalid response format from OpenRouter', { completion });
                 throw new Error('Invalid response format from OpenRouter: No choices array');
             }
 
             const firstChoice = completion.choices[0];
             if (!firstChoice || !firstChoice.message) {
-                this.monitoring.incrementMetric('OpenRouter/Errors/InvalidChoice');
+                this.monitoring.recordCount('OpenRouter', 'Errors/InvalidChoice');
                 this.logger.error('Invalid choice format from OpenRouter', { firstChoice });
                 throw new Error('Invalid choice format from OpenRouter');
             }
 
             const text = firstChoice.message.content;
             if (!text) {
-                this.monitoring.incrementMetric('OpenRouter/Errors/EmptyResponse');
+                this.monitoring.recordCount('OpenRouter', 'Errors/EmptyResponse');
                 throw new Error('Empty response content from OpenRouter');
             }
 

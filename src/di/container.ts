@@ -24,7 +24,7 @@ import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
 import type { MonitoringPort } from '../infrastructure/outbound/monitoring/monitoring.port.js';
-import { NewRelicAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
+import { NewRelicMonitoringAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
 import { NoopMonitoringAdapter } from '../infrastructure/outbound/monitoring/noop.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
@@ -155,13 +155,11 @@ const newRelicFactory = Injectable(
         }
 
         logger.info('Initializing NewRelic adapter');
-        return new NewRelicAdapter(
-            {
-                environment: appConfig.env,
-                licenseKey: appConfig.newRelic.licenseKey,
-            },
+        return new NewRelicMonitoringAdapter({
+            environment: appConfig.env,
+            licenseKey: appConfig.newRelic.licenseKey,
             logger,
-        );
+        });
     },
 );
 

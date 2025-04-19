@@ -12,7 +12,7 @@ import { ArticleCountry } from '../../../../domain/value-objects/article-country
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { COUNTRY_TIMEZONES, TZDate } from '../../../../shared/date/timezone.js';
-import { NewRelicAdapter } from '../../monitoring/new-relic.adapter.js';
+import { NewRelicMonitoringAdapter } from '../../monitoring/new-relic.adapter.js';
 import { WorldNewsAdapter } from '../world-news.adapter.js';
 
 // Given: Mock configuration with valid API key
@@ -74,7 +74,7 @@ describe('WorldNewsAdapter', () => {
 
     beforeAll(() => server.listen());
     beforeEach(() => {
-        const newRelicAdapter = mock<NewRelicAdapter>();
+        const newRelicAdapter = mock<NewRelicMonitoringAdapter>();
         adapter = new WorldNewsAdapter(mockConfig, mockLogger, newRelicAdapter);
         requestedDates = {}; // Reset stored dates
     });
@@ -90,7 +90,7 @@ describe('WorldNewsAdapter', () => {
         const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchNews({ country, language });
+        const result = await adapter.fetchTopNews({ country, language });
 
         // Then: Should return valid news articles
         expect(result).toHaveLength(1);
@@ -123,8 +123,8 @@ describe('WorldNewsAdapter', () => {
         const frCountry = ArticleCountry.create('fr');
         const language = ArticleLanguage.create('en');
 
-        await adapter.fetchNews({ country: usCountry, language });
-        await adapter.fetchNews({ country: frCountry, language });
+        await adapter.fetchTopNews({ country: usCountry, language });
+        await adapter.fetchTopNews({ country: frCountry, language });
 
         // Then: Dates should be different based on timezone
         // For US (NYC timezone UTC-5): It should be previous day (2024-01-14)
@@ -144,7 +144,7 @@ describe('WorldNewsAdapter', () => {
         const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchNews({ country, language });
+        const result = await adapter.fetchTopNews({ country, language });
 
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
@@ -165,7 +165,7 @@ describe('WorldNewsAdapter', () => {
         const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchNews({ country, language });
+        const result = await adapter.fetchTopNews({ country, language });
 
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
@@ -186,7 +186,7 @@ describe('WorldNewsAdapter', () => {
         const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchNews({ country, language });
+        const result = await adapter.fetchTopNews({ country, language });
 
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
@@ -204,8 +204,8 @@ describe('WorldNewsAdapter', () => {
         const startTime = Date.now();
 
         // When: Making two consecutive requests
-        await adapter.fetchNews({ country, language });
-        await adapter.fetchNews({ country, language });
+        await adapter.fetchTopNews({ country, language });
+        await adapter.fetchTopNews({ country, language });
 
         // Then: Should take at least 1.2 seconds between requests
         const endTime = Date.now();

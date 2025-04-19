@@ -4,11 +4,11 @@ import { type GenerateArticlesUseCase } from '../../../../application/use-cases/
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-import type { MonitoringService } from '../../../outbound/monitoring/monitoring.port.js';
+import type { MonitoringPort } from '../../../outbound/monitoring/monitoring.port.js';
 
 type Dependencies = {
     generateArticles: GenerateArticlesUseCase;
-    monitoring: MonitoringService;
+    monitoring: MonitoringPort;
 };
 
 /**
@@ -19,7 +19,7 @@ export const createArticleGenerationJob = ({
     monitoring,
 }: Dependencies): Job => ({
     execute: async () => {
-        return monitoring.monitorOperation('Jobs', 'ArticleGeneration', async () => {
+        return monitoring.monitorTransaction('Jobs', 'ArticleGeneration', async () => {
             try {
                 await Promise.all([
                     generateArticles.execute(

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
 
 import {
-    FetchNewsOptions,
+    FetchNewsOptions as FetchTopNewsOptions,
     NewsArticle,
     NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
@@ -39,8 +39,8 @@ export class WorldNewsAdapter implements NewsPort {
         private readonly monitoring: MonitoringPort,
     ) {}
 
-    public async fetchNews({ country, language }: FetchNewsOptions): Promise<NewsArticle[]> {
-        return this.monitoring.monitorSegment('External/WorldNewsAPI/Fetch', async () => {
+    public async fetchTopNews({ country, language }: FetchTopNewsOptions): Promise<NewsArticle[]> {
+        return this.monitoring.monitorSegment('api:world-news-api:fetch-top-news', async () => {
             try {
                 this.logger.info('Retrieving news articles:', { country, language });
                 await this.enforceRateLimit();
@@ -65,7 +65,7 @@ export class WorldNewsAdapter implements NewsPort {
                 const response = await fetch(url.toString());
 
                 if (!response.ok) {
-                    this.monitoring.incrementMetric('WorldNews/Errors');
+                    this.monitoring.recordCount('WorldNews', 'Errors');
                     this.logger.error('Failed to fetch news:', {
                         status: response.status,
                         statusText: response.statusText,
@@ -77,7 +77,6 @@ export class WorldNewsAdapter implements NewsPort {
                 const parsed = WorldNewsResponseSchema.parse(data);
                 const articles = this.transformResponse(parsed);
 
-                this.monitoring.recordMetric('WorldNews/Articles/Count', articles.length);
                 this.logger.info('Successfully retrieved news articles:', {
                     articleCount: articles.length,
                     country,
@@ -86,7 +85,7 @@ export class WorldNewsAdapter implements NewsPort {
 
                 return articles;
             } catch (error) {
-                this.monitoring.incrementMetric('WorldNews/Errors');
+                this.monitoring.recordCount('WorldNews', 'Errors');
                 this.logger.error(`Failed to fetch ${language} news:`, {
                     country,
                     error,
@@ -103,7 +102,7 @@ export class WorldNewsAdapter implements NewsPort {
 
         if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
             const waitTime = RATE_LIMIT_DELAY - timeSinceLastRequest;
-            this.monitoring.recordMetric('WorldNews/RateLimit/WaitTime', waitTime);
+            this.monitoring.recordMeasurement('WorldNews/RateLimit', 'WaitTime', waitTime);
             await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
 

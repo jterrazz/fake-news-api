@@ -33,7 +33,7 @@ export class CachedNewsAdapter implements NewsPort {
         private readonly environment: string,
     ) {}
 
-    public async fetchNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
+    public async fetchTopNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
         // Try to read from cache first
         const cache = this.readCache(options.language.toString());
         if (cache) {
@@ -43,7 +43,7 @@ export class CachedNewsAdapter implements NewsPort {
 
         // If no cache or expired, fetch fresh data
         this.logger.info('Fetching fresh news data', { language: options.language.toString() });
-        const articles = await this.newsSource.fetchNews(options);
+        const articles = await this.newsSource.fetchTopNews(options);
 
         // Cache the response
         this.writeCache(articles, options.language.toString());

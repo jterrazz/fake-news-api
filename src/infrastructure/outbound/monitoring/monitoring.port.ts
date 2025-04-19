@@ -2,11 +2,21 @@
  * Port for application monitoring and observability.
  * Provides capabilities for tracking metrics, transactions, and performance segments.
  */
-export interface MonitoringService {
+export interface MonitoringPort {
     /**
      * Initialize the monitoring service with required configuration
      */
     initialize(): Promise<void>;
+
+    /**
+     * Monitor a segment within a transaction
+     * @param name - The name of the segment
+     * @param operation - The operation to monitor
+     */
+    monitorSegment<T>(
+        name: `${string}:${string}:${string}`,
+        operation: () => Promise<T>,
+    ): Promise<T>;
 
     /**
      * Monitor a business transaction with automatic error handling and timing
@@ -14,14 +24,7 @@ export interface MonitoringService {
      * @param name - The name of the transaction
      * @param operation - The operation to monitor
      */
-    monitorOperation<T>(category: string, name: string, operation: () => Promise<T>): Promise<T>;
-
-    /**
-     * Monitor a sub-operation or segment within a transaction
-     * @param name - The name of the segment
-     * @param operation - The operation to monitor
-     */
-    monitorSubOperation<T>(name: string, operation: () => Promise<T>): Promise<T>;
+    monitorTransaction<T>(category: string, name: string, operation: () => Promise<T>): Promise<T>;
 
     /**
      * Record a counter metric with an optional value

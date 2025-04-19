@@ -64,7 +64,7 @@ export class GenerateArticlesUseCase {
             }
 
             // Fetch real articles from news service
-            const news = await this.newsService.fetchNews({
+            const news = await this.newsService.fetchTopNews({
                 country,
                 language,
             });
