@@ -52,7 +52,7 @@ export class OpenRouterAdapter implements AIProviderPort {
     ): Promise<T> {
         const modelType = this.getModelType(config.capability);
 
-        return this.monitoring.monitorSegment('ai:open-router:generate', async () => {
+        return this.monitoring.monitorSegment('Ai/OpenRouter/Generate', async () => {
             return this.executeWithRetries(async () => {
                 const response = await this.generateModelResponse(modelType, prompt.query);
                 return ResponseParser.parse(response, prompt.responseSchema);
@@ -87,7 +87,7 @@ export class OpenRouterAdapter implements AIProviderPort {
     }
 
     private async generateModelResponse(model: OpenRouterModel, prompt: string): Promise<string> {
-        return this.monitoring.monitorSegment('ai:open-router:request', async () => {
+        return this.monitoring.monitorSegment('Ai/OpenRouter/Request', async () => {
             const completion = await this.client.chat.completions.create({
                 messages: [{ content: prompt, role: 'user' }],
                 model,

@@ -3,7 +3,7 @@ import { LoggerPort } from '@jterrazz/logger';
 import type * as NewRelic from 'newrelic';
 import type { TransactionHandle } from 'newrelic';
 
-import { MonitoringPort } from './monitoring.port.js';
+import { CapitalizedString, MonitoringPort, SegmentName } from './monitoring.port.js';
 
 interface MonitoringOptions {
     environment: string;
@@ -42,7 +42,7 @@ export class NewRelicMonitoringAdapter implements MonitoringPort {
         }
     }
 
-    public async monitorSegment<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    public async monitorSegment<T>(name: SegmentName, operation: () => Promise<T>): Promise<T> {
         if (!this.agent) {
             return operation();
         }
@@ -64,8 +64,8 @@ export class NewRelicMonitoringAdapter implements MonitoringPort {
     }
 
     public async monitorTransaction<T>(
-        category: string,
-        name: string,
+        domain: CapitalizedString,
+        name: CapitalizedString,
         operation: () => Promise<T>,
     ): Promise<T> {
         if (!this.agent) {
@@ -73,37 +73,41 @@ export class NewRelicMonitoringAdapter implements MonitoringPort {
         }
 
         return new Promise((resolve, reject) => {
-            this.agent!.startBackgroundTransaction(name, category, async () => {
+            this.agent!.startBackgroundTransaction(name, domain, async () => {
                 try {
-                    this.logger?.debug('Started operation monitoring', { category, name });
+                    this.logger?.debug('Started operation monitoring', { domain, name });
                     const result = await operation();
                     resolve(result);
                 } catch (error) {
                     reject(error);
                 } finally {
                     this.agent!.endTransaction();
-                    this.logger?.debug('Ended operation monitoring', { category, name });
+                    this.logger?.debug('Ended operation monitoring', { domain, name });
                 }
             });
         });
     }
 
-    public recordCount(category: string, name: string, value = 1): void {
+    public recordCount(domain: CapitalizedString, name: CapitalizedString, value = 1): void {
         if (!this.agent) {
             return;
         }
 
-        this.agent.recordMetric(`${category}/${name}`, value);
-        this.logger?.debug('Recorded count metric', { category, name, value });
+        this.agent.recordMetric(`${domain}/${name}`, value);
+        this.logger?.debug('Recorded count metric', { domain, name, value });
     }
 
-    public recordMeasurement(category: string, name: string, value: number): void {
+    public recordMeasurement(
+        domain: CapitalizedString,
+        name: CapitalizedString,
+        value: number,
+    ): void {
         if (!this.agent) {
             return;
         }
 
-        const metricName = `${category}/${name}`;
+        const metricName = `${domain}/${name}`;
         this.agent.recordMetric(metricName, value);
-        this.logger?.debug('Recorded measurement', { category, name, value });
+        this.logger?.debug('Recorded measurement', { domain, name, value });
     }
 }

@@ -1,6 +1,6 @@
 import { LoggerPort } from '@jterrazz/logger';
 
-import { MonitoringPort } from './monitoring.port.js';
+import { CapitalizedString, MonitoringPort, SegmentName } from './monitoring.port.js';
 
 /**
  * No-operation implementation of the monitoring service.
@@ -14,19 +14,27 @@ export class NoopMonitoringAdapter implements MonitoringPort {
 
     public async initialize(): Promise<void> {}
 
-    public async monitorSegment<T>(_name: string, operation: () => Promise<T>): Promise<T> {
+    public async monitorSegment<T>(_name: SegmentName, operation: () => Promise<T>): Promise<T> {
         return operation();
     }
 
     public async monitorTransaction<T>(
-        _name: string,
-        _category: string,
+        _domain: CapitalizedString,
+        _name: CapitalizedString,
         operation: () => Promise<T>,
     ): Promise<T> {
         return operation();
     }
 
-    public recordCount(_category: string, _name: string, _value?: number): void {}
+    public recordCount(
+        _domain: CapitalizedString,
+        _name: CapitalizedString,
+        _value?: number,
+    ): void {}
 
-    public recordMeasurement(_category: string, _name: string, _value: number): void {}
+    public recordMeasurement(
+        _domain: CapitalizedString,
+        _name: CapitalizedString,
+        _value: number,
+    ): void {}
 }

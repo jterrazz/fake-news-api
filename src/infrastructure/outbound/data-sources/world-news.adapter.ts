@@ -40,7 +40,7 @@ export class WorldNewsAdapter implements NewsPort {
     ) {}
 
     public async fetchTopNews({ country, language }: FetchTopNewsOptions): Promise<NewsArticle[]> {
-        return this.monitoring.monitorSegment('api:world-news-api:fetch-top-news', async () => {
+        return this.monitoring.monitorSegment('Api/WorldNews/FetchTopNews', async () => {
             try {
                 this.logger.info('Retrieving news articles:', { country, language });
                 await this.enforceRateLimit();
