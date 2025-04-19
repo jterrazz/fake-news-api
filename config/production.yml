@@ -5,6 +5,9 @@ app:
   newRelic:
     enabled: true
 
+logging:
+  level: info
+
 api:
   openRouter:
     budget: paid
