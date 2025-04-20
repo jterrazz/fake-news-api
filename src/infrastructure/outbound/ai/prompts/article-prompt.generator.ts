@@ -128,7 +128,7 @@ For FAKE articles:
 - Maybe avoid obvious fabrications, but don't be afraid to make some creative twists
 - When applicable, demonstrate how factual information can be subtly reframed to appeal to any political biases, left or right
 - Do not base fake news based on super small details, try to create believable fake news
-- For one or two of the fake news, you can use a "The Babylon Bee" / "The Onion" style of funny article. For these articles only, you can totally invent the content, the headline, the summary, etc.
+- You can use a "The Babylon Bee" / "The Onion" style of funny article for 20% of the fake articles.
 
 ## Format:
 - Headline: 8-16 words

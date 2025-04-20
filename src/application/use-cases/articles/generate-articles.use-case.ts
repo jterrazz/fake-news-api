@@ -77,6 +77,14 @@ export class GenerateArticlesUseCase {
                 return;
             }
 
+            if (news.length < 6) {
+                this.logger.warn('Not enough articles found', {
+                    country: country.toString(),
+                    language: language.toString(),
+                });
+                return;
+            }
+
             // Get recent headlines for context (last 30 days)
             const since = subtractDaysInTimezone(tzDate, timezone, 30);
             const publishedSummaries = await this.articleRepository.findPublishedSummaries({
