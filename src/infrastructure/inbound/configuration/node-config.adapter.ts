@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import {
-    ApiConfiguration,
-    AppConfiguration,
-    ConfigurationPort,
+    type ApiConfiguration,
+    type AppConfiguration,
+    type ConfigurationPort,
 } from '../../../application/ports/inbound/configuration.port.js';
 
 const configurationSchema = z.object({

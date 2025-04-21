@@ -1,7 +1,7 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import OpenAI from 'openai';
 
-import { AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
+import { type AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
 import {
     type AIModelConfig,
     type AIProviderPort,

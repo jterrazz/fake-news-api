@@ -1,10 +1,10 @@
 import { serve } from '@hono/node-server';
-import { LoggerPort } from '@jterrazz/logger';
+import { type LoggerPort } from '@jterrazz/logger';
 import { Hono } from 'hono';
 
 import {
-    HttpServerConfiguration,
-    HttpServerPort,
+    type HttpServerConfiguration,
+    type HttpServerPort,
 } from '../../../application/ports/inbound/http-server.port.js';
 
 import type { ArticleController } from './controllers/article.controller.js';

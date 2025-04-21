@@ -1,4 +1,4 @@
-import { DeepMockProxy, mock } from 'jest-mock-extended';
+import { type DeepMockProxy, mock } from 'jest-mock-extended';
 
 import { Article } from '../../../../domain/entities/article.js';
 import {

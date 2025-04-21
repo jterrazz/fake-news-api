@@ -1,4 +1,4 @@
-import { LoggerPort, PinoLoggerAdapter } from '@jterrazz/logger';
+import { type LoggerPort, PinoLoggerAdapter } from '@jterrazz/logger';
 import { Container, Injectable } from '@snap/ts-inject';
 import { default as nodeConfiguration } from 'config';
 

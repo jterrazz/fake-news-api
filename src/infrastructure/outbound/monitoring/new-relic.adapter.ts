@@ -1,9 +1,13 @@
-import { LoggerPort } from '@jterrazz/logger';
+import { type LoggerPort } from '@jterrazz/logger';
 // We only import types from newrelic, the actual implementation is dynamically imported
 import type * as NewRelic from 'newrelic';
 import type { TransactionHandle } from 'newrelic';
 
-import { CapitalizedString, MonitoringPort, SegmentName } from './monitoring.port.js';
+import {
+    type CapitalizedString,
+    type MonitoringPort,
+    type SegmentName,
+} from './monitoring.port.js';
 
 interface MonitoringOptions {
     environment: string;

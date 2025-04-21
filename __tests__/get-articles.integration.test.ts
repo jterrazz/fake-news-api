@@ -1,4 +1,4 @@
-import { Category, Country, Language } from '@prisma/client';
+import { type Category, type Country, type Language } from '@prisma/client';
 
 import {
     cleanupIntegrationTest,

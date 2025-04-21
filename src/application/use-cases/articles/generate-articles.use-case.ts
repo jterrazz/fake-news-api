@@ -1,7 +1,7 @@
 import { type LoggerPort } from '@jterrazz/logger';
 
-import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
+import { type ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
+import { type ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
 import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-generator.port.js';
 import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';

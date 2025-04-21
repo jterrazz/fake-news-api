@@ -1,4 +1,9 @@
-import { Article as PrismaArticle, Category, Country, Language } from '@prisma/client';
+import {
+    type Article as PrismaArticle,
+    type Category,
+    type Country,
+    type Language,
+} from '@prisma/client';
 
 import { Article } from '../../../../../domain/entities/article.js';
 import { ArticleCategory } from '../../../../../domain/value-objects/article-category.vo.js';

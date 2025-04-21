@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { type ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { type ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 export const NewsArticleSchema = z.object({
     publishedAt: z

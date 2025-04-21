@@ -1,14 +1,14 @@
-import { LoggerPort } from '@jterrazz/logger';
+import { type LoggerPort } from '@jterrazz/logger';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
 import { z } from 'zod';
 
 import {
-    FetchNewsOptions,
-    NewsArticle,
+    type FetchNewsOptions,
+    type NewsArticle,
     NewsArticleSchema,
-    NewsPort,
+    type NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
 const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;

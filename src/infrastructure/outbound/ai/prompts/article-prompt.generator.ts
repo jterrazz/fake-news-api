@@ -3,8 +3,8 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { type GenerateArticlesParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
 import {
-    AIPrompt,
-    AIPromptGenerator,
+    type AIPrompt,
+    type AIPromptGenerator,
 } from '../../../../application/ports/outbound/ai/prompt.port.js';
 
 import {

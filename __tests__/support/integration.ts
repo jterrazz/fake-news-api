@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { RequestHandler } from 'msw';
-import { setupServer, SetupServerApi } from 'msw/node';
+import { setupServer, type SetupServerApi } from 'msw/node';
 
 import { type HttpServerPort } from '../../src/application/ports/inbound/http-server.port.js';
 import { type JobRunnerPort } from '../../src/application/ports/inbound/job-runner.port.js';

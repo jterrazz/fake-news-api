@@ -1,6 +1,6 @@
 import { type Article } from '../../../../domain/entities/article.js';
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { type ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { type ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 /**
  * Port for generating articles using AI
