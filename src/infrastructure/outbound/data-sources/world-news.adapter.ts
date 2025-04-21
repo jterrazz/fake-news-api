@@ -1,12 +1,12 @@
-import { LoggerPort } from '@jterrazz/logger';
+import { type LoggerPort } from '@jterrazz/logger';
 import { z } from 'zod';
 
-import { ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
+import { type ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
 
 import {
-    FetchNewsOptions as FetchTopNewsOptions,
-    NewsArticle,
-    NewsPort,
+    type FetchNewsOptions as FetchTopNewsOptions,
+    type NewsArticle,
+    type NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
