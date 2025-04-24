@@ -1,4 +1,9 @@
 import { type LoggerPort, PinoLoggerAdapter } from '@jterrazz/logger';
+import {
+    type MonitoringPort,
+    NewRelicMonitoringAdapter,
+    NoopMonitoringAdapter,
+} from '@jterrazz/monitoring';
 import { Container, Injectable } from '@snap/ts-inject';
 import { default as nodeConfiguration } from 'config';
 
@@ -23,9 +28,6 @@ import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-genera
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
-import type { MonitoringPort } from '../infrastructure/outbound/monitoring/monitoring.port.js';
-import { NewRelicMonitoringAdapter } from '../infrastructure/outbound/monitoring/new-relic.adapter.js';
-import { NoopMonitoringAdapter } from '../infrastructure/outbound/monitoring/noop.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
 

@@ -1,10 +1,10 @@
+import { type MonitoringPort } from '@jterrazz/monitoring';
+
 import { type Job } from '../../../../application/ports/inbound/job-runner.port.js';
 import { type GenerateArticlesUseCase } from '../../../../application/use-cases/articles/generate-articles.use-case.js';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
-
-import type { MonitoringPort } from '../../../outbound/monitoring/monitoring.port.js';
 
 type Dependencies = {
     generateArticles: GenerateArticlesUseCase;

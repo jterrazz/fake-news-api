@@ -1,4 +1,5 @@
 import { type LoggerPort } from '@jterrazz/logger';
+import { type MonitoringPort } from '@jterrazz/monitoring';
 import { z } from 'zod';
 
 import { type ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
@@ -10,7 +11,6 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
-import type { MonitoringPort } from '../monitoring/monitoring.port.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 

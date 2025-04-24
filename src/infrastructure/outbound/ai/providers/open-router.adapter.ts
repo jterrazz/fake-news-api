@@ -1,4 +1,5 @@
 import { type LoggerPort } from '@jterrazz/logger';
+import { type MonitoringPort } from '@jterrazz/monitoring';
 import OpenAI from 'openai';
 
 import { type AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
@@ -6,8 +7,6 @@ import {
     type AIModelConfig,
     type AIProviderPort,
 } from '../../../../application/ports/outbound/ai/provider.port.js';
-
-import type { MonitoringPort } from '../../monitoring/monitoring.port.js';
 
 import { ResponseParser, ResponseParsingError } from './response-parser.js';
 
