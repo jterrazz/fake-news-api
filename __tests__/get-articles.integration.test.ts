@@ -1,5 +1,4 @@
-import { type Category, type Country, type Language } from '@prisma/client';
-
+import { seedArticles } from './seeds/article-fixture.js';
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
@@ -9,89 +8,14 @@ import {
 describe('HTTP - Get Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
 
-    // Helper to create test article data
-    const createTestArticle = (params: {
-        category: Category;
-        country: Country;
-        createdAt: Date;
-        isFake: boolean;
-        language: Language;
-        position: number;
-    }) => {
-        const { category, country, createdAt, isFake, language, position } = params;
-        return {
-            article: `This is article ${position} about ${category.toLowerCase()}. The content discusses various aspects and their potential impacts.`,
-            category,
-            country,
-            createdAt,
-            fakeReason: isFake ? 'AI-generated content' : null,
-            headline: `${category} Article ${position}`,
-            isFake,
-            language,
-            summary: `Summary of ${category.toLowerCase()} article ${position}`,
-        };
-    };
-
     beforeAll(async () => {
         testContext = await setupIntegrationTest();
     });
 
     beforeEach(async () => {
         const { prisma } = testContext;
-
-        // Clean up articles before each test
         await prisma.article.deleteMany();
-
-        // Create test articles with different categories, dates, and languages
-        const articles = [
-            // US articles
-            createTestArticle({
-                category: 'TECHNOLOGY' as Category,
-                country: 'us' as Country,
-                createdAt: new Date('2024-03-01T12:00:00.000Z'),
-                isFake: true,
-                language: 'en' as Language,
-                position: 1,
-            }),
-            createTestArticle({
-                category: 'POLITICS' as Category,
-                country: 'us' as Country,
-                createdAt: new Date('2024-03-01T11:00:00.000Z'),
-                isFake: false,
-                language: 'en' as Language,
-                position: 2,
-            }),
-            createTestArticle({
-                category: 'TECHNOLOGY' as Category,
-                country: 'us' as Country,
-                createdAt: new Date('2024-03-01T10:00:00.000Z'),
-                isFake: true,
-                language: 'en' as Language,
-                position: 3,
-            }),
-            // French articles
-            createTestArticle({
-                category: 'POLITICS' as Category,
-                country: 'fr' as Country,
-                createdAt: new Date('2024-03-01T12:00:00.000Z'),
-                isFake: true,
-                language: 'fr' as Language,
-                position: 4,
-            }),
-            createTestArticle({
-                category: 'TECHNOLOGY' as Category,
-                country: 'fr' as Country,
-                createdAt: new Date('2024-03-01T11:00:00.000Z'),
-                isFake: false,
-                language: 'fr' as Language,
-                position: 5,
-            }),
-        ];
-
-        // Insert test articles
-        for (const article of articles) {
-            await prisma.article.create({ data: article });
-        }
+        await seedArticles(prisma);
     });
 
     afterAll(async () => {
