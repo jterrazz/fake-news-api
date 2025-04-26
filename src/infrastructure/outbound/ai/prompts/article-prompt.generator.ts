@@ -102,12 +102,14 @@ export class ArticlePromptGenerator
 ## Core Requirements:
 - Generate exactly ${count} news articles in total, mixing genuine and fictional articles.
 - All articles should be believable and derived from current events.
+- Article should fit in the real current timeline of events
 - Write each article professionally in the same style as would Reuters, BBC, etc, maintaining identical writing quality all articles.
 - Maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives.
 - If needed, give a short general context in each article (without explicitly saying context, but like a journalistic would introduce a subject to readers that are not familiar with the topic)
 - Never reveal if an article is fake/real in its content
 - Use ONLY the provided news ${NEWS_KEY} as the source of current events happening in the world
 - Multiple articles could eventually cover different angles of the same story if you think it's interesting
+- Double check if the field isFake is correctly set
 
 In order to create a dynamic and engaging news feed experience:
 - The articles will be read by the player in the same order they are generated.
