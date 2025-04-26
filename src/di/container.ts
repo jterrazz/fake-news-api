@@ -34,7 +34,11 @@ import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/
 /**
  * Outbound adapters
  */
-const databaseFactory = Injectable('Database', () => new PrismaAdapter());
+const databaseFactory = Injectable(
+    'Database',
+    ['Logger'] as const,
+    (logger: LoggerPort) => new PrismaAdapter(logger),
+);
 
 const loggerFactory = Injectable(
     'Logger',

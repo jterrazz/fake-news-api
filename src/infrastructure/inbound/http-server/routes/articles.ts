@@ -15,7 +15,6 @@ export const createArticlesRouter = (articleController: ArticleController) => {
             const response = await articleController.getArticles(params);
             return c.json(response);
         } catch (error) {
-            console.error('Failed to fetch articles:', error);
             return c.json(
                 { error: error instanceof Error ? error.message : 'Failed to fetch articles' },
                 500,
