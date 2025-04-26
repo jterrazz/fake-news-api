@@ -26,10 +26,10 @@ export const createArticleGenerationJob = ({
                         ArticleLanguage.create('en'),
                         ArticleCountry.create('us'),
                     ),
-                    // generateArticles.execute(
-                    //     ArticleLanguage.create('fr'),
-                    //     ArticleCountry.create('fr'),
-                    // ),
+                    generateArticles.execute(
+                        ArticleLanguage.create('fr'),
+                        ArticleCountry.create('fr'),
+                    ),
                 ]);
                 monitoring.recordCount('Jobs', 'ArticleGeneration/Success');
             } catch (error) {
