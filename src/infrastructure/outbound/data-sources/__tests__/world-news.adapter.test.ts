@@ -4,32 +4,19 @@ import { mock } from 'jest-mock-extended';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
-import {
-    type ApiConfiguration,
-    type ConfigurationPort,
-} from '../../../../application/ports/inbound/configuration.port.js';
-
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { createTZDateForCountry } from '../../../../shared/date/timezone.js';
-import { WorldNewsAdapter } from '../world-news.adapter.js';
+import { WorldNewsAdapter, type WorldNewsAdapterConfiguration } from '../world-news.adapter.js';
 
-// Given: Mock configuration with valid API key
-const mockConfig = mock<ConfigurationPort>({
-    getApiConfiguration: () =>
-        mock<ApiConfiguration>({
-            worldNews: { apiKey: 'test-world-news-key' },
-        }),
-});
-
-// Given: Mock logger
+const mockConfiguration: WorldNewsAdapterConfiguration = {
+    apiKey: 'test-world-news-key',
+};
 const mockLogger = mock<LoggerPort>();
 
-// Store requested dates for verification
 let requestedDates: Record<string, string> = {};
 
-// Given: MSW server setup for API mocking
 const server = setupServer(
     http.get('https://api.worldnewsapi.com/top-news', ({ request }: { request: Request }) => {
         const url = new URL(request.url);
@@ -38,7 +25,6 @@ const server = setupServer(
         const language = url.searchParams.get('language');
         const date = url.searchParams.get('date');
 
-        // Store the requested date for verification
         if (sourceCountry && date) {
             requestedDates[sourceCountry] = date;
         }
@@ -76,12 +62,12 @@ describe('WorldNewsAdapter', () => {
     beforeEach(() => {
         const newRelicAdapter = mock<MonitoringPort>();
         newRelicAdapter.monitorSegment.mockImplementation(async (_name, cb) => cb());
-        adapter = new WorldNewsAdapter(mockConfig, mockLogger, newRelicAdapter);
-        requestedDates = {}; // Reset stored dates
+        adapter = new WorldNewsAdapter(mockConfiguration, mockLogger, newRelicAdapter);
+        requestedDates = {};
     });
     afterEach(() => {
         server.resetHandlers();
-        jest.useRealTimers(); // Ensure real timers are restored
+        jest.useRealTimers();
     });
     afterAll(() => server.close());
 

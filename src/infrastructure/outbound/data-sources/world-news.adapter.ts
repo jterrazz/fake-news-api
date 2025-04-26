@@ -2,8 +2,6 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { type MonitoringPort } from '@jterrazz/monitoring';
 import { z } from 'zod';
 
-import { type ConfigurationPort } from '../../../application/ports/inbound/configuration.port.js';
-
 import {
     type FetchNewsOptions as FetchTopNewsOptions,
     type NewsArticle,
@@ -22,6 +20,10 @@ import {
 } from '../../../shared/date/timezone.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
+
+export interface WorldNewsAdapterConfiguration {
+    apiKey: string;
+}
 
 const WorldNewsArticleSchema = z.object({
     publish_date: z.string(),
@@ -43,7 +45,7 @@ export class WorldNewsAdapter implements NewsPort {
     private lastRequestTime = 0;
 
     constructor(
-        private readonly config: ConfigurationPort,
+        private readonly configuration: WorldNewsAdapterConfiguration,
         private readonly logger: LoggerPort,
         private readonly monitoring: MonitoringPort,
     ) {}
@@ -59,16 +61,11 @@ export class WorldNewsAdapter implements NewsPort {
                 await this.enforceRateLimit();
 
                 const { tzDate } = createCurrentTZDateForCountry(country.toString());
-                console.log('tzDate', tzDate);
                 const countryDate = formatTZDateInCountry(tzDate, country.toString(), 'yyyy-MM-dd');
-                console.log('countryDate', countryDate);
                 const url = new URL('https://api.worldnewsapi.com/top-news');
 
                 // Add query parameters
-                url.searchParams.append(
-                    'api-key',
-                    this.config.getApiConfiguration().worldNews.apiKey,
-                );
+                url.searchParams.append('api-key', this.configuration.apiKey);
                 url.searchParams.append('source-country', country.toString());
                 url.searchParams.append('language', language.toString());
                 url.searchParams.append('date', countryDate);

@@ -55,7 +55,13 @@ const newsFactory = Injectable(
     ['Configuration', 'Logger', 'NewRelic'] as const,
     (config: ConfigurationPort, logger: LoggerPort, monitoring: MonitoringPort) => {
         logger.info('Initializing WorldNews adapter');
-        const newsAdapter = new WorldNewsAdapter(config, logger, monitoring);
+        const newsAdapter = new WorldNewsAdapter(
+            {
+                apiKey: config.getApiConfiguration().worldNews.apiKey,
+            },
+            logger,
+            monitoring,
+        );
         const useCache = config.getApiConfiguration().worldNews.useCache;
 
         if (useCache) {
