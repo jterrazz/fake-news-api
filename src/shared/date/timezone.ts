@@ -17,30 +17,23 @@ export type CountryTimezone = keyof typeof COUNTRY_TIMEZONES;
  * Creates a timezone-aware date for the current time
  */
 export function createCurrentTZDate(timezone: string): TZDate {
-    return createTZDate(new Date(), timezone);
+    // Create TZDate directly from timestamp to preserve UTC time
+    return new TZDate(Date.now(), timezone);
 }
 
 /**
  * Creates a timezone-aware date from a regular Date object
  */
 export function createTZDate(date: Date, timezone: string): TZDate {
-    return new TZDate(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        date.getHours(),
-        date.getMinutes(),
-        date.getSeconds(),
-        date.getMilliseconds(),
-        timezone,
-    );
+    // Create TZDate directly from timestamp to preserve UTC time
+    return new TZDate(date.getTime(), timezone);
 }
 
 /**
  * Formats a date in a specific timezone using the provided format string
  */
 export function formatInTimezone(date: Date | TZDate, timezone: string, formatStr: string): string {
-    const tzDate = date instanceof TZDate ? date : createTZDate(date, timezone);
+    const tzDate = date instanceof TZDate ? date : new TZDate(date.getTime(), timezone);
     return format(tzDate, formatStr);
 }
 
@@ -49,7 +42,7 @@ export function formatInTimezone(date: Date | TZDate, timezone: string, formatSt
  */
 export function getCurrentHourInTimezone(timezone: string): number {
     const now = new Date();
-    // Create a TZDate directly from UTC timestamp to ensure correct timezone conversion
+    // Create TZDate directly from timestamp to preserve UTC time
     const tzDate = new TZDate(now.getTime(), timezone);
     return tzDate.getHours();
 }
@@ -79,6 +72,7 @@ export function subtractDaysInTimezone(
     timezone: string,
     days: number,
 ): TZDate {
-    const tzDate = date instanceof TZDate ? date : createTZDate(date, timezone);
-    return createTZDate(subDays(tzDate, days), timezone);
+    const tzDate = date instanceof TZDate ? date : new TZDate(date.getTime(), timezone);
+    const subtractedDate = subDays(tzDate, days);
+    return new TZDate(subtractedDate.getTime(), timezone);
 }
