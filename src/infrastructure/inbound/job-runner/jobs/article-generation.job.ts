@@ -21,15 +21,15 @@ export const createArticleGenerationJob = ({
     execute: async () => {
         return monitoring.monitorTransaction('Jobs', 'ArticleGeneration', async () => {
             try {
-                await Promise.all([
+                await Promise.allSettled([
                     generateArticles.execute(
                         ArticleLanguage.create('en'),
                         ArticleCountry.create('us'),
                     ),
-                    generateArticles.execute(
-                        ArticleLanguage.create('fr'),
-                        ArticleCountry.create('fr'),
-                    ),
+                    // generateArticles.execute(
+                    //     ArticleLanguage.create('fr'),
+                    //     ArticleCountry.create('fr'),
+                    // ),
                 ]);
                 monitoring.recordCount('Jobs', 'ArticleGeneration/Success');
             } catch (error) {

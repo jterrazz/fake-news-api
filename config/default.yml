@@ -3,13 +3,13 @@ app:
   port: 3000
   host: localhost
   newRelic:
-    enabled: false
+    enabled: true
 
 logging:
-  level: debug
+  level: info
 
 api:
   openRouter:
-    budget: free
+    budget: paid
   worldNews:
-    useCache: true
+    useCache: false

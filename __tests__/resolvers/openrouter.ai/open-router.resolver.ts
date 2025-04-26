@@ -4,7 +4,7 @@ const TEST_API_KEY = 'test-openrouter-key';
 
 interface MockArticle {
     category: string;
-    content: string;
+    contentInMarkdown: string;
     fakeReason: null | string;
     headline: string;
     isFake: boolean;
@@ -34,7 +34,7 @@ interface MockOpenRouterResponse {
 const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
     {
         category: 'technology',
-        content:
+        contentInMarkdown:
             'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
         fakeReason:
             'While quantum computing research is ongoing, room temperature qubit stability remains a significant challenge. This article fabricates a breakthrough that has not occurred.',
@@ -45,7 +45,7 @@ const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
     },
     {
         category: 'technology',
-        content:
+        contentInMarkdown:
             'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
         fakeReason: null,
         headline: 'Test Article Shows Promise in News Generation Research',
@@ -106,7 +106,7 @@ export const openRouterGenerateArticlesResolver = http.post(
         }
 
         const promptText = requestBody.messages[0].content;
-        const articleCountMatch = promptText.match(/Generate exactly (\d+) articles?/i);
+        const articleCountMatch = promptText.match(/Generate exactly (\d+) news articles?/i);
 
         if (!articleCountMatch) {
             return new HttpResponse(

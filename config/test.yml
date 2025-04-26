@@ -2,6 +2,8 @@ app:
   env: test
   port: 3000
   host: localhost
+  newRelic:
+    enabled: false
 
 logging:
   level: debug
@@ -12,3 +14,4 @@ api:
     useCache: false
   openRouter:
     apiKey: test-openrouter-key
+    budget: free

@@ -1,0 +1,5 @@
+api:
+  openRouter:
+    budget: free
+  worldNews:
+    useCache: true

@@ -1,6 +1,9 @@
 import { http, HttpResponse } from 'msw';
 
-import { formatInTimezone, getTimezoneForCountry } from '../../../src/shared/date/timezone.js';
+import {
+    createTZDateForCountry,
+    formatTZDateInCountry,
+} from '../../../src/shared/date/timezone.js';
 
 const TEST_API_KEY = 'test-world-news-key';
 const TEST_COUNTRY = 'us';
@@ -13,10 +16,8 @@ interface MockTopNewsResponse {
     top_news: Array<{
         news: Array<{
             publish_date: string;
-            summary: string;
             text: string;
             title: string;
-            url: string;
         }>;
     }>;
 }
@@ -50,29 +51,24 @@ export const worldNewsResolver = http.get(
         }
 
         // Format the publish date in the correct timezone for the source country
-        const timezone = getTimezoneForCountry(TEST_COUNTRY);
-        const publishDate = formatInTimezone(
-            new Date(`${TEST_DATE}T12:00:00Z`),
-            timezone,
+        const publishDate = formatTZDateInCountry(
+            createTZDateForCountry(new Date(`${TEST_DATE}T12:00:00Z`), TEST_COUNTRY),
+            TEST_COUNTRY,
             "yyyy-MM-dd'T'HH:mm:ssXXX",
         );
 
         const response: MockTopNewsResponse = {
             country: params.sourceCountry,
             language: params.language,
-            top_news: [
-                {
-                    news: [
-                        {
-                            publish_date: publishDate,
-                            summary: 'Test summary',
-                            text: 'Test article text',
-                            title: 'Test Article',
-                            url: 'https://example.com/article',
-                        },
-                    ],
-                },
-            ],
+            top_news: new Array(10).fill({
+                news: [
+                    {
+                        publish_date: publishDate,
+                        text: 'Test article text',
+                        title: 'Test Article',
+                    },
+                ],
+            }),
         };
 
         return HttpResponse.json(response);

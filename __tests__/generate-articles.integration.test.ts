@@ -1,10 +1,8 @@
-import { TZDate } from '@date-fns/tz';
-
-import { getJobs } from '../src/di/container.js';
-import { getTimezoneForCountry } from '../src/shared/date/timezone.js';
+import { container } from '../src/di/container.js';
+import { createTZDateForCountry } from '../src/shared/date/timezone.js';
 
 import { worldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
-import { mockGeminiGenerateContentHandler } from './resolvers/com.googleapis/gemini.resolver.js';
+import { openRouterGenerateArticlesResolver } from './resolvers/openrouter.ai/open-router.resolver.js';
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
@@ -14,12 +12,12 @@ import {
 describe('Job - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
     const EXPECTED_HOUR = 13;
-    const EXPECTED_ARTICLE_COUNT = 8;
+    const EXPECTED_ARTICLE_COUNT = 6;
 
     beforeAll(async () => {
         testContext = await setupIntegrationTest([
             worldNewsResolver,
-            mockGeminiGenerateContentHandler,
+            openRouterGenerateArticlesResolver,
         ]);
 
         // Use modern fake timers that allow async operations to work
@@ -33,16 +31,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
         await testContext.prisma.article.deleteMany();
 
         // Set time to January 1st, 2020 at Paris time
-        const mockDate = new TZDate(
-            2020,
-            0,
-            1,
-            EXPECTED_HOUR,
-            0,
-            0,
-            0,
-            getTimezoneForCountry('us'),
-        );
+        const mockDate = createTZDateForCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
         jest.setSystemTime(mockDate);
     });
 
@@ -58,7 +47,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
     it('should generate articles based on time of day rules', async () => {
         // Given
         const { prisma } = testContext;
-        const jobs = getJobs();
+        const jobs = container.get('Jobs');
         const articleGenerationJob = jobs.find((job) => job.name === 'article-generation');
 
         expect(articleGenerationJob).toBeDefined();
