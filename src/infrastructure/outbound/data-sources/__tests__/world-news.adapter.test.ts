@@ -86,12 +86,8 @@ describe('WorldNewsAdapter', () => {
     afterAll(() => server.close());
 
     it('should fetch news successfully', async () => {
-        // Given: Valid API key and response
-        const country = ArticleCountry.create('us');
-        const language = ArticleLanguage.create('en');
-
         // When: Fetching news
-        const result = await adapter.fetchTopNews({ country, language });
+        const result = await adapter.fetchTopNews();
 
         // Then: Should return valid news articles
         expect(Array.isArray(result)).toBe(true);
@@ -111,12 +107,9 @@ describe('WorldNewsAdapter', () => {
             doNotFake: ['nextTick', 'setImmediate', 'setTimeout', 'clearTimeout'],
             now: utcTimestamp,
         });
-        const usCountry = ArticleCountry.create('us');
-        const frCountry = ArticleCountry.create('fr');
-        const language = ArticleLanguage.create('en');
 
-        await adapter.fetchTopNews({ country: usCountry, language });
-        await adapter.fetchTopNews({ country: frCountry, language });
+        await adapter.fetchTopNews();
+        await adapter.fetchTopNews({ country: ArticleCountry.create('fr') });
 
         // Then: Dates should be different based on timezone
         expect(requestedDates['us']).toBe('2024-01-15');
@@ -130,11 +123,9 @@ describe('WorldNewsAdapter', () => {
                 return new HttpResponse(null, { status: 500 });
             }),
         );
-        const country = ArticleCountry.create('us');
-        const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchTopNews({ country, language });
+        const result = await adapter.fetchTopNews();
 
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
@@ -151,11 +142,9 @@ describe('WorldNewsAdapter', () => {
                 return new HttpResponse(null, { status: 401 });
             }),
         );
-        const country = ArticleCountry.create('us');
-        const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchTopNews({ country, language });
+        const result = await adapter.fetchTopNews();
 
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
@@ -172,11 +161,9 @@ describe('WorldNewsAdapter', () => {
                 return HttpResponse.json({ invalid: 'data' });
             }),
         );
-        const country = ArticleCountry.create('us');
-        const language = ArticleLanguage.create('en');
 
         // When: Fetching news
-        const result = await adapter.fetchTopNews({ country, language });
+        const result = await adapter.fetchTopNews();
 
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
@@ -188,13 +175,9 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should respect rate limiting between requests', async () => {
-        // Given: Two consecutive requests
-        const country = ArticleCountry.create('us');
-        const language = ArticleLanguage.create('en');
-
         // When: Making two consecutive requests
-        const first = await adapter.fetchTopNews({ country, language });
-        const second = await adapter.fetchTopNews({ country, language });
+        const first = await adapter.fetchTopNews();
+        const second = await adapter.fetchTopNews();
 
         // Then: Both should be arrays (possibly empty)
         expect(Array.isArray(first)).toBe(true);

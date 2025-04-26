@@ -10,6 +10,9 @@ import {
     type NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
+import { ArticleCountry, CountryEnum } from '../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage, LanguageEnum } from '../../../domain/value-objects/article-language.vo.js';
+
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
@@ -39,7 +42,11 @@ export class WorldNewsAdapter implements NewsPort {
         private readonly monitoring: MonitoringPort,
     ) {}
 
-    public async fetchTopNews({ country, language }: FetchTopNewsOptions): Promise<NewsArticle[]> {
+    public async fetchTopNews(options?: Partial<FetchTopNewsOptions>): Promise<NewsArticle[]> {
+        const {
+            country = ArticleCountry.create(CountryEnum.UnitedStates),
+            language = ArticleLanguage.create(LanguageEnum.English),
+        } = options || {};
         return this.monitoring.monitorSegment('Api/WorldNews/FetchTopNews', async () => {
             try {
                 this.logger.info('Retrieving news articles:', { country, language });
