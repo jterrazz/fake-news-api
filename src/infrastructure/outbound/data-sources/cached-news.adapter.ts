@@ -34,19 +34,20 @@ export class CachedNewsAdapter implements NewsPort {
     ) {}
 
     public async fetchTopNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
+        const language = options.language?.toString() ?? 'en';
         // Try to read from cache first
-        const cache = this.readCache(options.language.toString());
+        const cache = this.readCache(language);
         if (cache) {
-            this.logger.info('Using cached news data', { language: options.language.toString() });
+            this.logger.info('Using cached news data', { language });
             return cache.data;
         }
 
         // If no cache or expired, fetch fresh data
-        this.logger.info('Fetching fresh news data', { language: options.language.toString() });
+        this.logger.info('Fetching fresh news data', { language });
         const articles = await this.newsSource.fetchTopNews(options);
 
         // Cache the response
-        this.writeCache(articles, options.language.toString());
+        this.writeCache(articles, language);
 
         return articles;
     }
