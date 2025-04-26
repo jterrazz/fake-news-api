@@ -7,6 +7,7 @@ describe('Node Config Adapter', () => {
         api: {
             openRouter: {
                 apiKey: 'test-openrouter-key',
+                budget: 'free',
             },
             worldNews: {
                 apiKey: 'test-world-news-key',
