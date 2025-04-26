@@ -1,52 +1,25 @@
 import { type DeepMockProxy, mock } from 'jest-mock-extended';
 
-import { Article } from '../../../../domain/entities/article.js';
+import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
+import { type Article } from '../../../../domain/entities/article.js';
 import {
     ArticleCategory,
     CategoryEnum,
 } from '../../../../domain/value-objects/article-category.vo.js';
-import { ArticleContent } from '../../../../domain/value-objects/article-content.vo.js';
 import {
     ArticleCountry,
     CountryEnum,
 } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleFakeStatus } from '../../../../domain/value-objects/article-fake-status.vo.js';
-import { ArticleHeadline } from '../../../../domain/value-objects/article-headline.vo.js';
 import {
     ArticleLanguage,
     LanguageEnum,
 } from '../../../../domain/value-objects/article-language.vo.js';
-import { ArticleSummary } from '../../../../domain/value-objects/article-summary.vo.js';
 
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
 import { GetArticlesUseCase } from '../get-articles.use-case.js';
 
 describe('GetArticlesUseCase', () => {
-    // Test helpers
-    const createTestArticle = (createdAt: Date = new Date()): Article => {
-        return Article.create({
-            category: ArticleCategory.create('POLITICS'),
-            content: ArticleContent.create(
-                'Test article content that meets the minimum length requirement for testing purposes.',
-            ),
-            country: ArticleCountry.create(CountryEnum.UnitedStates),
-            createdAt,
-            fakeStatus: ArticleFakeStatus.createNonFake(),
-            headline: ArticleHeadline.create('Test Headline'),
-            language: ArticleLanguage.create(LanguageEnum.English),
-            summary: ArticleSummary.create('Test article summary'.repeat(10)),
-        });
-    };
-
-    const createTestArticles = (count: number, startDate: Date = new Date()): Article[] => {
-        return Array.from({ length: count }, (_, i) => {
-            const date = new Date(startDate);
-            date.setMinutes(date.getMinutes() - i); // Each article 1 minute apart
-            return createTestArticle(date);
-        });
-    };
-
     // Test fixtures
     const DEFAULT_LIMIT = 10;
     const TEST_ARTICLES_COUNT = 15;
@@ -59,7 +32,11 @@ describe('GetArticlesUseCase', () => {
     beforeEach(() => {
         mockArticleRepository = mock<ArticleRepositoryPort>();
         useCase = new GetArticlesUseCase(mockArticleRepository);
-        testArticles = createTestArticles(TEST_ARTICLES_COUNT);
+        testArticles = buildTestArticles(
+            TEST_ARTICLES_COUNT,
+            ArticleCountry.create(CountryEnum.UnitedStates),
+            ArticleLanguage.create(LanguageEnum.English),
+        );
 
         // Default mock response
         mockArticleRepository.findMany.mockResolvedValue({
@@ -177,21 +154,19 @@ describe('GetArticlesUseCase', () => {
             });
 
             // When
-            if (firstPage.nextCursor) {
-                await useCase.execute({
-                    cursor: firstPage.nextCursor,
-                    language: LanguageEnum.English,
-                    limit: DEFAULT_LIMIT,
-                });
+            await useCase.execute({
+                cursor: firstPage.nextCursor!,
+                language: LanguageEnum.English,
+                limit: DEFAULT_LIMIT,
+            });
 
-                // Then
-                expect(mockArticleRepository.findMany).toHaveBeenNthCalledWith(
-                    2,
-                    expect.objectContaining({
-                        cursor: expect.any(Date),
-                    }),
-                );
-            }
+            // Then
+            expect(mockArticleRepository.findMany).toHaveBeenNthCalledWith(
+                2,
+                expect.objectContaining({
+                    cursor: expect.any(Date),
+                }),
+            );
         });
 
         it('should return null nextCursor when no more pages', async () => {
