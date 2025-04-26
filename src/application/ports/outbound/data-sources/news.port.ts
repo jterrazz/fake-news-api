@@ -16,8 +16,8 @@ export const NewsArticleSchema = z.object({
  * Options for fetching news articles
  */
 export interface FetchNewsOptions {
-    country: ArticleCountry;
-    language: ArticleLanguage;
+    country?: ArticleCountry;
+    language?: ArticleLanguage;
 }
 
 export type NewsArticle = z.output<typeof NewsArticleSchema>;
@@ -29,5 +29,5 @@ export interface NewsPort {
     /**
      * Fetch news articles based on language and country
      */
-    fetchTopNews(options: FetchNewsOptions): Promise<NewsArticle[]>;
+    fetchTopNews(options?: FetchNewsOptions): Promise<NewsArticle[]>;
 }

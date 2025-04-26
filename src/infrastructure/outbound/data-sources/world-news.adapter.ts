@@ -11,7 +11,10 @@ import {
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
 import { ArticleCountry, CountryEnum } from '../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage, LanguageEnum } from '../../../domain/value-objects/article-language.vo.js';
+import {
+    ArticleLanguage,
+    LanguageEnum,
+} from '../../../domain/value-objects/article-language.vo.js';
 
 import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
 
@@ -42,7 +45,7 @@ export class WorldNewsAdapter implements NewsPort {
         private readonly monitoring: MonitoringPort,
     ) {}
 
-    public async fetchTopNews(options?: Partial<FetchTopNewsOptions>): Promise<NewsArticle[]> {
+    public async fetchTopNews(options?: FetchTopNewsOptions): Promise<NewsArticle[]> {
         const {
             country = ArticleCountry.create(CountryEnum.UnitedStates),
             language = ArticleLanguage.create(LanguageEnum.English),
