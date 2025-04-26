@@ -1,20 +1,16 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import { type DeepMockProxy, mock } from 'jest-mock-extended';
 
-import { Article } from '../../../../domain/entities/article.js';
-import { ArticleCategory } from '../../../../domain/value-objects/article-category.vo.js';
-import { ArticleContent } from '../../../../domain/value-objects/article-content.vo.js';
+import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
+import { type Article } from '../../../../domain/entities/article.js';
 import {
     ArticleCountry,
     CountryEnum,
 } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleFakeStatus } from '../../../../domain/value-objects/article-fake-status.vo.js';
-import { ArticleHeadline } from '../../../../domain/value-objects/article-headline.vo.js';
 import {
     ArticleLanguage,
     LanguageEnum,
 } from '../../../../domain/value-objects/article-language.vo.js';
-import { ArticleSummary } from '../../../../domain/value-objects/article-summary.vo.js';
 
 import { type ArticleGeneratorPort } from '../../../ports/outbound/ai/article-generator.port.js';
 import { type NewsArticle, type NewsPort } from '../../../ports/outbound/data-sources/news.port.js';
@@ -30,28 +26,6 @@ describe('GenerateArticlesUseCase', () => {
             text: `Summary of real news ${i + 1}`,
             title: `Real News ${i + 1}`,
         }));
-
-    const createTestArticles = (
-        count: number,
-        country: ArticleCountry,
-        language: ArticleLanguage,
-    ): Article[] =>
-        Array.from({ length: count }, (_, i) =>
-            Article.create({
-                category: ArticleCategory.create(i % 2 === 0 ? 'POLITICS' : 'TECHNOLOGY'),
-                content: ArticleContent.create(
-                    `This is article ${i + 1} with detailed content about ${i % 2 === 0 ? 'political' : 'technological'} developments. ` +
-                        'The content discusses various aspects and their potential impacts on society. ' +
-                        'Multiple perspectives are presented to provide a balanced view.',
-                ),
-                country,
-                createdAt: new Date(),
-                fakeStatus: ArticleFakeStatus.createFake('AI-generated content for testing'),
-                headline: ArticleHeadline.create(`Generated Article ${i + 1}`),
-                language,
-                summary: ArticleSummary.create(`Summary of generated article ${i + 1}`.repeat(10)),
-            }),
-        );
 
     function createDateAtHour(hour: number, timezone: string): Date {
         const now = new Date();
@@ -88,7 +62,7 @@ describe('GenerateArticlesUseCase', () => {
         mockNewsService = mock<NewsPort>();
 
         testNews = createTestNews(TEST_ARTICLE_COUNT);
-        testArticles = createTestArticles(TEST_ARTICLE_COUNT, TEST_COUNTRY, TEST_LANGUAGE);
+        testArticles = buildTestArticles(TEST_ARTICLE_COUNT, TEST_COUNTRY, TEST_LANGUAGE);
         testPublishedSummaries = Array.from(
             { length: TEST_ARTICLE_COUNT },
             (_, i) => `Old Article ${i + 1} from 2024-01-${String(i + 1).padStart(2, '0')}`,
