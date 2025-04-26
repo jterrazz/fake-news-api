@@ -8,9 +8,9 @@
   },
   "scripts": {
     "build": "prisma generate && ts-compile",
-    "start": "prisma migrate deploy && node -r source-map-support/register -r newrelic dist/index.js",
+    "start": "prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
     "dev": "prisma migrate deploy && NODE_ENV=development ts-watch",
-    "test": "jest",
+    "test": "LOG_LEVEL=error jest",
     "lint": "code-standards"
   },
   "devDependencies": {
@@ -32,9 +32,8 @@
     "date-fns": "^4.1.0",
     "hono": "^4.6.16",
     "node-cron": "^3.0.3",
-    "openai": "^4.90.0",
+    "openai": "^4.96.0",
     "prisma": "^6.3.1",
-    "source-map-support": "^0.5.21",
     "zod": "^3.24.1",
     "zod-to-json-schema": "^3.24.4"
   }
