@@ -1,4 +1,5 @@
 import { seedArticles } from './seeds/article-fixture.js';
+import { cleanDatabase } from './seeds/database.js';
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
@@ -14,7 +15,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     beforeEach(async () => {
         const { prisma } = testContext;
-        await prisma.article.deleteMany();
+        await cleanDatabase(prisma);
         await seedArticles(prisma);
     });
 
