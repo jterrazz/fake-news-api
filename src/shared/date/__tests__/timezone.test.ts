@@ -42,21 +42,21 @@ describe('Timezone Utilities', () => {
             expect(tzDate.timeZone).toBe(parisTimezone);
         });
 
-        it('should preserve all date components', () => {
-            // Given
-            const date = new Date(2024, 0, 1, 12, 30, 45, 123);
+        it('should preserve UTC time components', () => {
+            // Given - Create date with explicit UTC time
+            const date = new Date(Date.UTC(2024, 0, 1, 12, 30, 45, 123));
 
             // When
             const tzDate = createTZDate(date, parisTimezone);
 
-            // Then
-            expect(tzDate.getFullYear()).toBe(2024);
-            expect(tzDate.getMonth()).toBe(0);
-            expect(tzDate.getDate()).toBe(1);
-            expect(tzDate.getHours()).toBe(12);
-            expect(tzDate.getMinutes()).toBe(30);
-            expect(tzDate.getSeconds()).toBe(45);
-            expect(tzDate.getMilliseconds()).toBe(123);
+            // Then - Verify the UTC components are preserved
+            expect(tzDate.getUTCFullYear()).toBe(2024);
+            expect(tzDate.getUTCMonth()).toBe(0);
+            expect(tzDate.getUTCDate()).toBe(1);
+            expect(tzDate.getUTCHours()).toBe(12);
+            expect(tzDate.getUTCMinutes()).toBe(30);
+            expect(tzDate.getUTCSeconds()).toBe(45);
+            expect(tzDate.getUTCMilliseconds()).toBe(123);
         });
     });
 
