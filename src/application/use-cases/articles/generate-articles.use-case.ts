@@ -8,10 +8,9 @@ import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
 import {
-    formatInTimezone,
-    getTimezoneForCountry,
-    subtractDaysInTimezone,
-    TZDate,
+    formatTZDateInCountry,
+    getCurrentTZDateForCountry,
+    subtractDays,
 } from '../../../shared/date/timezone.js';
 
 /**
@@ -34,10 +33,7 @@ export class GenerateArticlesUseCase {
                 `Starting article generation for ${country.toString()} in ${language.toString()}`,
             );
 
-            // Get timezone and current hour
-            const timezone = getTimezoneForCountry(country.toString());
-            const tzDate = new TZDate(Date.now(), timezone);
-            const hour = tzDate.getHours();
+            const { hour, tzDate } = getCurrentTZDateForCountry(country.toString());
             const targetArticleCount = getTargetArticleCount(hour);
 
             // Check existing articles for today
@@ -55,9 +51,8 @@ export class GenerateArticlesUseCase {
                     `No new articles needed at this time for ${country.toString()} in ${language.toString()}`,
                     {
                         currentCount: existingArticleCount,
-                        hour: formatInTimezone(tzDate, timezone, 'HH'),
+                        hour: formatTZDateInCountry(tzDate, country.toString(), 'HH'),
                         targetCount: targetArticleCount,
-                        timezone,
                     },
                 );
                 return;
@@ -86,7 +81,7 @@ export class GenerateArticlesUseCase {
             }
 
             // Get recent headlines for context (last 30 days)
-            const since = subtractDaysInTimezone(tzDate, timezone, 30);
+            const since = subtractDays(tzDate, 30);
             const publishedSummaries = await this.articleRepository.findPublishedSummaries({
                 country,
                 language,
@@ -116,10 +111,9 @@ export class GenerateArticlesUseCase {
                 country: country.toString(),
                 currentCount: existingArticleCount + generatedArticles.length,
                 generatedCount: generatedArticles.length,
-                hour: formatInTimezone(tzDate, timezone, 'HH'),
+                hour: formatTZDateInCountry(tzDate, country.toString(), 'HH'),
                 language: language.toString(),
                 targetCount: targetArticleCount,
-                timezone,
             });
         } catch (error) {
             this.logger.error('Failed to generate articles', {

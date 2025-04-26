@@ -1,7 +1,7 @@
 import { TZDate } from '@date-fns/tz';
 import { format, subDays } from 'date-fns';
 
-export { TZDate };
+// TODO Only expose country codes and not the timezone identifiers
 
 /**
  * Map of country codes to their timezone identifiers
@@ -14,44 +14,47 @@ export const COUNTRY_TIMEZONES: Record<string, string> = {
 export type CountryTimezone = keyof typeof COUNTRY_TIMEZONES;
 
 /**
- * Creates a timezone-aware date for the current time
+ * Creates a TZDate for the current time in a specific country's timezone
  */
-export function createCurrentTZDate(timezone: string): TZDate {
-    // Create TZDate directly from timestamp to preserve UTC time
-    return new TZDate(Date.now(), timezone);
+export function createTZDateForCountry(date: Date | number, country: string): TZDate {
+    const timezone = getTimezoneForCountry(country);
+    return new TZDate(date instanceof Date ? date.getTime() : date, timezone);
 }
 
 /**
- * Creates a timezone-aware date from a regular Date object
+ * Formats a TZDate in a specific country's timezone using the provided format string
+ * Note: The date must already be a TZDate. Use createTZDateForCountry for Date objects.
  */
-export function createTZDate(date: Date, timezone: string): TZDate {
-    // Create TZDate directly from timestamp to preserve UTC time
-    return new TZDate(date.getTime(), timezone);
+export function formatTZDateInCountry(date: TZDate, country: string, formatStr: string): string {
+    const timezone = getTimezoneForCountry(country);
+    return format(date.withTimeZone(timezone), formatStr);
 }
 
 /**
- * Formats a date in a specific timezone using the provided format string
+ * Gets the current time for a specific country
  */
-export function formatInTimezone(date: Date | TZDate, timezone: string, formatStr: string): string {
-    const tzDate = date instanceof TZDate ? date : new TZDate(date.getTime(), timezone);
-    return format(tzDate, formatStr);
+export function getCurrentTZDateForCountry(country: string): { hour: number; tzDate: TZDate } {
+    const timezone = getTimezoneForCountry(country);
+    const tzDate = new TZDate(Date.now(), timezone);
+    return {
+        hour: tzDate.getHours(),
+        tzDate,
+    };
 }
 
 /**
- * Gets the current hour in a specific timezone
+ * Subtracts days from a date while preserving timezone
  */
-export function getCurrentHourInTimezone(timezone: string): number {
-    const now = new Date();
-    // Create TZDate directly from timestamp to preserve UTC time
-    const tzDate = new TZDate(now.getTime(), timezone);
-    return tzDate.getHours();
+export function subtractDays(date: TZDate, days: number): TZDate {
+    const subtractedDate = subDays(date, days);
+    return new TZDate(subtractedDate.getTime(), date.timeZone);
 }
 
 /**
  * Gets the timezone for a country code
  * @throws Error if country code is not supported
  */
-export function getTimezoneForCountry(countryCode: string): string {
+function getTimezoneForCountry(countryCode: string): string {
     const normalizedCode = countryCode.toLowerCase() as CountryTimezone;
     const timezone = COUNTRY_TIMEZONES[normalizedCode];
 
@@ -62,17 +65,4 @@ export function getTimezoneForCountry(countryCode: string): string {
     }
 
     return timezone;
-}
-
-/**
- * Subtracts days from a date in a specific timezone
- */
-export function subtractDaysInTimezone(
-    date: Date | TZDate,
-    timezone: string,
-    days: number,
-): TZDate {
-    const tzDate = date instanceof TZDate ? date : new TZDate(date.getTime(), timezone);
-    const subtractedDate = subDays(tzDate, days);
-    return new TZDate(subtractedDate.getTime(), timezone);
 }

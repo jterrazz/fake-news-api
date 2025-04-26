@@ -2,21 +2,17 @@ import { TZDate } from '@date-fns/tz';
 
 import {
     COUNTRY_TIMEZONES,
-    createCurrentTZDate,
-    createTZDate,
-    formatInTimezone,
-    getCurrentHourInTimezone,
-    getTimezoneForCountry,
-    subtractDaysInTimezone,
+    createTZDateForCountry,
+    formatTZDateInCountry,
+    getCurrentTZDateForCountry,
+    subtractDays,
 } from '../timezone.js';
 
 describe('Timezone Utilities', () => {
     const originalDate = new Date('2024-01-01T12:30:45.123Z');
     const parisTimezone = 'Europe/Paris';
-    const newYorkTimezone = 'America/New_York';
 
     beforeEach(() => {
-        // Use modern fake timers that allow async operations
         jest.useFakeTimers({
             doNotFake: ['nextTick', 'setImmediate'],
             now: originalDate,
@@ -27,129 +23,128 @@ describe('Timezone Utilities', () => {
         jest.useRealTimers();
     });
 
-    describe('createTZDate', () => {
-        it('should create a TZDate with the correct timezone', () => {
-            // Given
-            const date = new Date('2024-01-01T12:00:00Z');
-
+    describe('getCurrentTZDateForCountry', () => {
+        it.each([
+            { country: 'fr', expectedHour: 13 }, // UTC+1 for Paris
+            { country: 'us', expectedHour: 7 }, // UTC-5 for New York
+        ])('should return correct hour for $country', ({ country, expectedHour }) => {
             // When
-            const tzDate = createTZDate(date, parisTimezone);
+            const { hour, tzDate } = getCurrentTZDateForCountry(country);
 
             // Then
+            expect(hour).toBe(expectedHour);
             expect(tzDate).toBeInstanceOf(TZDate);
-            // Verify timezone offset is correct for Paris (UTC+1)
-            expect(formatInTimezone(tzDate, parisTimezone, 'xxx')).toBe('+01:00');
-            expect(tzDate.timeZone).toBe(parisTimezone);
-        });
-
-        it('should preserve UTC time components', () => {
-            // Given - Create date with explicit UTC time
-            const date = new Date(Date.UTC(2024, 0, 1, 12, 30, 45, 123));
-
-            // When
-            const tzDate = createTZDate(date, parisTimezone);
-
-            // Then - Verify the UTC components are preserved
-            expect(tzDate.getUTCFullYear()).toBe(2024);
-            expect(tzDate.getUTCMonth()).toBe(0);
-            expect(tzDate.getUTCDate()).toBe(1);
-            expect(tzDate.getUTCHours()).toBe(12);
-            expect(tzDate.getUTCMinutes()).toBe(30);
-            expect(tzDate.getUTCSeconds()).toBe(45);
-            expect(tzDate.getUTCMilliseconds()).toBe(123);
-        });
-    });
-
-    describe('createCurrentTZDate', () => {
-        it('should create a TZDate with current time', () => {
-            // When
-            const tzDate = createCurrentTZDate(parisTimezone);
-
-            // Then
-            expect(tzDate).toBeInstanceOf(TZDate);
-            // Verify timezone offset is correct for Paris (UTC+1)
-            expect(formatInTimezone(tzDate, parisTimezone, 'xxx')).toBe('+01:00');
-            expect(tzDate.timeZone).toBe(parisTimezone);
+            expect(tzDate.timeZone).toBe(COUNTRY_TIMEZONES[country]);
             expect(tzDate.getTime()).toBe(originalDate.getTime());
-        });
-    });
-
-    describe('getTimezoneForCountry', () => {
-        it.each(Object.entries(COUNTRY_TIMEZONES))(
-            'should return correct timezone for %s',
-            (countryCode, expectedTimezone) => {
-                // When
-                const timezone = getTimezoneForCountry(countryCode);
-
-                // Then
-                expect(timezone).toBe(expectedTimezone);
-            },
-        );
-
-        it('should handle uppercase country codes', () => {
-            // When
-            const timezone = getTimezoneForCountry('FR');
-
-            // Then
-            expect(timezone).toBe(parisTimezone);
         });
 
         it('should throw error for unsupported country', () => {
             // When/Then
-            expect(() => getTimezoneForCountry('invalid')).toThrow(
+            expect(() => getCurrentTZDateForCountry('invalid')).toThrow(
+                'Unsupported country: invalid. Supported countries are: fr, us',
+            );
+        });
+
+        it('should handle uppercase country codes', () => {
+            // When
+            const { hour, tzDate } = getCurrentTZDateForCountry('FR');
+
+            // Then
+            expect(hour).toBe(13); // UTC+1 for Paris
+            expect(tzDate.timeZone).toBe(parisTimezone);
+        });
+    });
+
+    describe('createTZDateForCountry', () => {
+        it.each([
+            { country: 'fr', timezone: 'Europe/Paris' },
+            { country: 'us', timezone: 'America/New_York' },
+        ])('should create TZDate with correct timezone for $country', ({ country, timezone }) => {
+            // Given
+            const date = new Date('2024-01-01T12:30:00Z');
+
+            // When
+            const tzDate = createTZDateForCountry(date, country);
+
+            // Then
+            expect(tzDate).toBeInstanceOf(TZDate);
+            expect(tzDate.timeZone).toBe(timezone);
+            expect(tzDate.getTime()).toBe(date.getTime());
+        });
+
+        it('should handle Date objects and timestamps', () => {
+            // Given
+            const date = new Date('2024-01-01T12:30:00Z');
+            const timestamp = date.getTime();
+
+            // When
+            const tzDateFromDate = createTZDateForCountry(date, 'fr');
+            const tzDateFromTimestamp = createTZDateForCountry(timestamp, 'fr');
+
+            // Then
+            expect(tzDateFromDate.getTime()).toBe(tzDateFromTimestamp.getTime());
+            expect(tzDateFromDate.timeZone).toBe(tzDateFromTimestamp.timeZone);
+        });
+
+        it('should throw error for unsupported country', () => {
+            // Given
+            const date = new Date();
+
+            // When/Then
+            expect(() => createTZDateForCountry(date, 'invalid')).toThrow(
                 'Unsupported country: invalid. Supported countries are: fr, us',
             );
         });
     });
 
-    describe('getCurrentHourInTimezone', () => {
+    describe('formatTZDateInCountry', () => {
         it.each([
-            { expectedHour: 13, timezone: parisTimezone }, // UTC+1
-            { expectedHour: 7, timezone: newYorkTimezone }, // UTC-5
-        ])('should return correct hour for $timezone', ({ expectedHour, timezone }) => {
+            { expected: '06:30', fromCountry: 'fr', toCountry: 'us' }, // Paris -> New York (UTC+1 -> UTC-5)
+            { expected: '18:30', fromCountry: 'us', toCountry: 'fr' }, // New York -> Paris (UTC-5 -> UTC+1)
+            { expected: '12:30', fromCountry: 'fr', toCountry: 'fr' }, // Paris -> Paris (no change)
+        ])(
+            'should format time from $fromCountry timezone to $toCountry timezone',
+            ({ expected, fromCountry, toCountry }) => {
+                // Given
+                const tzDate = new TZDate(2024, 0, 1, 12, 30, 0, 0, COUNTRY_TIMEZONES[fromCountry]);
+
+                // When
+                const formatted = formatTZDateInCountry(tzDate, toCountry, 'HH:mm');
+
+                // Then
+                expect(formatted).toBe(expected);
+            },
+        );
+
+        it('should handle uppercase country codes', () => {
             // Given
-            const fixedDate = new Date('2024-01-01T12:00:00Z'); // Noon UTC
-            jest.setSystemTime(fixedDate);
+            const tzDate = new TZDate(2024, 0, 1, 12, 30, 0, 0, parisTimezone);
 
             // When
-            const hour = getCurrentHourInTimezone(timezone);
+            const formatted = formatTZDateInCountry(tzDate, 'FR', 'HH:mm');
 
             // Then
-            expect(hour).toBe(expectedHour);
+            expect(formatted).toBe('12:30');
+        });
+
+        it('should throw error for unsupported country', () => {
+            // Given
+            const tzDate = new TZDate(2024, 0, 1, 12, 30, 0, 0, parisTimezone);
+
+            // When/Then
+            expect(() => formatTZDateInCountry(tzDate, 'invalid', 'HH:mm')).toThrow(
+                'Unsupported country: invalid. Supported countries are: fr, us',
+            );
         });
     });
 
-    describe('formatInTimezone', () => {
-        it('should format Date object in specified timezone', () => {
-            // Given
-            const date = new Date('2024-01-01T12:00:00Z');
-
-            // When
-            const formatted = formatInTimezone(date, parisTimezone, 'HH:mm');
-
-            // Then
-            expect(formatted).toBe('13:00');
-        });
-
-        it('should format TZDate in specified timezone', () => {
-            // Given
-            const tzDate = new TZDate(2024, 0, 1, 12, 0, 0, 0, parisTimezone);
-
-            // When
-            const formatted = formatInTimezone(tzDate, parisTimezone, 'HH:mm');
-
-            // Then
-            expect(formatted).toBe('12:00');
-        });
-    });
-
-    describe('subtractDaysInTimezone', () => {
+    describe('subtractDays', () => {
         it('should subtract days while preserving timezone', () => {
             // Given
-            const date = new Date('2024-01-15T12:00:00Z');
+            const date = new TZDate(2024, 0, 15, 12, 0, 0, 0, parisTimezone);
 
             // When
-            const result = subtractDaysInTimezone(date, parisTimezone, 5);
+            const result = subtractDays(date, 5);
 
             // Then
             expect(result).toBeInstanceOf(TZDate);
@@ -159,10 +154,10 @@ describe('Timezone Utilities', () => {
 
         it('should handle month/year boundaries', () => {
             // Given
-            const date = new Date('2024-01-01T12:00:00Z');
+            const date = new TZDate(2024, 0, 1, 12, 0, 0, 0, parisTimezone);
 
             // When
-            const result = subtractDaysInTimezone(date, parisTimezone, 2);
+            const result = subtractDays(date, 2);
 
             // Then
             expect(result.getFullYear()).toBe(2023);
@@ -172,13 +167,13 @@ describe('Timezone Utilities', () => {
 
         it('should preserve time components', () => {
             // Given
-            const date = new Date('2024-01-15T14:30:45.123Z');
+            const date = new TZDate(2024, 0, 15, 14, 30, 45, 123, parisTimezone);
 
             // When
-            const result = subtractDaysInTimezone(date, parisTimezone, 5);
+            const result = subtractDays(date, 5);
 
             // Then
-            expect(result.getHours()).toBe(15); // UTC+1 for Paris
+            expect(result.getHours()).toBe(14); // UTC+1 for Paris
             expect(result.getMinutes()).toBe(30);
             expect(result.getSeconds()).toBe(45);
             expect(result.getMilliseconds()).toBe(123);

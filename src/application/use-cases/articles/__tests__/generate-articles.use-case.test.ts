@@ -1,3 +1,4 @@
+import { TZDate } from '@date-fns/tz';
 import { type LoggerPort } from '@jterrazz/logger';
 import { type DeepMockProxy, mock } from 'jest-mock-extended';
 
@@ -16,7 +17,6 @@ import { type ArticleGeneratorPort } from '../../../ports/outbound/ai/article-ge
 import { type NewsArticle, type NewsPort } from '../../../ports/outbound/data-sources/news.port.js';
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
-import { TZDate } from '../../../../shared/date/timezone.js';
 import { GenerateArticlesUseCase } from '../generate-articles.use-case.js';
 
 describe('GenerateArticlesUseCase', () => {
@@ -210,7 +210,6 @@ describe('GenerateArticlesUseCase', () => {
                     currentCount: 0,
                     hour: '04',
                     targetCount: 0,
-                    timezone: 'Europe/Paris',
                 }),
             );
             expect(mockArticleGenerator.generateArticles).not.toHaveBeenCalled();

@@ -16,7 +16,10 @@ import {
     LanguageEnum,
 } from '../../../domain/value-objects/article-language.vo.js';
 
-import { formatInTimezone, getTimezoneForCountry } from '../../../shared/date/timezone.js';
+import {
+    formatTZDateInCountry,
+    getCurrentTZDateForCountry,
+} from '../../../shared/date/timezone.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
 
@@ -55,7 +58,8 @@ export class WorldNewsAdapter implements NewsPort {
                 this.logger.info('Retrieving news articles:', { country, language });
                 await this.enforceRateLimit();
 
-                const countryDate = this.getDateForCountry(country.toString());
+                const { tzDate } = getCurrentTZDateForCountry(country.toString());
+                const countryDate = formatTZDateInCountry(tzDate, country.toString(), 'yyyy-MM-dd');
                 const url = new URL('https://api.worldnewsapi.com/top-news');
 
                 // Add query parameters
@@ -117,14 +121,6 @@ export class WorldNewsAdapter implements NewsPort {
         }
 
         this.lastRequestTime = Date.now();
-    }
-
-    /**
-     * Gets the current date in the timezone of the specified country
-     */
-    private getDateForCountry(countryCode: string): string {
-        const timezone = getTimezoneForCountry(countryCode);
-        return formatInTimezone(new Date(), timezone, 'yyyy-MM-dd');
     }
 
     private transformResponse(response: z.infer<typeof WorldNewsResponseSchema>): NewsArticle[] {
