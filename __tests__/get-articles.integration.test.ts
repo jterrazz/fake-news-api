@@ -160,7 +160,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
         const response = await httpServer.request('/articles?category=INVALID');
 
         // Then
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(400);
         expect(await response.json()).toMatchObject({
             error: expect.any(String),
         });

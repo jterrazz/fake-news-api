@@ -17,18 +17,7 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
 export const getArticlesParamsSchema = z.object({
-    category: z
-        .enum([
-            CategoryEnum.Politics,
-            CategoryEnum.Technology,
-            CategoryEnum.Science,
-            CategoryEnum.Health,
-            CategoryEnum.Entertainment,
-            CategoryEnum.Sports,
-            CategoryEnum.Business,
-            CategoryEnum.World,
-        ])
-        .optional(),
+    category: z.nativeEnum(CategoryEnum).optional(),
     country: z.nativeEnum(CountryEnum).optional(),
     cursor: z.string().optional(),
     language: z.nativeEnum(LanguageEnum).optional(),
@@ -50,7 +39,7 @@ export class GetArticlesUseCase {
         const validatedParams = getArticlesParamsSchema.safeParse(params);
 
         if (!validatedParams.success) {
-            throw new Error('Invalid pagination parameters');
+            throw new Error(`Invalid pagination parameters: ${validatedParams.error.message}`);
         }
 
         const { category, country, cursor, language, limit } = validatedParams.data;

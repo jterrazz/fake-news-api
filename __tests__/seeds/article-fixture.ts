@@ -20,7 +20,7 @@ export function createArticleFixture(params: ArticleFixtureParams) {
         headline: `${category} Article ${position}`,
         isFake,
         language,
-        summary: `Summary of ${category.toLowerCase()} article ${position}`,
+        summary: `A comprehensive summary of ${category.toLowerCase()} article ${position}. This article explores key developments and their implications in detail.`,
     };
 }
 
