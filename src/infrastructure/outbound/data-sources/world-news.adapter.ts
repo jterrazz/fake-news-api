@@ -17,8 +17,8 @@ import {
 } from '../../../domain/value-objects/article-language.vo.js';
 
 import {
+    createCurrentTZDateForCountry,
     formatTZDateInCountry,
-    getCurrentTZDateForCountry,
 } from '../../../shared/date/timezone.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
@@ -58,8 +58,10 @@ export class WorldNewsAdapter implements NewsPort {
                 this.logger.info('Retrieving news articles:', { country, language });
                 await this.enforceRateLimit();
 
-                const { tzDate } = getCurrentTZDateForCountry(country.toString());
+                const { tzDate } = createCurrentTZDateForCountry(country.toString());
+                console.log('tzDate', tzDate);
                 const countryDate = formatTZDateInCountry(tzDate, country.toString(), 'yyyy-MM-dd');
+                console.log('countryDate', countryDate);
                 const url = new URL('https://api.worldnewsapi.com/top-news');
 
                 // Add query parameters

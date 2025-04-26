@@ -9,7 +9,7 @@ import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/art
 
 import {
     formatTZDateInCountry,
-    getCurrentTZDateForCountry,
+    createCurrentTZDateForCountry,
     subtractDays,
 } from '../../../shared/date/timezone.js';
 
@@ -33,7 +33,7 @@ export class GenerateArticlesUseCase {
                 `Starting article generation for ${country.toString()} in ${language.toString()}`,
             );
 
-            const { hour, tzDate } = getCurrentTZDateForCountry(country.toString());
+            const { hour, tzDate } = createCurrentTZDateForCountry(country.toString());
             const targetArticleCount = getTargetArticleCount(hour);
 
             // Check existing articles for today

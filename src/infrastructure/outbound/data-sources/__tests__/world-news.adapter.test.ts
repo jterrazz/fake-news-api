@@ -12,7 +12,7 @@ import {
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
-import { COUNTRY_TIMEZONES, TZDate } from '../../../../shared/date/timezone.js';
+import { createTZDateForCountry } from '../../../../shared/date/timezone.js';
 import { WorldNewsAdapter } from '../world-news.adapter.js';
 
 // Given: Mock configuration with valid API key
@@ -90,7 +90,6 @@ describe('WorldNewsAdapter', () => {
         const result = await adapter.fetchTopNews();
 
         // Then: Should return valid news articles
-        expect(Array.isArray(result)).toBe(true);
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
             publishedAt: new Date('2024-03-10T12:00:00Z'),
@@ -100,19 +99,20 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should use correct date based on country timezone', async () => {
-        // Given: Create a date representing 4:30 AM in France on Jan 15
-        const fakeDate = new TZDate(2024, 0, 15, 4, 30, 0, 0, COUNTRY_TIMEZONES.fr);
+        // Given: Create a date representing 2:30 AM in France on Jan 15
+        const fakeDate = createTZDateForCountry(new Date(2024, 0, 15, 2, 30, 0, 0), 'fr');
         const utcTimestamp = fakeDate.getTime();
         jest.useFakeTimers({
             doNotFake: ['nextTick', 'setImmediate', 'setTimeout', 'clearTimeout'],
             now: utcTimestamp,
         });
 
+        // When: Fetching news
         await adapter.fetchTopNews();
         await adapter.fetchTopNews({ country: ArticleCountry.create('fr') });
 
         // Then: Dates should be different based on timezone
-        expect(requestedDates['us']).toBe('2024-01-15');
+        expect(requestedDates['us']).toBe('2024-01-14');
         expect(requestedDates['fr']).toBe('2024-01-15');
     });
 

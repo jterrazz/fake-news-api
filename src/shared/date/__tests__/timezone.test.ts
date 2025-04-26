@@ -1,10 +1,10 @@
 import { TZDate } from '@date-fns/tz';
 
 import {
-    COUNTRY_TIMEZONES,
+    COUNTRY_TIMEZONE_MAP,
+    createCurrentTZDateForCountry,
     createTZDateForCountry,
     formatTZDateInCountry,
-    getCurrentTZDateForCountry,
     subtractDays,
 } from '../timezone.js';
 
@@ -23,31 +23,31 @@ describe('Timezone Utilities', () => {
         jest.useRealTimers();
     });
 
-    describe('getCurrentTZDateForCountry', () => {
+    describe('createCurrentTZDateForCountry', () => {
         it.each([
             { country: 'fr', expectedHour: 13 }, // UTC+1 for Paris
             { country: 'us', expectedHour: 7 }, // UTC-5 for New York
         ])('should return correct hour for $country', ({ country, expectedHour }) => {
             // When
-            const { hour, tzDate } = getCurrentTZDateForCountry(country);
+            const { hour, tzDate } = createCurrentTZDateForCountry(country);
 
             // Then
             expect(hour).toBe(expectedHour);
             expect(tzDate).toBeInstanceOf(TZDate);
-            expect(tzDate.timeZone).toBe(COUNTRY_TIMEZONES[country]);
+            expect(tzDate.timeZone).toBe(COUNTRY_TIMEZONE_MAP[country]);
             expect(tzDate.getTime()).toBe(originalDate.getTime());
         });
 
         it('should throw error for unsupported country', () => {
             // When/Then
-            expect(() => getCurrentTZDateForCountry('invalid')).toThrow(
-                'Unsupported country: invalid. Supported countries are: fr, us',
+            expect(() => createCurrentTZDateForCountry('invalid')).toThrow(
+                'Unsupported country: invalid. Supported countries are: ar, at, au, be, br, ca, ch, cl, cn, co, cz, de, dk, eg, es, fi, fr, gb, gr, hk, hu, id, ie, in, it, jp, ke, kr, ma, mx, my, ng, nl, no, nz, pe, ph, pl, pt, ro, ru, se, sg, th, tw, us, uy, vn, za',
             );
         });
 
         it('should handle uppercase country codes', () => {
             // When
-            const { hour, tzDate } = getCurrentTZDateForCountry('FR');
+            const { hour, tzDate } = createCurrentTZDateForCountry('FR');
 
             // Then
             expect(hour).toBe(13); // UTC+1 for Paris
@@ -92,7 +92,7 @@ describe('Timezone Utilities', () => {
 
             // When/Then
             expect(() => createTZDateForCountry(date, 'invalid')).toThrow(
-                'Unsupported country: invalid. Supported countries are: fr, us',
+                'Unsupported country: invalid. Supported countries are: ar, at, au, be, br, ca, ch, cl, cn, co, cz, de, dk, eg, es, fi, fr, gb, gr, hk, hu, id, ie, in, it, jp, ke, kr, ma, mx, my, ng, nl, no, nz, pe, ph, pl, pt, ro, ru, se, sg, th, tw, us, uy, vn, za',
             );
         });
     });
@@ -106,7 +106,16 @@ describe('Timezone Utilities', () => {
             'should format time from $fromCountry timezone to $toCountry timezone',
             ({ expected, fromCountry, toCountry }) => {
                 // Given
-                const tzDate = new TZDate(2024, 0, 1, 12, 30, 0, 0, COUNTRY_TIMEZONES[fromCountry]);
+                const tzDate = new TZDate(
+                    2024,
+                    0,
+                    1,
+                    12,
+                    30,
+                    0,
+                    0,
+                    COUNTRY_TIMEZONE_MAP[fromCountry],
+                );
 
                 // When
                 const formatted = formatTZDateInCountry(tzDate, toCountry, 'HH:mm');
@@ -133,7 +142,7 @@ describe('Timezone Utilities', () => {
 
             // When/Then
             expect(() => formatTZDateInCountry(tzDate, 'invalid', 'HH:mm')).toThrow(
-                'Unsupported country: invalid. Supported countries are: fr, us',
+                'Unsupported country: invalid. Supported countries are: ar, at, au, be, br, ca, ch, cl, cn, co, cz, de, dk, eg, es, fi, fr, gb, gr, hk, hu, id, ie, in, it, jp, ke, kr, ma, mx, my, ng, nl, no, nz, pe, ph, pl, pt, ro, ru, se, sg, th, tw, us, uy, vn, za',
             );
         });
     });
