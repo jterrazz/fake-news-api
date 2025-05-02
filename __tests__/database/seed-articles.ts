@@ -9,21 +9,6 @@ export type ArticleFixtureParams = {
     position: number;
 };
 
-export function createArticleFixture(params: ArticleFixtureParams) {
-    const { category, country, createdAt, isFake, language, position } = params;
-    return {
-        article: `This is article ${position} about ${category.toLowerCase()}. The content discusses various aspects and their potential impacts.`,
-        category,
-        country,
-        createdAt,
-        fakeReason: isFake ? 'AI-generated content' : null,
-        headline: `${category} Article ${position}`,
-        isFake,
-        language,
-        summary: `A comprehensive summary of ${category.toLowerCase()} article ${position}. This article explores key developments and their implications in detail.`,
-    };
-}
-
 export async function seedArticles(prisma: PrismaClient): Promise<void> {
     const articles = [
         // US articles
@@ -73,4 +58,19 @@ export async function seedArticles(prisma: PrismaClient): Promise<void> {
     for (const article of articles) {
         await prisma.article.create({ data: article });
     }
+}
+
+function createArticleFixture(params: ArticleFixtureParams) {
+    const { category, country, createdAt, isFake, language, position } = params;
+    return {
+        article: `This is article ${position} about ${category.toLowerCase()}. The content discusses various aspects and their potential impacts.`,
+        category,
+        country,
+        createdAt,
+        fakeReason: isFake ? 'AI-generated content' : null,
+        headline: `${category} Article ${position}`,
+        isFake,
+        language,
+        summary: `A comprehensive summary of ${category.toLowerCase()} article ${position}. This article explores key developments and their implications in detail.`,
+    };
 }

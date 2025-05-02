@@ -1,5 +1,5 @@
-import { mock, type DeepMockProxy } from 'vitest-mock-extended';
-import { describe, it, expect, beforeEach } from '@jterrazz/test';
+import { beforeEach, describe, expect, it } from '@jterrazz/test';
+import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
 import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
 import { type Article } from '../../../../domain/entities/article.js';

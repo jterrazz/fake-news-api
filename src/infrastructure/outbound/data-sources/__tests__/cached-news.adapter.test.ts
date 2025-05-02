@@ -1,15 +1,15 @@
-import { beforeEach, describe, expect, it, Mock, mockOf } from '@jterrazz/test';
-import { vitest } from 'vitest';
 import { type LoggerPort } from '@jterrazz/logger';
+import { beforeEach, describe, expect, it, type Mock, mockOf } from '@jterrazz/test';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { vitest } from 'vitest';
 
 import {
     type FetchNewsOptions,
     type NewsArticle,
     type NewsPort,
 } from '../../../../application/ports/outbound/data-sources/news.port.js';
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 
+import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { CachedNewsAdapter } from '../cached-news.adapter.js';

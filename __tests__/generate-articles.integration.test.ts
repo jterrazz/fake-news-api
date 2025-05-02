@@ -1,3 +1,14 @@
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    mockOfDate,
+} from '@jterrazz/test';
+
 import { container } from '../src/di/container.js';
 import { createTZDateForCountry } from '../src/shared/date/timezone.js';
 
@@ -9,16 +20,6 @@ import {
     type IntegrationTestContext,
     setupIntegrationTest,
 } from './setup/integration.js';
-import {
-    describe,
-    it,
-    expect,
-    beforeAll,
-    beforeEach,
-    afterAll,
-    afterEach,
-    mockOfDate,
-} from '@jterrazz/test';
 
 describe('Job - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;

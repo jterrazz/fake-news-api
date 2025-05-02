@@ -1,3 +1,5 @@
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jterrazz/test';
+
 import { cleanDatabase } from './database/global.js';
 import { seedArticles } from './database/seed-articles.js';
 import {
@@ -5,7 +7,6 @@ import {
     type IntegrationTestContext,
     setupIntegrationTest,
 } from './setup/integration.js';
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from '@jterrazz/test';
 
 describe('HTTP - Get Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
