@@ -1,4 +1,5 @@
 import { ZodError } from 'zod';
+import { describe, it, expect } from 'vitest';
 
 import { NodeConfigAdapter } from '../node-config.adapter.js';
 

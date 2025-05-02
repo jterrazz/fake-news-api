@@ -1,4 +1,6 @@
 import { TZDate } from '@date-fns/tz';
+import { beforeEach, afterEach, describe, it, expect } from 'vitest';
+import MockDate from 'mockdate';
 
 import {
     COUNTRY_TIMEZONE_MAP,
@@ -13,14 +15,11 @@ describe('Timezone Utilities', () => {
     const parisTimezone = 'Europe/Paris';
 
     beforeEach(() => {
-        jest.useFakeTimers({
-            doNotFake: ['nextTick', 'setImmediate'],
-            now: originalDate,
-        });
+        MockDate.set(originalDate);
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        MockDate.reset();
     });
 
     describe('createCurrentTZDateForCountry', () => {

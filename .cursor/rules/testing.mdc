@@ -6,8 +6,7 @@ alwaysApply: false
 ## Directory Structure
 
 - **Unit tests**: Located alongside source files using `__tests__/`, using `.test.ts`
-- **Integration tests**: Located under `__tests__/integration`, using `.test.ts`
-- **End-to-End tests**: Located under `__tests__/e2e`, using `.e2e.ts`
+- **Integration tests**: Located under `${ROOT}/__tests__`, using `.integration.test.ts`
 - **Fixtures**: Located in `__tests__/__fixtures__/`
 
 ## File Organization
@@ -25,23 +24,25 @@ Tests should follow this clear order depending on requirements:
 
 - Unit tests: `[component-name].test.ts`
 - Integration tests: `[use-case-name].test.ts`
-- E2E tests: `[scenario-name].e2e.ts`
 
 ## Test Structure
 
 - `describe`
-- `it` statements clearly structured with "it should"
+- `test` statements clearly structured (replace it keyword by test)
 
 ## Dependencies
 
-- jest (latest)
-- ts-jest (latest)
-- jest-mock-extended (latest)
+- vitest (latest)
+- vitest-mock-extended (latest)
+- mockdate (latest)
 - mswjs for mocking api calls (latest)
 
 ## Best Practices
 
-- Write tests following Given/When/Then clearly with // Given // When // Then
-- Use jest fake timers for date related mocks
+- Write tests following Given/When/Then clearly with
+  // Given: A small description
+  // When: A small description
+  // Then: A small description
+- Focus on testing behavior, not code implementation
 - Keep tests fast, isolated, and maintainable
 - Clearly differentiate between expected and unexpected errors

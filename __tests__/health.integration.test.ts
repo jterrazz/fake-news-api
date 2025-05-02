@@ -3,6 +3,7 @@ import {
     type IntegrationTestContext,
     setupIntegrationTest,
 } from './setup/integration.js';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 describe('HTTP - Health - Integration Tests', () => {
     let testContext: IntegrationTestContext;

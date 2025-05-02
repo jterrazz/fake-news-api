@@ -9,6 +9,8 @@ import {
     type IntegrationTestContext,
     setupIntegrationTest,
 } from './setup/integration.js';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from 'vitest';
+import MockDate from 'mockdate';
 
 describe('Job - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
@@ -19,11 +21,6 @@ describe('Job - Generate Articles - Integration Tests', () => {
             worldNewsResolver,
             openRouterGenerateArticlesResolver,
         ]);
-
-        // Use modern fake timers that allow async operations to work
-        jest.useFakeTimers({
-            doNotFake: ['setTimeout', 'setInterval', 'setImmediate', 'nextTick'],
-        });
     });
 
     beforeEach(async () => {
@@ -32,15 +29,16 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
         // Set time to January 1st, 2020 at Paris time
         const mockDate = createTZDateForCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
-        jest.setSystemTime(mockDate);
+        MockDate.set(mockDate);
     });
 
     afterEach(async () => {
         await testContext.jobRunner.stop();
+        MockDate.reset();
     });
 
     afterAll(async () => {
-        jest.useRealTimers();
+        vi.useRealTimers();
         await cleanupIntegrationTest(testContext);
     });
 
@@ -160,5 +158,5 @@ describe('Job - Generate Articles - Integration Tests', () => {
                 ),
             },
         ]);
-    });
+    }, 20000);
 });

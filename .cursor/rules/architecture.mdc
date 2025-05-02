@@ -1,7 +1,7 @@
 ---
-description: Defines project directory structure, dependency rules, and file organization following Clean Architecture principles.
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 ## Directory Structure
 - **src**: Root directory containing core logic.

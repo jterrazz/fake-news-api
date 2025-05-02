@@ -1,6 +1,7 @@
 import { type LoggerPort } from '@jterrazz/logger';
-import { mock } from 'jest-mock-extended';
+import { mock } from 'vitest-mock-extended';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { beforeEach, describe, expect, it, vitest, Mock } from 'vitest';
 
 import {
     type FetchNewsOptions,
@@ -13,7 +14,7 @@ import { ArticleLanguage } from '../../../../domain/value-objects/article-langua
 
 import { CachedNewsAdapter } from '../cached-news.adapter.js';
 
-jest.mock('node:fs');
+vitest.mock('node:fs');
 
 describe('CachedNewsAdapter', () => {
     // Given
@@ -35,7 +36,7 @@ describe('CachedNewsAdapter', () => {
     let adapter: CachedNewsAdapter;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vitest.clearAllMocks();
         adapter = new CachedNewsAdapter(mockNewsSource, mockLogger, cacheDirectory);
     });
 
@@ -46,8 +47,8 @@ describe('CachedNewsAdapter', () => {
                 data: [mockArticle],
                 timestamp: Date.now(),
             };
-            (existsSync as jest.Mock).mockReturnValue(true);
-            (readFileSync as jest.Mock).mockReturnValue(JSON.stringify(validCache));
+            (existsSync as Mock).mockReturnValue(true);
+            (readFileSync as Mock).mockReturnValue(JSON.stringify(validCache));
 
             // When
             const result = await adapter.fetchTopNews(defaultOptions);
@@ -66,8 +67,8 @@ describe('CachedNewsAdapter', () => {
                 data: [mockArticle],
                 timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2 hours old
             };
-            (existsSync as jest.Mock).mockReturnValue(true);
-            (readFileSync as jest.Mock).mockReturnValue(JSON.stringify(expiredCache));
+            (existsSync as Mock).mockReturnValue(true);
+            (readFileSync as Mock).mockReturnValue(JSON.stringify(expiredCache));
             mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
             // When
@@ -87,7 +88,7 @@ describe('CachedNewsAdapter', () => {
 
         it('should fetch fresh data when cache does not exist', async () => {
             // Given
-            (existsSync as jest.Mock).mockReturnValue(false);
+            (existsSync as Mock).mockReturnValue(false);
             mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
             // When
@@ -104,8 +105,8 @@ describe('CachedNewsAdapter', () => {
         describe('error handling', () => {
             it('should fallback to fresh data when cache read fails', async () => {
                 // Given
-                (existsSync as jest.Mock).mockReturnValue(true);
-                (readFileSync as jest.Mock).mockImplementation(() => {
+                (existsSync as Mock).mockReturnValue(true);
+                (readFileSync as Mock).mockImplementation(() => {
                     throw new Error('Read error');
                 });
                 mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
@@ -123,8 +124,8 @@ describe('CachedNewsAdapter', () => {
 
             it('should return data even when cache write fails', async () => {
                 // Given
-                (existsSync as jest.Mock).mockReturnValue(false);
-                (writeFileSync as jest.Mock).mockImplementation(() => {
+                (existsSync as Mock).mockReturnValue(false);
+                (writeFileSync as Mock).mockImplementation(() => {
                     throw new Error('Write error');
                 });
                 mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);

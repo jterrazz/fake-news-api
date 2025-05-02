@@ -1,7 +1,7 @@
 ---
-description: Establishes comprehensive TypeScript compiler options, naming conventions, and strict coding standards.
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 ## Compiler Options
 - **strict**: Enabled (strict null checks, no implicit any, etc.)

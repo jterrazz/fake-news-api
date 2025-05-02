@@ -10,16 +10,18 @@
     "build": "prisma generate && ts-compile",
     "start": "prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
     "dev": "prisma migrate deploy && NODE_ENV=development ts-watch",
-    "test": "prisma migrate deploy && LOG_LEVEL=error jest",
+    "test": "prisma migrate deploy && LOG_LEVEL=error vitest",
     "lint": "code-standards"
   },
   "devDependencies": {
     "@jterrazz/quality": "^2.2.0",
-    "@jterrazz/test": "^2.0.3",
     "@jterrazz/typescript": "^2.0.5",
     "@types/config": "^3.3.5",
+    "@types/mockdate": "^2.0.0",
     "@types/node": "^22.13.4",
-    "@types/node-cron": "^3.0.11"
+    "@types/node-cron": "^3.0.11",
+    "mockdate": "^3.0.5",
+    "vitest": "^3.1.2"
   },
   "dependencies": {
     "@date-fns/tz": "^1.2.0",
@@ -31,9 +33,11 @@
     "config": "^3.3.12",
     "date-fns": "^4.1.0",
     "hono": "^4.6.16",
+    "jest-mock-extended": "^4.0.0-beta1",
     "node-cron": "^3.0.3",
     "openai": "^4.96.0",
     "prisma": "^6.3.1",
+    "vitest-mock-extended": "^3.1.0",
     "zod": "^3.24.1",
     "zod-to-json-schema": "^3.24.4"
   }

@@ -1,8 +1,10 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import { type MonitoringPort } from '@jterrazz/monitoring';
-import { mock } from 'jest-mock-extended';
+import { mock } from 'vitest-mock-extended';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { beforeEach, describe, expect, it, beforeAll, afterAll, afterEach } from 'vitest';
+import MockDate from 'mockdate';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
@@ -67,7 +69,6 @@ describe('WorldNewsAdapter', () => {
     });
     afterEach(() => {
         server.resetHandlers();
-        jest.useRealTimers();
     });
     afterAll(() => server.close());
 
@@ -88,10 +89,7 @@ describe('WorldNewsAdapter', () => {
         // Given: Create a date representing 2:30 AM in France on Jan 15
         const fakeDate = createTZDateForCountry(new Date(2024, 0, 15, 2, 30, 0, 0), 'fr');
         const utcTimestamp = fakeDate.getTime();
-        jest.useFakeTimers({
-            doNotFake: ['nextTick', 'setImmediate', 'setTimeout', 'clearTimeout'],
-            now: utcTimestamp,
-        });
+        MockDate.set(utcTimestamp);
 
         // When: Fetching news
         await adapter.fetchTopNews();
@@ -100,6 +98,8 @@ describe('WorldNewsAdapter', () => {
         // Then: Dates should be different based on timezone
         expect(requestedDates['us']).toBe('2024-01-14');
         expect(requestedDates['fr']).toBe('2024-01-15');
+
+        MockDate.reset();
     });
 
     it('should handle API errors gracefully', async () => {

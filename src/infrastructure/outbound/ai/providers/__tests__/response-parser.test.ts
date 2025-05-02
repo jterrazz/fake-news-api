@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { describe, it, expect } from 'vitest';
 
 import { ResponseParser, ResponseParsingError } from '../response-parser.js';
 
@@ -154,7 +155,7 @@ describe('ResponseParser', () => {
             // When
             try {
                 ResponseParser.parse(text, testSchema);
-                fail('Should have thrown an error');
+                throw new Error('Should have thrown an error');
             } catch (error) {
                 // Then
                 expect(error).toBeInstanceOf(ResponseParsingError);
