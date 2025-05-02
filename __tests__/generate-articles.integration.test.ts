@@ -8,6 +8,7 @@ import {
     it,
     mockOfDate,
     vi,
+    vitest,
 } from '@jterrazz/test';
 
 import { container } from '../src/di/container.js';
@@ -39,15 +40,19 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
         // Set time to January 1st, 2020 at Paris time
         const mockDate = createTZDateAtCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
-        mockOfDate.set(mockDate);
-
-        vi.stubGlobal('setTimeout', (cb: (...args: any[]) => void) => cb());
+        // mockOfDate.set(mockDate);
+        vi.useFakeTimers({
+            now: mockDate.getTime(),
+            shouldAdvanceTime: true,
+            toFake: ['setTimeout'],
+        });
     });
 
     afterEach(async () => {
         await testContext.jobRunner.stop();
         mockOfDate.reset();
-        vi.unstubAllGlobals();
+
+        vi.useRealTimers();
     });
 
     afterAll(async () => {
@@ -65,7 +70,13 @@ describe('Job - Generate Articles - Integration Tests', () => {
         expect(articleGenerationJob?.executeOnStartup).toBe(true);
 
         // When
-        await articleGenerationJob!.execute();
+        const job = articleGenerationJob!.execute();
+        vitest.advanceTimersByTime(1500);
+        await vitest.runAllTimersAsync();
+        // const mockDate = createTZDateAtCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 1, 0, 0), 'fr');
+        // mockOfDate.set(mockDate);
+        vitest.setSystemTime(new Date(Date.now() + 15000)); // Move system time forward
+        await job;
 
         // Then: Verify the database state
         const articles = await prisma.article.findMany({

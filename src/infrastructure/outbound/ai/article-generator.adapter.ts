@@ -22,27 +22,25 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
 
     public async generateArticles(params: GenerateArticlesParams): Promise<Article[]> {
         try {
-            this.logger.info('Starting article generation with AI', {
+            this.logger.info('Generating articles with AI', {
                 count: params.count,
-                country: params.country,
-                language: params.language,
+                country: params.country.toString(),
+                language: params.language.toString(),
             });
 
             const prompt = this.promptGenerator.generatePrompt(params);
 
             // Get raw articles from AI
-            let rawArticles = await this.aiProvider.generateContent(prompt, {
-                capability: 'advanced',
-            });
+            let rawArticles = await this.aiProvider.generateContent(prompt);
 
             // Ensure we have exactly the requested number of articles
             if (rawArticles.length > params.count) {
                 rawArticles = rawArticles.slice(0, params.count);
             } else if (rawArticles.length < params.count) {
                 this.logger.warn('AI generated fewer articles than requested', {
-                    country: params.country,
+                    country: params.country.toString(),
                     expected: params.count,
-                    language: params.language,
+                    language: params.language.toString(),
                     received: rawArticles.length,
                 });
             }
@@ -70,19 +68,19 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             const fakeCount = articles.filter((a) => a.isFake()).length;
             this.logger.info('Generated articles with AI', {
                 articleCount: articles.length,
-                country: params.country,
+                country: params.country.toString(),
                 expected: params.count,
                 fakeCount,
-                language: params.language,
+                language: params.language.toString(),
                 realCount,
             });
 
             return articles;
         } catch (error) {
             this.logger.error('Failed to generate articles with AI', {
-                country: params.country,
+                country: params.country.toString(),
                 error,
-                language: params.language,
+                language: params.language.toString(),
             });
             throw error;
         }

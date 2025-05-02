@@ -4,7 +4,7 @@ import { type AIPrompt } from './prompt.port.js';
  * Configuration for AI model
  */
 export type AIModelConfig = {
-    capability: 'advanced' | 'basic';
+    capability: 'reasoning';
 };
 
 /**

@@ -100,9 +100,7 @@ export class ArticlePromptGenerator
             query: `Your job is to create articles for a "Spot the Fake News" game where the player will read articles and try to spot which ones are fake.
 
 ## Core Requirements:
-- Generate exactly ${count} news articles in total, mixing genuine and fictional articles.
-- All articles should be believable and derived from current events.
-- Article should fit in the real current timeline of events
+- All articles should be believable and inspired from the given current events. Article should fit in the real current timeline of events
 - Write each article professionally in the same style as would Reuters, BBC, etc, maintaining identical writing quality all articles.
 - Maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives.
 - If needed, give a short general context in each article (without explicitly saying context, but like a journalistic would introduce a subject to readers that are not familiar with the topic)
@@ -156,6 +154,11 @@ Create an informative summary that will be used in future generations in the fie
 - Reveals the article's authenticity status
 - Captures key information that will help the AI in future generations: it will avoir duplicated ideas and will be used to create a good article feed
 
+## Output Format:
+- Directly give me a JSON (like a JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription, null, 2)}
+
+Generate exactly ${count} news articles in total, mixing genuine and fictional articles.
+
 ## Knowledge Base:
 Here is the source of current events happening in the world:
 
@@ -165,10 +168,7 @@ ${JSON.stringify(news, null, 2)}
 Here is the list of articles already published in the game:
 
 "${HISTORY_KEY}":
-${JSON.stringify(publicationHistory, null, 2)}
-
-## Output Format:
-Direct output the JSON (a direct JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription, null, 2)}`,
+${JSON.stringify(publicationHistory, null, 2)}`,
             responseSchema: generatedArticleArraySchema,
         };
     }
