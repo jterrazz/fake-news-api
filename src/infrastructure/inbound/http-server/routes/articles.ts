@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 
+import { InvalidCursorError } from '../../../../application/errors/invalid-cursor.error.js';
 import { getArticlesParamsSchema } from '../../../../application/use-cases/articles/get-articles.use-case.js';
 
 import type { ArticleController } from '../controllers/article.controller.js';
@@ -30,6 +31,9 @@ export const createArticlesRouter = (articleController: ArticleController) => {
             const response = await articleController.getArticles(validatedParams.data);
             return c.json(response);
         } catch (error) {
+            if (error instanceof InvalidCursorError) {
+                return c.json({ error: error.message }, 422);
+            }
             console.error('Unexpected error in articles route:', error);
             return c.json(
                 { error: error instanceof Error ? error.message : 'Failed to fetch articles' },

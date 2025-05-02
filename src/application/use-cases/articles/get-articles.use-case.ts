@@ -13,6 +13,8 @@ import {
 
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
+import { InvalidCursorError } from '../../errors/invalid-cursor.error.js';
+
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
@@ -50,7 +52,7 @@ export class GetArticlesUseCase {
             const decodedString = Buffer.from(cursor, 'base64').toString();
             const timestamp = Number(decodedString);
 
-            if (isNaN(timestamp)) throw new Error('Invalid cursor timestamp');
+            if (isNaN(timestamp)) throw new InvalidCursorError('Invalid cursor timestamp');
 
             cursorDate = new Date(timestamp);
         }

@@ -138,7 +138,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
         const invalidCursorResponse = await httpServer.request('/articles?cursor=invalid-cursor');
 
         // Then
-        expect(invalidCursorResponse.status).toBe(500);
+        expect(invalidCursorResponse.status).toBe(422);
         expect(await invalidCursorResponse.json()).toMatchObject({
             error: expect.stringContaining('Invalid cursor'),
         });
@@ -149,7 +149,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
         );
 
         // Then
-        expect(invalidTimestampResponse.status).toBe(500);
+        expect(invalidTimestampResponse.status).toBe(422);
         expect(await invalidTimestampResponse.json()).toMatchObject({
             error: expect.stringContaining('Invalid cursor'),
         });
