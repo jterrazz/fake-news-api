@@ -1,3 +1,4 @@
+import { LoggerLevelSchema } from '@jterrazz/logger';
 import { z } from 'zod';
 
 import {
@@ -27,7 +28,7 @@ const configurationSchema = z.object({
         port: z.coerce.number().int().positive(),
     }),
     logging: z.object({
-        level: z.enum(['debug', 'info', 'warn', 'error']),
+        level: LoggerLevelSchema,
     }),
 });
 

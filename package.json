@@ -10,7 +10,7 @@
     "build": "prisma generate && ts-compile",
     "start": "prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
     "dev": "prisma migrate deploy && NODE_ENV=development ts-watch",
-    "test": "prisma migrate deploy && LOG_LEVEL=error vitest",
+    "test": "prisma migrate deploy && LOG_LEVEL=silent vitest",
     "lint": "code-standards"
   },
   "devDependencies": {
@@ -24,7 +24,7 @@
   "dependencies": {
     "@date-fns/tz": "^1.2.0",
     "@hono/node-server": "^1.13.7",
-    "@jterrazz/logger": "^1.1.0",
+    "@jterrazz/logger": "^1.2.0",
     "@jterrazz/monitoring": "^1.0.0",
     "@prisma/client": "^6.3.1",
     "@snap/ts-inject": "^0.3.2",
