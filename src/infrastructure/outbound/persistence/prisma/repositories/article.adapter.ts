@@ -8,7 +8,7 @@ import type {
     FindPublishedSummariesParams,
 } from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
 
-import type { Article } from '../../../../../domain/entities/article.js';
+import type { Article } from '../../../../../domain/entities/article.entity.js';
 
 import { ArticleMapper } from '../mappers/article.mapper.js';
 import type { PrismaAdapter } from '../prisma.adapter.js';

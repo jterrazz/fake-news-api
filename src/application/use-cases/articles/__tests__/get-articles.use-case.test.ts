@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from '@jterrazz/test';
 import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
 import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
-import { type Article } from '../../../../domain/entities/article.js';
+import { type Article } from '../../../../domain/entities/article.entity.js';
 import {
     ArticleCategory,
     CategoryEnum,

@@ -5,7 +5,7 @@ import {
     type Language,
 } from '@prisma/client';
 
-import { Article } from '../../../../../domain/entities/article.js';
+import { Article } from '../../../../../domain/entities/article.entity.js';
 import { ArticleCategory } from '../../../../../domain/value-objects/article-category.vo.js';
 import { ArticleContent } from '../../../../../domain/value-objects/article-content.vo.js';
 import { ArticleCountry } from '../../../../../domain/value-objects/article-country.vo.js';

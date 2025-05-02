@@ -6,7 +6,7 @@ import {
 } from '../../../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../../../application/ports/outbound/ai/provider.port.js';
 
-import { Article } from '../../../domain/entities/article.js';
+import { Article } from '../../../domain/entities/article.entity.js';
 
 import { ArticlePromptGenerator } from './prompts/article-prompt.generator.js';
 

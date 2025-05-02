@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { type Article } from '../../../domain/entities/article.js';
+import { type Article } from '../../../domain/entities/article.entity.js';
 import {
     ArticleCategory,
     CategoryEnum,

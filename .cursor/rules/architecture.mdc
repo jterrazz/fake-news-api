@@ -23,8 +23,8 @@ alwaysApply: true
 ## File Naming Patterns
 
 - **Domain**:
-  - Entities: `*.entity.ts` - ExampleEntity
-  - Value Objects: `*.value-object.ts` - ExampleValueObject
+  - Entities: `*.entity.ts` - Example
+  - Value Objects: `*.vo.ts` - Example
   - Enums: `*.enum.ts` - ExampleEnum
 - **Application**:
   - Use Cases: `*.use-case.ts` - ExampleUseCase with a public execute method

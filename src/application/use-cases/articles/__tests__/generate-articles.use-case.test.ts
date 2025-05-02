@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, mockOfDate, vi } from '@jt
 import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
 import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
-import { type Article } from '../../../../domain/entities/article.js';
+import { type Article } from '../../../../domain/entities/article.entity.js';
 import {
     ArticleCountry,
     CountryEnum,

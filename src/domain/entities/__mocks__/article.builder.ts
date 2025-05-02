@@ -5,7 +5,7 @@ import { ArticleFakeStatus } from '../../value-objects/article-fake-status.vo.js
 import { ArticleHeadline } from '../../value-objects/article-headline.vo.js';
 import { type ArticleLanguage } from '../../value-objects/article-language.vo.js';
 import { ArticleSummary } from '../../value-objects/article-summary.vo.js';
-import { Article } from '../article.js';
+import { Article } from '../article.entity.js';
 
 export function buildTestArticles(
     count: number,
