@@ -1,18 +1,18 @@
 import { container } from '../src/di/container.js';
 import { createTZDateForCountry } from '../src/shared/date/timezone.js';
 
+import { cleanDatabase } from './database/global.js';
 import { worldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
 import { openRouterGenerateArticlesResolver } from './resolvers/openrouter.ai/open-router.resolver.js';
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
     setupIntegrationTest,
-} from './support/integration.js';
+} from './setup/integration.js';
 
 describe('Job - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
     const EXPECTED_HOUR = 13;
-    const EXPECTED_ARTICLE_COUNT = 6;
 
     beforeAll(async () => {
         testContext = await setupIntegrationTest([
@@ -28,7 +28,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
     beforeEach(async () => {
         // Clean up articles before each test
-        await testContext.prisma.article.deleteMany();
+        await cleanDatabase(testContext.prisma);
 
         // Set time to January 1st, 2020 at Paris time
         const mockDate = createTZDateForCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
@@ -57,33 +57,108 @@ describe('Job - Generate Articles - Integration Tests', () => {
         // When
         await articleGenerationJob!.execute();
 
-        // Then verify the database state
+        // Then: Verify the database state
         const articles = await prisma.article.findMany({
             orderBy: { createdAt: 'desc' },
         });
 
-        // Verify article count based on time rules
-        expect(articles).toHaveLength(EXPECTED_ARTICLE_COUNT);
-
-        // Verify article properties
-        articles.forEach((article) => {
-            expect(article).toMatchObject({
-                category: expect.stringMatching(/^(TECHNOLOGY|POLITICS)$/),
+        expect(articles).toMatchObject([
+            {
+                article: expect.any(String),
+                category: 'TECHNOLOGY',
+                country: 'us',
                 createdAt: expect.any(Date),
-                headline: expect.any(String),
-                isFake: expect.any(Boolean),
-            });
-
-            // Verify creation time is at the expected hour
-            // const articleHour = article.createdAt.getHours();
-            // expect(articleHour).toBe(EXPECTED_HOUR);
-        });
-
-        // Verify we have a mix of real and fake articles
-        const fakeArticles = articles.filter((a) => a.isFake);
-        const realArticles = articles.filter((a) => !a.isFake);
-
-        expect(fakeArticles.length).toBeGreaterThan(0);
-        expect(realArticles.length).toBeGreaterThan(0);
+                fakeReason: null,
+                headline: expect.stringMatching(
+                    /Test Article Shows Promise in News Generation Research \d+/,
+                ),
+                id: expect.any(String),
+                isFake: false,
+                language: 'en',
+                summary: expect.stringMatching(
+                    /Test summary showcasing advances in AI-powered news generation\. \(Article \d+\)/,
+                ),
+            },
+            {
+                article: expect.any(String),
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason: expect.stringContaining('While quantum computing research is ongoing'),
+                headline: expect.stringMatching(
+                    /Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough \d+/,
+                ),
+                id: expect.any(String),
+                isFake: true,
+                language: 'en',
+                summary: expect.stringMatching(
+                    /Major technology companies have achieved a significant breakthrough in quantum computing/,
+                ),
+            },
+            {
+                article: expect.any(String),
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason: null,
+                headline: expect.stringMatching(
+                    /Test Article Shows Promise in News Generation Research \d+/,
+                ),
+                id: expect.any(String),
+                isFake: false,
+                language: 'en',
+                summary: expect.stringMatching(
+                    /Test summary showcasing advances in AI-powered news generation\. \(Article \d+\)/,
+                ),
+            },
+            {
+                article: expect.any(String),
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason: expect.stringContaining('While quantum computing research is ongoing'),
+                headline: expect.stringMatching(
+                    /Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough \d+/,
+                ),
+                id: expect.any(String),
+                isFake: true,
+                language: 'en',
+                summary: expect.stringMatching(
+                    /Major technology companies have achieved a significant breakthrough in quantum computing/,
+                ),
+            },
+            {
+                article: expect.any(String),
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason: null,
+                headline: expect.stringMatching(
+                    /Test Article Shows Promise in News Generation Research \d+/,
+                ),
+                id: expect.any(String),
+                isFake: false,
+                language: 'en',
+                summary: expect.stringMatching(
+                    /Test summary showcasing advances in AI-powered news generation\. \(Article \d+\)/,
+                ),
+            },
+            {
+                article: expect.any(String),
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason: expect.stringContaining('While quantum computing research is ongoing'),
+                headline: expect.stringMatching(
+                    /Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough \d+/,
+                ),
+                id: expect.any(String),
+                isFake: true,
+                language: 'en',
+                summary: expect.stringMatching(
+                    /Major technology companies have achieved a significant breakthrough in quantum computing/,
+                ),
+            },
+        ]);
     });
 });

@@ -11,7 +11,6 @@ logging:
 api:
   worldNews:
     apiKey: test-world-news-key
-    useCache: false
   openRouter:
     apiKey: test-openrouter-key
     budget: free

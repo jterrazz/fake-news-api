@@ -1,10 +1,10 @@
-import { seedArticles } from './seeds/article-fixture.js';
-import { cleanDatabase } from './seeds/database.js';
+import { cleanDatabase } from './database/global.js';
+import { seedArticles } from './database/seed-articles.js';
 import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
     setupIntegrationTest,
-} from './support/integration.js';
+} from './setup/integration.js';
 
 describe('HTTP - Get Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;

@@ -2,7 +2,7 @@ import {
     cleanupIntegrationTest,
     type IntegrationTestContext,
     setupIntegrationTest,
-} from './support/integration.js';
+} from './setup/integration.js';
 
 describe('HTTP - Health - Integration Tests', () => {
     let testContext: IntegrationTestContext;

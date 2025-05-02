@@ -14,12 +14,10 @@ export type IntegrationTestContext = {
     prisma: PrismaClient;
 };
 
-const createMsw = (handlers: RequestHandler[] = []) => {
-    const server = setupServer(...handlers);
-    return server;
-};
-
-// Cleanup function to be called after tests
+/**
+ * Cleanup function to be called after tests
+ * @param context - The integration test context
+ */
 export async function cleanupIntegrationTest(context: IntegrationTestContext): Promise<void> {
     await context.jobRunner.stop();
     await context.httpServer.stop();
@@ -27,13 +25,17 @@ export async function cleanupIntegrationTest(context: IntegrationTestContext): P
     context.msw.close();
 }
 
-// Setup function to be called before tests
+/**
+ * Setup function to be called before tests
+ * @param handlers - The request handlers to be used in the tests
+ * @returns The integration test context
+ */
 export async function setupIntegrationTest(
     handlers: RequestHandler[] = [],
 ): Promise<IntegrationTestContext> {
     const httpServer = container.get('HttpServer');
     const jobRunner = container.get('JobRunner');
-    const msw = createMsw(handlers);
+    const msw = setupServer(...handlers);
     const prisma = new PrismaClient();
 
     msw.listen({ onUnhandledRequest: 'warn' });
