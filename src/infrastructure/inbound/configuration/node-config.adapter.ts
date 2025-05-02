@@ -2,8 +2,8 @@ import { LoggerLevelSchema } from '@jterrazz/logger';
 import { z } from 'zod';
 
 import {
-    type ApiConfiguration,
-    type AppConfiguration,
+    type ApiConfigurationPort,
+    type AppConfigurationPort,
     type ConfigurationPort,
 } from '../../../application/ports/inbound/configuration.port.js';
 
@@ -44,11 +44,11 @@ export class NodeConfigAdapter implements ConfigurationPort {
         this.configuration = configurationSchema.parse(configurationInput);
     }
 
-    public getApiConfiguration(): ApiConfiguration {
+    public getApiConfiguration(): ApiConfigurationPort {
         return this.configuration.api;
     }
 
-    public getAppConfiguration(): AppConfiguration {
+    public getAppConfiguration(): AppConfigurationPort {
         return {
             ...this.configuration.app,
             logging: this.configuration.logging,

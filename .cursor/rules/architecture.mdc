@@ -4,6 +4,7 @@ globs:
 alwaysApply: true
 ---
 ## Directory Structure
+
 - **src**: Root directory containing core logic.
   - **domain**: Core business logic and entities.
     - **entities**: Business entities with `.entity.ts` suffix.
@@ -20,20 +21,23 @@ alwaysApply: true
     - Contains configuration files such as `container.ts`.
 
 ## File Naming Patterns
+
 - **Domain**:
-  - Entities: `*.entity.ts`
-  - Value Objects: `*.value-object.ts`
-  - Enums: `*.enum.ts`
+  - Entities: `*.entity.ts` - ExampleEntity
+  - Value Objects: `*.value-object.ts` - ExampleValueObject
+  - Enums: `*.enum.ts` - ExampleEnum
 - **Application**:
-  - Use Cases: `*.use-case.ts`
-  - DTOs: `*.dto.ts`
-  - Ports: `*.port.ts`
-  - Errors: `*.error.ts`
+  - Use Cases: `*.use-case.ts` - ExampleUseCase with a public execute method
+  - DTOs: `*.dto.ts` - ExampleDTO
+  - Ports: `*.port.ts` - ExamplePort
+  - Errors: `*.error.ts` - ExampleError
 - **Infrastructure**:
-  - Inbound/Outbound Adapters: `*.adapter.ts`
+  - Inbound/Outbound Adapters: `*.adapter.ts` - ExampleAdapter
 
 ## Dependency Rules
+
 - **Allowed Dependencies**:
+
   - `application` → `domain`
   - `infrastructure` → `domain`, `application`
   - `di` → `domain`, `application`, `infrastructure`
@@ -44,15 +48,19 @@ alwaysApply: true
   - `infrastructure` → ✖️`di`
 
 ## Code Organization
+
 - Max lines per file: 300
 - Max lines per function: 50
 
 ## Naming Conventions
+
 - Files: lowercase with dashes (e.g., `user-profile.entity.ts`)
 - Directories: lowercase with dashes (e.g., `use-cases`)
 
 ## Documentation Requirements
+
+In a JSDoc style (/\*_\n ...\n _/)
+
 - **Entities**: Require `@description` and `@example`.
-- **Use Cases**: Require `@description`, `@param`, and `@returns`.
-- **Ports**: Require `@description` and `@injectable`.
-- **Inbound & Outbound Adapters**: Require `@description` and `@injectable`.
+- **Use Cases**: Require `@description`.
+- **Ports**: Require `/@description`.

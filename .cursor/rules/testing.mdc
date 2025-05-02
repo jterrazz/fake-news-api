@@ -7,7 +7,7 @@ alwaysApply: false
 
 - **Unit tests**: Located alongside source files using `__tests__/`, using `.test.ts`
 - **Integration tests**: Located under `${ROOT}/__tests__`, using `.integration.test.ts`
-- **Fixtures**: Located in `__tests__/__fixtures__/`
+- **Fixtures**: Located in `__tests__/fixtures/`
 
 ## File Organization
 

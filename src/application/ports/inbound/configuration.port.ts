@@ -1,7 +1,7 @@
 /**
  * API configuration
  */
-export interface ApiConfiguration {
+export interface ApiConfigurationPort {
     openRouter: {
         apiKey: string;
         budget: 'free' | 'paid';
@@ -15,7 +15,7 @@ export interface ApiConfiguration {
 /**
  * App configuration
  */
-export interface AppConfiguration {
+export interface AppConfigurationPort {
     env: 'development' | 'production' | 'test';
     host: string;
     logging: {
@@ -32,12 +32,12 @@ export interface ConfigurationPort {
     /**
      * Get the API configuration
      */
-    getApiConfiguration(): ApiConfiguration;
+    getApiConfiguration(): ApiConfigurationPort;
 
     /**
      * Get the application configuration
      */
-    getAppConfiguration(): AppConfiguration;
+    getAppConfiguration(): AppConfigurationPort;
 }
 
 /**
