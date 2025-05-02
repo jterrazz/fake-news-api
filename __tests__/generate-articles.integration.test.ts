@@ -7,6 +7,7 @@ import {
     expect,
     it,
     mockOfDate,
+    vi,
 } from '@jterrazz/test';
 
 import { container } from '../src/di/container.js';
@@ -39,11 +40,14 @@ describe('Job - Generate Articles - Integration Tests', () => {
         // Set time to January 1st, 2020 at Paris time
         const mockDate = createTZDateForCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
         mockOfDate.set(mockDate);
+
+        vi.stubGlobal('setTimeout', (cb: (...args: any[]) => void) => cb());
     });
 
     afterEach(async () => {
         await testContext.jobRunner.stop();
         mockOfDate.reset();
+        vi.unstubAllGlobals();
     });
 
     afterAll(async () => {
