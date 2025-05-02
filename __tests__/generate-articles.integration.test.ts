@@ -11,7 +11,7 @@ import {
 } from '@jterrazz/test';
 
 import { container } from '../src/di/container.js';
-import { createTZDateForCountry } from '../src/shared/date/timezone.js';
+import { createTZDateForCountry as createTZDateAtCountry } from '../src/shared/date/timezone.js';
 
 import { cleanDatabase } from './database/global.js';
 import { worldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
@@ -38,7 +38,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
         await cleanDatabase(testContext.prisma);
 
         // Set time to January 1st, 2020 at Paris time
-        const mockDate = createTZDateForCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
+        const mockDate = createTZDateAtCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
         mockOfDate.set(mockDate);
 
         vi.stubGlobal('setTimeout', (cb: (...args: any[]) => void) => cb());
