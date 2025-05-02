@@ -9,8 +9,16 @@ import {
     type IntegrationTestContext,
     setupIntegrationTest,
 } from './setup/integration.js';
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from 'vitest';
-import MockDate from 'mockdate';
+import {
+    describe,
+    it,
+    expect,
+    beforeAll,
+    beforeEach,
+    afterAll,
+    afterEach,
+    mockOfDate,
+} from '@jterrazz/test';
 
 describe('Job - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
@@ -29,16 +37,15 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
         // Set time to January 1st, 2020 at Paris time
         const mockDate = createTZDateForCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
-        MockDate.set(mockDate);
+        mockOfDate.set(mockDate);
     });
 
     afterEach(async () => {
         await testContext.jobRunner.stop();
-        MockDate.reset();
+        mockOfDate.reset();
     });
 
     afterAll(async () => {
-        vi.useRealTimers();
         await cleanupIntegrationTest(testContext);
     });
 
@@ -57,105 +64,99 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
         // Then: Verify the database state
         const articles = await prisma.article.findMany({
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ headline: 'asc' }],
         });
 
         expect(articles).toMatchObject([
             {
-                article: expect.any(String),
+                article:
+                    'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason:
+                    'While quantum computing research is ongoing, room temperature qubit stability remains a significant challenge. This article fabricates a breakthrough that has not occurred.',
+                headline:
+                    'Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough 1',
+                id: expect.any(String),
+                isFake: true,
+                language: 'en',
+                summary:
+                    'Major technology companies have achieved a significant breakthrough in quantum computing, demonstrating stable qubit operations at room temperature. (Article 1)',
+            },
+            {
+                article:
+                    'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason:
+                    'While quantum computing research is ongoing, room temperature qubit stability remains a significant challenge. This article fabricates a breakthrough that has not occurred.',
+                headline:
+                    'Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough 3',
+                id: expect.any(String),
+                isFake: true,
+                language: 'en',
+                summary:
+                    'Major technology companies have achieved a significant breakthrough in quantum computing, demonstrating stable qubit operations at room temperature. (Article 3)',
+            },
+            {
+                article:
+                    'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
+                category: 'TECHNOLOGY',
+                country: 'us',
+                createdAt: expect.any(Date),
+                fakeReason:
+                    'While quantum computing research is ongoing, room temperature qubit stability remains a significant challenge. This article fabricates a breakthrough that has not occurred.',
+                headline:
+                    'Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough 5',
+                id: expect.any(String),
+                isFake: true,
+                language: 'en',
+                summary:
+                    'Major technology companies have achieved a significant breakthrough in quantum computing, demonstrating stable qubit operations at room temperature. (Article 5)',
+            },
+            {
+                article:
+                    'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
                 category: 'TECHNOLOGY',
                 country: 'us',
                 createdAt: expect.any(Date),
                 fakeReason: null,
-                headline: expect.stringMatching(
-                    /Test Article Shows Promise in News Generation Research \d+/,
-                ),
+                headline: 'Test Article Shows Promise in News Generation Research 2',
                 id: expect.any(String),
                 isFake: false,
                 language: 'en',
-                summary: expect.stringMatching(
-                    /Test summary showcasing advances in AI-powered news generation\. \(Article \d+\)/,
-                ),
+                summary:
+                    'Test summary showcasing advances in AI-powered news generation. (Article 2)',
             },
             {
-                article: expect.any(String),
-                category: 'TECHNOLOGY',
-                country: 'us',
-                createdAt: expect.any(Date),
-                fakeReason: expect.stringContaining('While quantum computing research is ongoing'),
-                headline: expect.stringMatching(
-                    /Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough \d+/,
-                ),
-                id: expect.any(String),
-                isFake: true,
-                language: 'en',
-                summary: expect.stringMatching(
-                    /Major technology companies have achieved a significant breakthrough in quantum computing/,
-                ),
-            },
-            {
-                article: expect.any(String),
+                article:
+                    'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
                 category: 'TECHNOLOGY',
                 country: 'us',
                 createdAt: expect.any(Date),
                 fakeReason: null,
-                headline: expect.stringMatching(
-                    /Test Article Shows Promise in News Generation Research \d+/,
-                ),
+                headline: 'Test Article Shows Promise in News Generation Research 4',
                 id: expect.any(String),
                 isFake: false,
                 language: 'en',
-                summary: expect.stringMatching(
-                    /Test summary showcasing advances in AI-powered news generation\. \(Article \d+\)/,
-                ),
+                summary:
+                    'Test summary showcasing advances in AI-powered news generation. (Article 4)',
             },
             {
-                article: expect.any(String),
-                category: 'TECHNOLOGY',
-                country: 'us',
-                createdAt: expect.any(Date),
-                fakeReason: expect.stringContaining('While quantum computing research is ongoing'),
-                headline: expect.stringMatching(
-                    /Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough \d+/,
-                ),
-                id: expect.any(String),
-                isFake: true,
-                language: 'en',
-                summary: expect.stringMatching(
-                    /Major technology companies have achieved a significant breakthrough in quantum computing/,
-                ),
-            },
-            {
-                article: expect.any(String),
+                article:
+                    'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
                 category: 'TECHNOLOGY',
                 country: 'us',
                 createdAt: expect.any(Date),
                 fakeReason: null,
-                headline: expect.stringMatching(
-                    /Test Article Shows Promise in News Generation Research \d+/,
-                ),
+                headline: 'Test Article Shows Promise in News Generation Research 6',
                 id: expect.any(String),
                 isFake: false,
                 language: 'en',
-                summary: expect.stringMatching(
-                    /Test summary showcasing advances in AI-powered news generation\. \(Article \d+\)/,
-                ),
-            },
-            {
-                article: expect.any(String),
-                category: 'TECHNOLOGY',
-                country: 'us',
-                createdAt: expect.any(Date),
-                fakeReason: expect.stringContaining('While quantum computing research is ongoing'),
-                headline: expect.stringMatching(
-                    /Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough \d+/,
-                ),
-                id: expect.any(String),
-                isFake: true,
-                language: 'en',
-                summary: expect.stringMatching(
-                    /Major technology companies have achieved a significant breakthrough in quantum computing/,
-                ),
+                summary:
+                    'Test summary showcasing advances in AI-powered news generation. (Article 6)',
             },
         ]);
     }, 20000);

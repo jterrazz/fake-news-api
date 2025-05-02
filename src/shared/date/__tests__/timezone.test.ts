@@ -1,6 +1,5 @@
 import { TZDate } from '@date-fns/tz';
-import { beforeEach, afterEach, describe, it, expect } from 'vitest';
-import MockDate from 'mockdate';
+import { beforeEach, afterEach, describe, it, expect, mockOfDate } from '@jterrazz/test';
 
 import {
     COUNTRY_TIMEZONE_MAP,
@@ -15,11 +14,11 @@ describe('Timezone Utilities', () => {
     const parisTimezone = 'Europe/Paris';
 
     beforeEach(() => {
-        MockDate.set(originalDate);
+        mockOfDate.set(originalDate);
     });
 
     afterEach(() => {
-        MockDate.reset();
+        mockOfDate.reset();
     });
 
     describe('createCurrentTZDateForCountry', () => {

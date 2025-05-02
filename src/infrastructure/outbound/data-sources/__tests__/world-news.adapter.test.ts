@@ -1,10 +1,18 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import { type MonitoringPort } from '@jterrazz/monitoring';
-import { mock } from 'vitest-mock-extended';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { beforeEach, describe, expect, it, beforeAll, afterAll, afterEach } from 'vitest';
-import MockDate from 'mockdate';
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    beforeAll,
+    afterAll,
+    afterEach,
+    mockOfDate,
+    mockOf,
+} from '@jterrazz/test';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
@@ -15,7 +23,7 @@ import { WorldNewsAdapter, type WorldNewsAdapterConfiguration } from '../world-n
 const mockConfiguration: WorldNewsAdapterConfiguration = {
     apiKey: 'test-world-news-key',
 };
-const mockLogger = mock<LoggerPort>();
+const mockLogger = mockOf<LoggerPort>();
 
 let requestedDates: Record<string, string> = {};
 
@@ -62,7 +70,7 @@ describe('WorldNewsAdapter', () => {
 
     beforeAll(() => server.listen());
     beforeEach(() => {
-        const newRelicAdapter = mock<MonitoringPort>();
+        const newRelicAdapter = mockOf<MonitoringPort>();
         newRelicAdapter.monitorSegment.mockImplementation(async (_name, cb) => cb());
         adapter = new WorldNewsAdapter(mockConfiguration, mockLogger, newRelicAdapter);
         requestedDates = {};
@@ -89,7 +97,7 @@ describe('WorldNewsAdapter', () => {
         // Given: Create a date representing 2:30 AM in France on Jan 15
         const fakeDate = createTZDateForCountry(new Date(2024, 0, 15, 2, 30, 0, 0), 'fr');
         const utcTimestamp = fakeDate.getTime();
-        MockDate.set(utcTimestamp);
+        mockOfDate.set(utcTimestamp);
 
         // When: Fetching news
         await adapter.fetchTopNews();
@@ -99,7 +107,7 @@ describe('WorldNewsAdapter', () => {
         expect(requestedDates['us']).toBe('2024-01-14');
         expect(requestedDates['fr']).toBe('2024-01-15');
 
-        MockDate.reset();
+        mockOfDate.reset();
     });
 
     it('should handle API errors gracefully', async () => {

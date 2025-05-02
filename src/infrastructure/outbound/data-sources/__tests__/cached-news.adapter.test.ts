@@ -1,15 +1,15 @@
+import { beforeEach, describe, expect, it, Mock, mockOf } from '@jterrazz/test';
+import { vitest } from 'vitest';
 import { type LoggerPort } from '@jterrazz/logger';
-import { mock } from 'vitest-mock-extended';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { beforeEach, describe, expect, it, vitest, Mock } from 'vitest';
 
 import {
     type FetchNewsOptions,
     type NewsArticle,
     type NewsPort,
 } from '../../../../application/ports/outbound/data-sources/news.port.js';
-
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+
 import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { CachedNewsAdapter } from '../cached-news.adapter.js';
@@ -18,8 +18,8 @@ vitest.mock('node:fs');
 
 describe('CachedNewsAdapter', () => {
     // Given
-    const mockNewsSource = mock<NewsPort>();
-    const mockLogger = mock<LoggerPort>();
+    const mockNewsSource = mockOf<NewsPort>();
+    const mockLogger = mockOf<LoggerPort>();
     const cacheDirectory = 'test';
 
     const defaultOptions: FetchNewsOptions = {

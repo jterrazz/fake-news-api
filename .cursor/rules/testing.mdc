@@ -32,10 +32,10 @@ Tests should follow this clear order depending on requirements:
 
 ## Dependencies
 
-- vitest (latest)
-- vitest-mock-extended (latest)
-- mockdate (latest)
-- mswjs for mocking api calls (latest)
+- import { describe, it, expect } from '@jterrazz/test'; (exports all of vitest exports) (latest)
+- import { mockOf } from '@jterrazz/test'; (implementation similar to package vitest-mock-extended) (latest)
+- import { mockOfDate } from '@jterrazz/test'; (implementation similar to package mockdate) (latest)
+- import { mswjs } from '@jterrazz/test'; (for mocking api calls with mswjs) (latest)
 
 ## Best Practices
 

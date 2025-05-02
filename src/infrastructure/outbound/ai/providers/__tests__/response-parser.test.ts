@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jterrazz/test';
 
 import { ResponseParser, ResponseParsingError } from '../response-parser.js';
 

@@ -5,7 +5,7 @@ import {
     type IntegrationTestContext,
     setupIntegrationTest,
 } from './setup/integration.js';
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from '@jterrazz/test';
 
 describe('HTTP - Get Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;

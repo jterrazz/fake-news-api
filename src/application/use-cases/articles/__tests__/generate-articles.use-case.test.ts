@@ -1,8 +1,7 @@
 import { TZDate } from '@date-fns/tz';
 import { type LoggerPort } from '@jterrazz/logger';
 import { mock, type DeepMockProxy } from 'vitest-mock-extended';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import MockDate from 'mockdate';
+import { describe, it, expect, beforeEach, afterEach, vi, mockOfDate } from '@jterrazz/test';
 
 import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
 import { type Article } from '../../../../domain/entities/article.js';
@@ -91,7 +90,7 @@ describe('GenerateArticlesUseCase', () => {
     afterEach(() => {
         vi.useRealTimers();
         vi.clearAllMocks();
-        MockDate.reset();
+        mockOfDate.reset();
     });
 
     describe('execute', () => {
@@ -108,7 +107,7 @@ describe('GenerateArticlesUseCase', () => {
             async ({ existingCount, expectedToGenerate, hour }) => {
                 // Given
                 const testDate = createDateAtHour(hour, 'America/New_York');
-                MockDate.set(testDate);
+                mockOfDate.set(testDate);
                 mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
@@ -155,7 +154,7 @@ describe('GenerateArticlesUseCase', () => {
             async ({ existingCount, expectedToGenerate, hour }) => {
                 // Given
                 const testDate = createDateAtHour(hour, 'Europe/Paris');
-                MockDate.set(testDate);
+                mockOfDate.set(testDate);
                 const frenchCountry = ArticleCountry.create(CountryEnum.France);
                 const frenchLanguage = ArticleLanguage.create(LanguageEnum.French);
                 mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
@@ -194,7 +193,7 @@ describe('GenerateArticlesUseCase', () => {
         it('should not generate articles before 6am (France)', async () => {
             // Given
             const testDate = createDateAtHour(4, 'Europe/Paris');
-            MockDate.set(testDate);
+            mockOfDate.set(testDate);
             const frenchCountry = ArticleCountry.create(CountryEnum.France);
             const frenchLanguage = ArticleLanguage.create(LanguageEnum.French);
 
@@ -220,7 +219,7 @@ describe('GenerateArticlesUseCase', () => {
         it('should handle case when no news articles are found', async () => {
             // Given
             const testDate = createDateAtHour(7, 'America/New_York');
-            MockDate.set(testDate);
+            mockOfDate.set(testDate);
             mockNewsService.fetchTopNews.mockResolvedValue([]);
 
             // When
@@ -235,7 +234,7 @@ describe('GenerateArticlesUseCase', () => {
         it('should handle and re-throw errors during execution', async () => {
             // Given
             const testDate = new TZDate(2020, 0, 1, 14, 0, 0, 0, 'America/New_York');
-            MockDate.set(testDate);
+            mockOfDate.set(testDate);
             const testError = new Error('Test error');
             mockNewsService.fetchTopNews.mockRejectedValue(testError);
 
