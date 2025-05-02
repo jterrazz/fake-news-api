@@ -10,6 +10,7 @@ import {
     it,
     mockOf,
     mockOfDate,
+    vitest,
 } from '@jterrazz/test';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -68,7 +69,10 @@ const server = setupServer(
 describe('WorldNewsAdapter', () => {
     let adapter: WorldNewsAdapter;
 
-    beforeAll(() => server.listen());
+    beforeAll(() => {
+        server.listen();
+        vitest.useFakeTimers();
+    });
     beforeEach(() => {
         const newRelicAdapter = mockOf<MonitoringPort>();
         newRelicAdapter.monitorSegment.mockImplementation(async (_name, cb) => cb());
@@ -78,7 +82,10 @@ describe('WorldNewsAdapter', () => {
     afterEach(() => {
         server.resetHandlers();
     });
-    afterAll(() => server.close());
+    afterAll(() => {
+        server.close();
+        vitest.useRealTimers();
+    });
 
     it('should fetch news successfully', async () => {
         // When: Fetching news
@@ -100,8 +107,14 @@ describe('WorldNewsAdapter', () => {
         mockOfDate.set(utcTimestamp);
 
         // When: Fetching news
-        await adapter.fetchTopNews();
-        await adapter.fetchTopNews({ country: ArticleCountry.create('fr') });
+        const first = adapter.fetchTopNews();
+        vitest.runAllTimers();
+        await first;
+
+        vitest.advanceTimersByTime(1500);
+        const second = adapter.fetchTopNews({ country: ArticleCountry.create('fr') });
+        vitest.runAllTimers();
+        await second;
 
         // Then: Dates should be different based on timezone
         expect(requestedDates['us']).toBe('2024-01-14');
@@ -170,11 +183,16 @@ describe('WorldNewsAdapter', () => {
 
     it('should respect rate limiting between requests', async () => {
         // When: Making two consecutive requests
-        const first = await adapter.fetchTopNews();
-        const second = await adapter.fetchTopNews();
+        const first = adapter.fetchTopNews();
+        vitest.runAllTimers();
+        const firstResult = await first;
+        vitest.advanceTimersByTime(1500);
+        const second = adapter.fetchTopNews();
+        vitest.runAllTimers();
+        const secondResult = await second;
 
         // Then: Both should be arrays (possibly empty)
-        expect(Array.isArray(first)).toBe(true);
-        expect(Array.isArray(second)).toBe(true);
+        expect(Array.isArray(firstResult)).toBe(true);
+        expect(Array.isArray(secondResult)).toBe(true);
     });
 });
