@@ -14,7 +14,7 @@
     "lint": "code-standards"
   },
   "devDependencies": {
-    "@jterrazz/quality": "^2.2.1",
+    "@jterrazz/quality": "2.2.6",
     "@jterrazz/test": "^3.0.0",
     "@jterrazz/typescript": "^2.3.4",
     "@types/config": "^3.3.5",

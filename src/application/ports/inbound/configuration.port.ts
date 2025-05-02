@@ -1,3 +1,5 @@
+import { type LoggerLevel } from '@jterrazz/logger';
+
 /**
  * API configuration
  */
@@ -19,7 +21,7 @@ export interface AppConfigurationPort {
     env: 'development' | 'production' | 'test';
     host: string;
     logging: {
-        level: 'debug' | 'error' | 'info' | 'warn';
+        level: LoggerLevel;
     };
     newRelic: NewRelicConfiguration;
     port: number;
