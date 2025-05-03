@@ -91,10 +91,12 @@ export class GenerateArticlesUseCase {
             // Generate AI articles based on real ones
             const generatedArticles = await this.articleGenerator.generateArticles({
                 articles: {
-                    news: news.map((article) => ({
-                        content: article.text,
-                        title: article.title,
-                    })),
+                    news: news
+                        .map((article) => ({
+                            content: article.text,
+                            title: article.title,
+                        }))
+                        .slice(0, 21),
                     publicationHistory: publishedSummaries.map((summary) => ({
                         headline: summary.headline,
                         summary: summary.summary,

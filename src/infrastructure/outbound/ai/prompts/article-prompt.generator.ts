@@ -38,7 +38,7 @@ const generatedArticleSchema = z.object({
         .nullable()
         .default(null)
         .describe(
-            'If isFake is false, this field MUST be null. If isFake is true, this field MUST be a string with the reason why the article is fake.',
+            'If isFake is false, this field MUST be null. If isFake is true, this field MUST be the reason why the article is fake. This field will be read by the player to understand why the article is fake. So make the explanation clear, explaining why it was fake, and what the real truth events are.',
         ),
     headline: headlineSchema.describe('The headline of the article'),
     isFake: z.boolean().default(false).describe('Whether the article is fake or not'),
@@ -76,6 +76,8 @@ const generatedArticleArraySchema = z.array(
     })),
 ) as unknown as z.ZodType<GeneratedArticle[]>;
 
+const NEWS_KEY = '"RealWorldNews"';
+const HISTORY_KEY = '"ArticlesAlreadyPublishedInTheGame"';
 /**
  * Article content generator class
  */
@@ -93,8 +95,6 @@ export class ArticlePromptGenerator
         language,
     }: GenerateArticlesParams): AIPrompt<GeneratedArticle[]> {
         const languageLabel = language.toString();
-        const NEWS_KEY = '"RealWorldNews"';
-        const HISTORY_KEY = '"ArticlesAlreadyPublishedInTheGame"';
 
         const systemPrompt = getArticleSystemPrompt(languageLabel);
         const dynamicPrompt = `Generate exactly ${count} news articles in total, mixing genuine and fictional articles.
@@ -129,7 +129,7 @@ export function getArticleSystemPrompt(languageLabel: string): string {
 - Maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives.
 - If needed, give a short general context in each article (without explicitly saying context, but like a journalistic would introduce a subject to readers that are not familiar with the topic)
 - Never reveal if an article is fake/real in its content
-- Use ONLY the provided news "RealWorldNews" as the source of current events happening in the world
+- Use ONLY the provided news ${NEWS_KEY} as the source of current events happening in the world
 - Multiple articles could eventually cover different angles of the same story if you think it's interesting
 - Double check if the field isFake is correctly set
 
@@ -174,9 +174,9 @@ For FAKE articles:
 - Keep metadata annotations concise and factual
 
 ## Summary Field:
-Create an informative summary that will be used in future generations in the field "ArticlesAlreadyPublishedInTheGame"
+Create an informative summary that will be used in future generations in the field ${HISTORY_KEY}
 - Reveals the article's authenticity status
-- Captures key information that will help the AI in future generations: it will avoir duplicated ideas and will be used to create a good article feed
+- Captures key information that will help the AI in future generations: it avoids duplicated ideas and will be used for a good article feed
 
 ## Output Format:
 - Directly give me a JSON (like a JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription, null, 2)}`;
