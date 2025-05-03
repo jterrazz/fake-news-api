@@ -1,6 +1,7 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import { type MonitoringPort } from '@jterrazz/monitoring';
-import OpenAI from 'openai';
+import { createOpenRouter, type OpenRouterProvider } from '@openrouter/ai-sdk-provider';
+import { generateText } from 'ai';
 
 import { type AIPrompt } from '../../../../application/ports/outbound/ai/prompt.port.js';
 import {
@@ -15,8 +16,8 @@ import { ResponseParser, ResponseParsingError } from './response-parser.js';
  * Handles content generation with automatic retries for parsing errors.
  */
 export class OpenRouterAdapter implements AIProviderPort {
-    private readonly client: OpenAI;
     private readonly maxAttempts: number = 3;
+    private readonly openRouterProvider: OpenRouterProvider;
 
     constructor(
         private readonly logger: LoggerPort,
@@ -26,10 +27,10 @@ export class OpenRouterAdapter implements AIProviderPort {
             budget: 'free' | 'paid';
         },
     ) {
-        this.client = new OpenAI({
+        this.openRouterProvider = createOpenRouter({
             apiKey: config.apiKey,
-            baseURL: 'https://openrouter.ai/api/v1',
-            defaultHeaders: {
+            headers: {
+                'HTTP-Referer': 'https://jterrazz.com',
                 'X-Title': 'Fake News',
             },
         });
@@ -85,40 +86,30 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     private async generateModelResponse<T>(model: string, prompt: AIPrompt<T>): Promise<string> {
         return this.monitoring.monitorSegment('Ai/OpenRouter/Request', async () => {
-            // Only support OpenAI-style messages array
-            const completion = await this.client.chat.completions.create({
-                messages: prompt.messages,
-                model,
+            // Prepare model instance
+            const modelInstance = this.openRouterProvider(model);
+            // Prepare messages, passing providerMetadata for cache control if present
+            const messages = prompt.messages.map((msg) => {
+                if (msg.role === 'system' && 'cache' in msg && msg.cache) {
+                    return {
+                        ...msg,
+                        providerMetadata: {
+                            openrouter: {
+                                cacheControl: { type: 'ephemeral' },
+                            },
+                        },
+                    };
+                }
+                return msg;
             });
-
-            if (!completion) {
-                this.monitoring.recordCount('OpenRouter', 'Errors/NoResponse');
-                throw new Error('No response received from OpenRouter');
-            }
-
-            if (
-                !completion.choices ||
-                !Array.isArray(completion.choices) ||
-                completion.choices.length === 0
-            ) {
-                this.monitoring.recordCount('OpenRouter', 'Errors/NoChoices');
-                this.logger.error('Invalid response format from OpenRouter', { completion });
-                throw new Error('Invalid response format from OpenRouter: No choices array');
-            }
-
-            const firstChoice = completion.choices[0];
-            if (!firstChoice || !firstChoice.message) {
-                this.monitoring.recordCount('OpenRouter', 'Errors/InvalidChoice');
-                this.logger.error('Invalid choice format from OpenRouter', { firstChoice });
-                throw new Error('Invalid choice format from OpenRouter');
-            }
-
-            const text = firstChoice.message.content;
+            const { text } = await generateText({
+                messages,
+                model: modelInstance,
+            });
             if (!text) {
                 this.monitoring.recordCount('OpenRouter', 'Errors/EmptyResponse');
                 throw new Error('Empty response content from OpenRouter');
             }
-
             return text;
         });
     }

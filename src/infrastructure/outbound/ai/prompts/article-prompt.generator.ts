@@ -109,7 +109,7 @@ ${HISTORY_KEY}:
 ${JSON.stringify(publicationHistory, null, 2)}`;
         return {
             messages: [
-                { content: systemPrompt, role: 'system' },
+                { cache: true, content: systemPrompt, role: 'system' },
                 { content: dynamicPrompt, role: 'user' },
             ],
             responseSchema: generatedArticleArraySchema,

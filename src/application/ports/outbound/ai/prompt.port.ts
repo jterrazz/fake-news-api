@@ -18,8 +18,10 @@ export interface AIPromptGenerator<TInput, TOutput> {
 
 /**
  * OpenAI-style message for chat completion
+ * Optionally supports a 'cache' property for system prompt caching (OpenRouter extension)
  */
 export interface Message {
+    cache?: boolean;
     content: string;
     role: 'assistant' | 'system' | 'user';
 }

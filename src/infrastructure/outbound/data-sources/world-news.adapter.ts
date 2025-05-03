@@ -57,7 +57,10 @@ export class WorldNewsAdapter implements NewsPort {
         } = options || {};
         return this.monitoring.monitorSegment('Api/WorldNews/FetchTopNews', async () => {
             try {
-                this.logger.info('Retrieving news articles:', { country, language });
+                this.logger.info('Retrieving news articles:', {
+                    country: country.toString(),
+                    language: language.toString(),
+                });
                 await this.enforceRateLimit();
 
                 const { tzDate } = createCurrentTZDateForCountry(country.toString());
@@ -92,17 +95,17 @@ export class WorldNewsAdapter implements NewsPort {
 
                 this.logger.info('Successfully retrieved news articles:', {
                     articleCount: articles.length,
-                    country,
-                    language,
+                    country: country.toString(),
+                    language: language.toString(),
                 });
 
                 return articles;
             } catch (error) {
                 this.monitoring.recordCount('WorldNews', 'Errors');
                 this.logger.error(`Failed to fetch ${language} news:`, {
-                    country,
+                    country: country.toString(),
                     error,
-                    language,
+                    language: language.toString(),
                 });
                 return [];
             }
