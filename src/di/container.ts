@@ -206,23 +206,24 @@ const jobRunnerFactory = Injectable(
 /**
  * Container configuration
  */
-export const container = Container
-    // Outbound adapters
-    .provides(configurationFactory)
-    .provides(loggerFactory)
-    .provides(newRelicFactory)
-    .provides(databaseFactory)
-    .provides(newsFactory)
-    .provides(aiProviderFactory)
-    .provides(articleGeneratorFactory)
-    // Repositories
-    .provides(articleRepositoryFactory)
-    // Use cases
-    .provides(generateArticlesUseCaseFactory)
-    .provides(getArticlesUseCaseFactory)
-    // Controllers and jobs
-    .provides(articleControllerFactory)
-    .provides(jobsFactory)
-    // Inbound adapters
-    .provides(httpServerFactory)
-    .provides(jobRunnerFactory);
+export const createContainer = () =>
+    Container
+        // Outbound adapters
+        .provides(configurationFactory)
+        .provides(loggerFactory)
+        .provides(newRelicFactory)
+        .provides(databaseFactory)
+        .provides(newsFactory)
+        .provides(aiProviderFactory)
+        .provides(articleGeneratorFactory)
+        // Repositories
+        .provides(articleRepositoryFactory)
+        // Use cases
+        .provides(generateArticlesUseCaseFactory)
+        .provides(getArticlesUseCaseFactory)
+        // Controllers and jobs
+        .provides(articleControllerFactory)
+        .provides(jobsFactory)
+        // Inbound adapters
+        .provides(httpServerFactory)
+        .provides(jobRunnerFactory);

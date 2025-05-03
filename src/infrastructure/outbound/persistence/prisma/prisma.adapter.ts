@@ -4,57 +4,55 @@ import { type Prisma, PrismaClient } from '@prisma/client';
 import { type DatabasePort } from '../../../../application/ports/outbound/persistence/database.port.js';
 
 export class PrismaAdapter implements DatabasePort {
-    private static instance: null | PrismaClient = null;
     private client: PrismaClient;
 
     constructor(private readonly logger: LoggerPort) {
-        if (!PrismaAdapter.instance) {
-            PrismaAdapter.instance = new PrismaClient({
-                log: [
-                    {
-                        emit: 'event',
-                        level: 'query',
-                    },
-                    {
-                        emit: 'event',
-                        level: 'error',
-                    },
-                    {
-                        emit: 'event',
-                        level: 'info',
-                    },
-                    {
-                        emit: 'event',
-                        level: 'warn',
-                    },
-                ],
-            });
+        console.log('process.env.DATABASE_URL');
+        console.log(process.env.DATABASE_URL);
+        this.client = new PrismaClient({
+            log: [
+                {
+                    emit: 'event',
+                    level: 'query',
+                },
+                {
+                    emit: 'event',
+                    level: 'error',
+                },
+                {
+                    emit: 'event',
+                    level: 'info',
+                },
+                {
+                    emit: 'event',
+                    level: 'warn',
+                },
+            ],
+        });
 
-            PrismaAdapter.instance.$on('error' as never, (event: Prisma.LogEvent) => {
-                this.logger.error(`Prisma: ${event.message}`, {
-                    ...event,
-                });
+        this.client.$on('error' as never, (event: Prisma.LogEvent) => {
+            this.logger.error(`Prisma: ${event.message}`, {
+                ...event,
             });
+        });
 
-            PrismaAdapter.instance.$on('warn' as never, (event: Prisma.LogEvent) => {
-                this.logger.warn(`Prisma: ${event.message}`, {
-                    ...event,
-                });
+        this.client.$on('warn' as never, (event: Prisma.LogEvent) => {
+            this.logger.warn(`Prisma: ${event.message}`, {
+                ...event,
             });
+        });
 
-            PrismaAdapter.instance.$on('info' as never, (event: Prisma.LogEvent) => {
-                this.logger.info(`Prisma: ${event.message}`, {
-                    ...event,
-                });
+        this.client.$on('info' as never, (event: Prisma.LogEvent) => {
+            this.logger.info(`Prisma: ${event.message}`, {
+                ...event,
             });
+        });
 
-            PrismaAdapter.instance.$on('query' as never, (event: Prisma.LogEvent) => {
-                this.logger.debug(`Prisma: Query`, {
-                    ...event,
-                });
+        this.client.$on('query' as never, (event: Prisma.LogEvent) => {
+            this.logger.debug(`Prisma: Query`, {
+                ...event,
             });
-        }
-        this.client = PrismaAdapter.instance;
+        });
     }
 
     async connect(): Promise<void> {

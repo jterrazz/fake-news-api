@@ -1,24 +1,20 @@
-import { container } from './di/container.js';
+import { createContainer } from './di/container.js';
 
 const start = async () => {
+    const container = createContainer();
     const logger = container.get('Logger');
+    const config = container.get('Configuration');
+    const newRelic = container.get('NewRelic');
+    const httpServer = container.get('HttpServer');
+    const jobRunner = container.get('JobRunner');
 
     try {
         logger.info('Starting application 🚀');
 
-        const config = container.get('Configuration');
-        const newRelic = container.get('NewRelic');
-        const httpServer = container.get('HttpServer');
-        const jobRunner = container.get('JobRunner');
         const { host, port } = config.getAppConfiguration();
 
-        // Initialize New Relic monitoring
         await newRelic.initialize();
-
-        // Initialize jobs
         await jobRunner.initialize();
-
-        // Start HTTP server
         await httpServer.start({
             host,
             port,

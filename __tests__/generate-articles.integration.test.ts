@@ -9,7 +9,6 @@ import {
     mockOfDate,
 } from '@jterrazz/test';
 
-import { container } from '../src/di/container.js';
 import { createTZDateForCountry as createTZDateAtCountry } from '../src/shared/date/timezone.js';
 
 import { cleanDatabase } from './database/global.js';
@@ -52,8 +51,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
     it('should generate articles based on time of day rules', async () => {
         // Given
-        const { prisma } = testContext;
-        const jobs = container.get('Jobs');
+        const { jobs, prisma } = testContext;
         const articleGenerationJob = jobs.find((job) => job.name === 'article-generation');
 
         expect(articleGenerationJob).toBeDefined();
