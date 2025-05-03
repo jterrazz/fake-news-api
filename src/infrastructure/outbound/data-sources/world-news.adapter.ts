@@ -126,24 +126,14 @@ export class WorldNewsAdapter implements NewsPort {
     }
 
     private transformResponse(response: z.infer<typeof WorldNewsResponseSchema>): NewsArticle[] {
-        const articlesWithCount = response.top_news.map((section) => ({
-            ...section.news[0],
-            publishedCount: section.news.length,
-        }));
-
-        // Sort descending by publishedCount
-        const sortedByCount = [...articlesWithCount].sort(
-            (a, b) => b.publishedCount - a.publishedCount,
-        );
-        const top30PercentIndex = Math.ceil(sortedByCount.length * 0.42) - 1;
-        const threshold = sortedByCount[top30PercentIndex]?.publishedCount ?? 0;
-
-        return articlesWithCount
-            .filter((article) => article.publishedCount > 2 && article.publishedCount >= threshold)
-            .map((article) => ({
+        // Flatten all articles and add publishedCount
+        return response.top_news.flatMap((section) =>
+            section.news.map((article) => ({
                 publishedAt: new Date(article.publish_date),
+                publishedCount: section.news.length,
                 text: article.text,
                 title: article.title,
-            }));
+            })),
+        );
     }
 }

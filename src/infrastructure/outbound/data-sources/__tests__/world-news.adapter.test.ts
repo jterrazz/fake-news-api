@@ -14,9 +14,9 @@ import {
 } from '@jterrazz/test';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { ZodError } from 'zod';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { createTZDateForCountry } from '../../../../shared/date/timezone.js';
 import { WorldNewsAdapter, type WorldNewsAdapterConfiguration } from '../world-news.adapter.js';
@@ -95,6 +95,7 @@ describe('WorldNewsAdapter', () => {
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
             publishedAt: new Date('2024-03-10T12:00:00Z'),
+            publishedCount: 1,
             text: 'Test article text',
             title: 'Test Article',
         });
@@ -175,9 +176,9 @@ describe('WorldNewsAdapter', () => {
         // Then: Should return empty array and log error
         expect(result).toEqual([]);
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch en news:', {
-            country: ArticleCountry.create('us'),
-            error: expect.any(Error),
-            language: ArticleLanguage.create('en'),
+            country: 'us',
+            error: expect.any(ZodError),
+            language: 'en',
         });
     });
 

@@ -7,7 +7,6 @@ import {
     expect,
     it,
     mockOfDate,
-    vi,
     vitest,
 } from '@jterrazz/test';
 
@@ -40,19 +39,12 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
         // Set time to January 1st, 2020 at Paris time
         const mockDate = createTZDateAtCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 0, 0, 0), 'fr');
-        // mockOfDate.set(mockDate);
-        vi.useFakeTimers({
-            now: mockDate.getTime(),
-            shouldAdvanceTime: true,
-            toFake: ['setTimeout'],
-        });
+        mockOfDate.set(mockDate);
     });
 
     afterEach(async () => {
         await testContext.jobRunner.stop();
         mockOfDate.reset();
-
-        vi.useRealTimers();
     });
 
     afterAll(async () => {

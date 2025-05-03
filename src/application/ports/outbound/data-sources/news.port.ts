@@ -8,6 +8,7 @@ export const NewsArticleSchema = z.object({
         .string()
         .datetime()
         .transform((date) => new Date(date)),
+    publishedCount: z.number(),
     text: z.string(),
     title: z.string(),
 });

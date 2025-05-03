@@ -24,6 +24,7 @@ describe('GenerateArticlesUseCase', () => {
     const createTestNews = (count: number): NewsArticle[] =>
         Array.from({ length: count }, (_, i) => ({
             publishedAt: new Date(`2024-03-${String(i + 1).padStart(2, '0')}`),
+            publishedCount: 3,
             text: `Summary of real news ${i + 1}`,
             title: `Real News ${i + 1}`,
         }));
