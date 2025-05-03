@@ -52,7 +52,7 @@ export class OpenRouterAdapter implements AIProviderPort {
         this.logFirstAttempt(model);
         return this.monitoring.monitorSegment('Ai/OpenRouter/Generate', async () => {
             return this.executeWithRetries(async () => {
-                const response = await this.generateModelResponse(model, prompt.query);
+                const response = await this.generateModelResponse(model, prompt);
                 return ResponseParser.parse(response, prompt.responseSchema);
             });
         });
@@ -83,10 +83,11 @@ export class OpenRouterAdapter implements AIProviderPort {
         throw lastError ?? new Error('Failed to generate content with OpenRouter');
     }
 
-    private async generateModelResponse(model: string, prompt: string): Promise<string> {
+    private async generateModelResponse<T>(model: string, prompt: AIPrompt<T>): Promise<string> {
         return this.monitoring.monitorSegment('Ai/OpenRouter/Request', async () => {
+            // Only support OpenAI-style messages array
             const completion = await this.client.chat.completions.create({
-                messages: [{ content: prompt, role: 'user' }],
+                messages: prompt.messages,
                 model,
             });
 

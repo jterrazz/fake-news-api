@@ -2,9 +2,10 @@ import { type z } from 'zod';
 
 /**
  * Prompt for AI content generation
+ * Only supports an array of messages (OpenAI-style)
  */
 export type AIPrompt<T> = {
-    query: string;
+    messages: Message[];
     responseSchema: z.ZodSchema<T>;
 };
 
@@ -13,4 +14,12 @@ export type AIPrompt<T> = {
  */
 export interface AIPromptGenerator<TInput, TOutput> {
     generatePrompt(params: TInput): AIPrompt<TOutput>;
+}
+
+/**
+ * OpenAI-style message for chat completion
+ */
+export interface Message {
+    content: string;
+    role: 'assistant' | 'system' | 'user';
 }
