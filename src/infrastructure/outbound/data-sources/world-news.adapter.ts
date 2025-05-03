@@ -135,11 +135,11 @@ export class WorldNewsAdapter implements NewsPort {
         const sortedByCount = [...articlesWithCount].sort(
             (a, b) => b.publishedCount - a.publishedCount,
         );
-        const top30PercentIndex = Math.ceil(sortedByCount.length * 0.21) - 1;
+        const top30PercentIndex = Math.ceil(sortedByCount.length * 0.42) - 1;
         const threshold = sortedByCount[top30PercentIndex]?.publishedCount ?? 0;
 
         return articlesWithCount
-            .filter((article) => article.publishedCount > 5 || article.publishedCount >= threshold)
+            .filter((article) => article.publishedCount > 2 && article.publishedCount >= threshold)
             .map((article) => ({
                 publishedAt: new Date(article.publish_date),
                 text: article.text,
