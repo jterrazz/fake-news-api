@@ -37,13 +37,18 @@ export class ArticleController {
             const content = article.content.toString();
 
             // Remove metadata annotations for raw content
-            const contentRaw = content.replace(/%%\[(.*?)\]\(.*?\)/g, '$1');
+            let contentRaw = content.replace(/%%\[(.*?)\]\(.*?\)/g, '$1');
+            let contentWithAnnotations = content;
+
+            // Remove any '%%' immediately following a metadata annotation throughout the string
+            contentRaw = contentRaw.replace(/\)%%/g, ')');
+            contentWithAnnotations = contentWithAnnotations.replace(/\)%%/g, ')');
 
             return {
                 article: contentRaw, // Deprecated: Keep for backward compatibility
                 category: article.category.toString() as Category,
                 contentRaw,
-                contentWithAnnotations: content,
+                contentWithAnnotations,
                 country: article.country.toString() as Country,
                 createdAt: article.createdAt,
                 fakeReason: article.fakeStatus.reason,
