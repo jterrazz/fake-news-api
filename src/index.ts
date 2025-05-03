@@ -1,6 +1,5 @@
 import { container } from './di/container.js';
 
-// Start server with proper error handling
 const start = async () => {
     const logger = container.get('Logger');
 
