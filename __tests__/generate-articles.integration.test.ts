@@ -7,7 +7,6 @@ import {
     expect,
     it,
     mockOfDate,
-    vitest,
 } from '@jterrazz/test';
 
 import { container } from '../src/di/container.js';
@@ -62,13 +61,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
         expect(articleGenerationJob?.executeOnStartup).toBe(true);
 
         // When
-        const job = articleGenerationJob!.execute();
-        vitest.advanceTimersByTime(1500);
-        await vitest.runAllTimersAsync();
-        // const mockDate = createTZDateAtCountry(new Date(2020, 0, 1, EXPECTED_HOUR, 1, 0, 0), 'fr');
-        // mockOfDate.set(mockDate);
-        vitest.setSystemTime(new Date(Date.now() + 15000)); // Move system time forward
-        await job;
+        await articleGenerationJob!.execute();
 
         // Then: Verify the database state
         const articles = await prisma.article.findMany({

@@ -22,6 +22,7 @@ interface MockOpenRouterRequest {
 interface MockOpenRouterResponse {
     choices: Array<{
         finish_reason: 'stop';
+        index: number;
         message: {
             content: string;
             role: 'assistant';
@@ -105,7 +106,7 @@ export const openRouterGenerateArticlesResolver = http.post(
             );
         }
 
-        const promptText = requestBody.messages[0].content;
+        const promptText = requestBody.messages[1].content;
         const articleCountMatch = promptText.match(/Generate exactly (\d+) news articles?/i);
 
         if (!articleCountMatch) {
@@ -131,6 +132,7 @@ export const openRouterGenerateArticlesResolver = http.post(
             choices: [
                 {
                     finish_reason: 'stop',
+                    index: 0,
                     message: {
                         content: JSON.stringify(mockArticles),
                         role: 'assistant',

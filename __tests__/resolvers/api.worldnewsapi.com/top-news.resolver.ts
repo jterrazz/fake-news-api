@@ -61,13 +61,11 @@ export const worldNewsResolver = http.get(
             country: params.sourceCountry,
             language: params.language,
             top_news: new Array(10).fill({
-                news: [
-                    {
-                        publish_date: publishDate,
-                        text: 'Test article text',
-                        title: 'Test Article',
-                    },
-                ],
+                news: new Array(10).fill({
+                    publish_date: publishDate,
+                    text: 'Test article text',
+                    title: 'Test Article',
+                }),
             }),
         };
 
