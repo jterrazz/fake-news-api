@@ -7,8 +7,6 @@ inbound:
     level: LOG_LEVEL
 
 outbound:
-  prisma:
-    databaseUrl: DATABASE_URL
   openRouter:
     apiKey: OPEN_ROUTER_API_KEY
   worldNews:

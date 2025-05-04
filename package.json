@@ -8,8 +8,8 @@
   },
   "scripts": {
     "build": "prisma generate && ts-compile",
-    "start": "DATABASE_URL=file:./database/main.sqlite prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
-    "dev": "DATABASE_URL=file:./database/main.sqlite prisma migrate deploy && NODE_ENV=development ts-watch",
+    "start": "DATABASE_URL=file:../database/main.sqlite prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
+    "dev": "DATABASE_URL=file:../database/main.sqlite prisma migrate deploy && NODE_ENV=development ts-watch",
     "test": "LOG_LEVEL=silent vitest",
     "lint": "code-standards"
   },

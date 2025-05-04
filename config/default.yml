@@ -9,7 +9,7 @@ inbound:
 
 outbound:
   prisma:
-    databaseUrl: file:./database/main.sqlite
+    databaseUrl: file:../database/main.sqlite
   openRouter:
     budget: paid
   worldNews:
