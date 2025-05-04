@@ -100,7 +100,7 @@ export class ArticlePromptGenerator
         const dynamicPrompt = `Generate exactly ${count} news articles in total, mixing genuine and fictional articles.
         
 ## Knowledge Base:
-Here is the source of current events happening in the world:
+Here is the source of current events happening in the world (only consider the articles that you find interesting and engaging for a general audience):
 ${NEWS_KEY}:
 ${JSON.stringify(news, null, 2)}
 

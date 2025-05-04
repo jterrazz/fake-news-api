@@ -66,11 +66,7 @@ export class GenerateArticlesUseCase {
 
             // Filter news articles by publishedCount (moved from adapter)
             const sortedByCount = [...news].sort((a, b) => b.publishedCount - a.publishedCount);
-            const top42PercentIndex = Math.ceil(sortedByCount.length * 0.42) - 1;
-            const threshold = sortedByCount[top42PercentIndex]?.publishedCount ?? 0;
-            const filteredNews = news.filter(
-                (article) => article.publishedCount > 2 && article.publishedCount >= threshold,
-            );
+            const filteredNews = sortedByCount.filter((article) => article.publishedCount > 3);
 
             if (filteredNews.length === 0) {
                 this.logger.warn('No articles found', {
@@ -99,12 +95,10 @@ export class GenerateArticlesUseCase {
             // Generate AI articles based on real ones
             const generatedArticles = await this.articleGenerator.generateArticles({
                 articles: {
-                    news: filteredNews
-                        .map((article) => ({
-                            content: article.text,
-                            title: article.title,
-                        }))
-                        .slice(0, 21),
+                    news: filteredNews.map((article) => ({
+                        content: article.text,
+                        title: article.title,
+                    })),
                     publicationHistory: publishedSummaries.map((summary) => ({
                         headline: summary.headline,
                         summary: summary.summary,
