@@ -5,7 +5,7 @@ import {
     COUNTRY_TIMEZONE_MAP,
     createCurrentTZDateForCountry,
     createTZDateForCountry,
-    formatTZDateInCountry,
+    formatTZDateForCountry,
     subtractDays,
 } from '../timezone.js';
 
@@ -28,10 +28,10 @@ describe('Timezone Utilities', () => {
         ])('should return correct hour for $country', ({ country, expectedHour }) => {
             // Given - a country code and a fixed original date
             // When - creating a TZDate for the country using createCurrentTZDateForCountry
-            const { hour, tzDate } = createCurrentTZDateForCountry(country);
+            const tzDate = createCurrentTZDateForCountry(country);
 
             // Then - it should return the correct hour and timezone for the country
-            expect(hour).toBe(expectedHour);
+            expect(tzDate.getHours()).toBe(expectedHour);
             expect(tzDate).toBeInstanceOf(TZDate);
             expect(tzDate.timeZone).toBe(COUNTRY_TIMEZONE_MAP[country]);
             expect(tzDate.getTime()).toBe(originalDate.getTime());
@@ -49,10 +49,10 @@ describe('Timezone Utilities', () => {
         it('should handle uppercase country codes', () => {
             // Given - a country code in uppercase and a fixed original date
             // When - calling createCurrentTZDateForCountry with the uppercase code
-            const { hour, tzDate } = createCurrentTZDateForCountry('FR');
+            const tzDate = createCurrentTZDateForCountry('FR');
 
             // Then - it should return the correct hour and timezone for the country
-            expect(hour).toBe(13); // UTC+1 for Paris
+            expect(tzDate.getHours()).toBe(13); // UTC+1 for Paris
             expect(tzDate.timeZone).toBe(parisTimezone);
         });
     });
@@ -119,7 +119,7 @@ describe('Timezone Utilities', () => {
                 );
 
                 // When - formatting the TZDate to the toCountry's timezone using formatTZDateInCountry
-                const formatted = formatTZDateInCountry(tzDate, toCountry, 'HH:mm');
+                const formatted = formatTZDateForCountry(tzDate, toCountry, 'HH:mm');
 
                 // Then - it should return the expected formatted time string
                 expect(formatted).toBe(expected);
@@ -131,7 +131,7 @@ describe('Timezone Utilities', () => {
             const tzDate = new TZDate(2024, 0, 1, 12, 30, 0, 0, parisTimezone);
 
             // When - formatting the TZDate using formatTZDateInCountry with uppercase code
-            const formatted = formatTZDateInCountry(tzDate, 'FR', 'HH:mm');
+            const formatted = formatTZDateForCountry(tzDate, 'FR', 'HH:mm');
 
             // Then - it should return the correct formatted time string
             expect(formatted).toBe('12:30');
@@ -142,7 +142,7 @@ describe('Timezone Utilities', () => {
             // When - calling the function
             // Then - it should throw an error
             expect(() =>
-                formatTZDateInCountry(
+                formatTZDateForCountry(
                     new TZDate(2024, 0, 1, 12, 30, 0, 0, parisTimezone),
                     'invalid',
                     'HH:mm',

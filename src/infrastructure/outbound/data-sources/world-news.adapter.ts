@@ -16,7 +16,7 @@ import {
 
 import {
     createCurrentTZDateForCountry,
-    formatTZDateInCountry,
+    formatTZDateForCountry,
 } from '../../../shared/date/timezone.js';
 
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
@@ -63,8 +63,12 @@ export class WorldNewsAdapter implements NewsPort {
                 });
                 await this.enforceRateLimit();
 
-                const { tzDate } = createCurrentTZDateForCountry(country.toString());
-                const countryDate = formatTZDateInCountry(tzDate, country.toString(), 'yyyy-MM-dd');
+                const tzDate = createCurrentTZDateForCountry(country.toString());
+                const countryDate = formatTZDateForCountry(
+                    tzDate,
+                    country.toString(),
+                    'yyyy-MM-dd',
+                );
                 const url = new URL('https://api.worldnewsapi.com/top-news');
 
                 // Add query parameters

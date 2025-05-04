@@ -1,8 +1,6 @@
 import { TZDate } from '@date-fns/tz';
 import { format, subDays } from 'date-fns';
 
-// TODO Only expose country codes and not the timezone identifiers
-
 /**
  * Map of country codes to their timezone identifiers
  * For countries with multiple timezones, we use either:
@@ -67,13 +65,9 @@ export type CountryTimezone = keyof typeof COUNTRY_TIMEZONE_MAP;
 /**
  * Creates a TZDate for the current time in a specific country's timezone
  */
-export function createCurrentTZDateForCountry(country: string): { hour: number; tzDate: TZDate } {
+export function createCurrentTZDateForCountry(country: string): TZDate {
     const timezone = getTimezoneForCountry(country);
-    const tzDate = new TZDate(Date.now(), timezone);
-    return {
-        hour: tzDate.getHours(),
-        tzDate,
-    };
+    return new TZDate(Date.now(), timezone);
 }
 
 /**
@@ -88,7 +82,7 @@ export function createTZDateForCountry(date: Date | number, country: string): TZ
  * Formats a TZDate in a specific country's timezone using the provided format string
  * Note: The date must already be a TZDate. Use createTZDateForCountry for Date objects.
  */
-export function formatTZDateInCountry(date: TZDate, country: string, formatStr: string): string {
+export function formatTZDateForCountry(date: TZDate, country: string, formatStr: string): string {
     const timezone = getTimezoneForCountry(country);
     return format(date.withTimeZone(timezone), formatStr);
 }

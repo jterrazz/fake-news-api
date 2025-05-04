@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 
 import {
     createTZDateForCountry,
-    formatTZDateInCountry,
+    formatTZDateForCountry,
 } from '../../../src/shared/date/timezone.js';
 
 const TEST_API_KEY = 'test-world-news-key';
@@ -51,7 +51,7 @@ export const worldNewsResolver = http.get(
         }
 
         // Format the publish date in the correct timezone for the source country
-        const publishDate = formatTZDateInCountry(
+        const publishDate = formatTZDateForCountry(
             createTZDateForCountry(new Date(`${TEST_DATE}T12:00:00Z`), TEST_COUNTRY),
             TEST_COUNTRY,
             "yyyy-MM-dd'T'HH:mm:ssXXX",
