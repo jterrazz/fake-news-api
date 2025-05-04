@@ -62,13 +62,15 @@ export async function setupIntegrationTest(
         mkdirSync(tmpDir, { recursive: true });
     }
 
+    const container = createContainer();
+    const level = container.get('Configuration').getAppConfiguration().logging.level;
+
     // Run migrations on the new database file
     execSync('npx prisma migrate deploy', {
         env: { ...process.env, DATABASE_URL: databaseUrl },
-        stdio: 'inherit', // or 'ignore' if you want silence
+        stdio: level === 'silent' ? 'ignore' : 'inherit',
     });
 
-    const container = createContainer();
     const httpServer = container.get('HttpServer');
     const jobRunner = container.get('JobRunner');
     const jobs = container.get('Jobs');
