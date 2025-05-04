@@ -11,7 +11,7 @@ const start = async () => {
     try {
         logger.info('Starting application 🚀');
 
-        const { host, port } = config.getAppConfiguration();
+        const { host, port } = config.getInboundConfiguration().http;
 
         await newRelic.initialize();
         await jobRunner.initialize();
