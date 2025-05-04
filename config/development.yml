@@ -1,6 +1,6 @@
 inbound:
   http:
-    # host and port should be set via environment or default
+    port: 3000
 
 outbound:
   openRouter:

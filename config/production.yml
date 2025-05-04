@@ -1,6 +1,3 @@
 inbound:
   logger:
     prettyPrint: false
-
-outbound:
-  # No production-specific outbound overrides

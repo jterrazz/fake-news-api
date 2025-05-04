@@ -116,7 +116,7 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     private getModel(capability: AIModelConfig['capability']): string {
         if (this.config.budget === 'free') {
-            return 'google/gemini-2.5-pro-exp-03-25';
+            return 'deepseek/deepseek-r1';
         }
 
         return capability === 'reasoning' ? 'openai/o4-mini-high' : 'openai/o4-mini';
