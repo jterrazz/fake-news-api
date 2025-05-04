@@ -18,7 +18,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
     beforeEach(async () => {
         const { prisma } = testContext;
         // TODO Move to integration helpers
-        await cleanDatabase(testContext.prisma);
+        await cleanDatabase(prisma);
         await seedArticles(prisma);
     });
 
@@ -28,7 +28,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     it('should return paginated articles with default parameters', async () => {
         // Given
-        const { httpServer } = testContext;
+        const { httpServer } = testContext.gateways;
 
         // When
         const response = await httpServer.request('/articles');
@@ -60,7 +60,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     it('should filter articles by category and country', async () => {
         // Given
-        const { httpServer } = testContext;
+        const { httpServer } = testContext.gateways;
 
         // When
         const response = await httpServer.request(
@@ -80,7 +80,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     it('should handle pagination with limit', async () => {
         // Given
-        const { httpServer, prisma } = testContext;
+        const { httpServer, prisma } = { ...testContext.gateways, prisma: testContext.prisma };
 
         // Verify test data exists
         const dbArticles = await prisma.article.findMany({
@@ -133,7 +133,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     it('should handle invalid cursor gracefully', async () => {
         // Given
-        const { httpServer } = testContext;
+        const { httpServer } = testContext.gateways;
 
         // When - Invalid cursor format
         const invalidCursorResponse = await httpServer.request('/articles?cursor=invalid-cursor');
@@ -158,7 +158,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     it('should handle invalid parameters gracefully', async () => {
         // Given
-        const { httpServer } = testContext;
+        const { httpServer } = testContext.gateways;
 
         // When - Invalid category
         const response = await httpServer.request('/articles?category=INVALID');

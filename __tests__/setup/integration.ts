@@ -16,10 +16,14 @@ import {
 import { createContainer } from '../../src/di/container.js';
 
 export type IntegrationTestContext = {
-    databasePath: string;
-    httpServer: HttpServerPort;
-    jobRunner: JobRunnerPort;
-    jobs: Job[];
+    _internal: {
+        databasePath: string;
+    };
+    gateways: {
+        httpServer: HttpServerPort;
+        jobRunner: JobRunnerPort;
+        jobs: Job[];
+    };
     msw: SetupServerApi;
     prisma: PrismaClient;
 };
@@ -29,14 +33,14 @@ export type IntegrationTestContext = {
  * @param context - The integration test context
  */
 export async function cleanupIntegrationTest(context: IntegrationTestContext): Promise<void> {
-    await context.jobRunner.stop();
-    await context.httpServer.stop();
+    await context.gateways.jobRunner.stop();
+    await context.gateways.httpServer.stop();
     await context.prisma.$disconnect();
     context.msw.close();
 
     // Remove the SQLite file
     try {
-        unlinkSync(context.databasePath);
+        unlinkSync(context._internal.databasePath);
     } catch (err) {
         console.error('Error deleting SQLite file', err);
     }
@@ -78,6 +82,10 @@ export async function setupIntegrationTest(
 
     msw.listen({ onUnhandledRequest: 'warn' });
 
-    // TODO Expose as gateway, __internal
-    return { databasePath, httpServer, jobRunner, jobs, msw, prisma };
+    return {
+        _internal: { databasePath },
+        gateways: { httpServer, jobRunner, jobs },
+        msw,
+        prisma,
+    };
 }

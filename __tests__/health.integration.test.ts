@@ -19,7 +19,7 @@ describe('HTTP - Health - Integration Tests', () => {
 
     it('should return OK status for the root route', async () => {
         // Given
-        const { httpServer } = testContext;
+        const { httpServer } = testContext.gateways;
 
         // When
         const response = await httpServer.request('/');

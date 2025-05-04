@@ -41,7 +41,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
     });
 
     afterEach(async () => {
-        await testContext.jobRunner.stop();
+        await testContext.gateways.jobRunner.stop();
         mockOfDate.reset();
     });
 
@@ -51,7 +51,8 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
     it('should generate articles based on time of day rules', async () => {
         // Given
-        const { jobs, prisma } = testContext;
+        const { jobs } = testContext.gateways;
+        const { prisma } = testContext;
         const articleGenerationJob = jobs.find((job) => job.name === 'article-generation');
 
         expect(articleGenerationJob).toBeDefined();
