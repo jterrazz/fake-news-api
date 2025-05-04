@@ -4,6 +4,7 @@ app:
   host: HOST
   newRelic:
     licenseKey: NEW_RELIC_LICENSE_KEY
+  databaseUrl: DATABASE_URL
 
 logging:
   level: LOG_LEVEL

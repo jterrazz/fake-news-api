@@ -16,6 +16,7 @@ describe('Node Config Adapter', () => {
             },
         },
         app: {
+            databaseUrl: 'file:./database/test.sqlite',
             env: 'development',
             host: 'localhost',
             newRelic: {

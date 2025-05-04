@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
 import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, unlinkSync } from 'fs';
+import { unlinkSync } from 'fs';
 import type { RequestHandler } from 'msw';
 import { setupServer, type SetupServerApi } from 'msw/node';
-import { dirname, resolve } from 'path';
+import os from 'os';
+import { resolve } from 'path';
 
 import { type HttpServerPort } from '../../src/application/ports/inbound/http-server.port.js';
 import {
@@ -49,20 +50,12 @@ export async function cleanupIntegrationTest(context: IntegrationTestContext): P
 export async function setupIntegrationTest(
     handlers: RequestHandler[] = [],
 ): Promise<IntegrationTestContext> {
-    // Generate a unique SQLite file path
+    // Generate a unique SQLite file path in the system temp directory
     const databaseFile = `test-${randomUUID()}.sqlite`;
-    const databasePath = resolve(__dirname, '../../tmp', databaseFile);
+    const databasePath = resolve(os.tmpdir(), databaseFile);
     const databaseUrl = `file:${databasePath}`;
 
-    // TODO Move to configuration
-    process.env.DATABASE_URL = databaseUrl;
-    // TODO Move to real tmp directory
-    const tmpDir = dirname(databasePath);
-    if (!existsSync(tmpDir)) {
-        mkdirSync(tmpDir, { recursive: true });
-    }
-
-    const container = createContainer();
+    const container = createContainer({ databaseUrl });
     const level = container.get('Configuration').getAppConfiguration().logging.level;
 
     // Run migrations on the new database file

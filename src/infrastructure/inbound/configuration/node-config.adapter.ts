@@ -19,6 +19,7 @@ const configurationSchema = z.object({
         }),
     }),
     app: z.object({
+        databaseUrl: z.string().min(1),
         env: z.enum(['development', 'production', 'test']),
         host: z.string(),
         newRelic: z.object({
@@ -40,8 +41,16 @@ type Configuration = z.infer<typeof configurationSchema>;
 export class NodeConfigAdapter implements ConfigurationPort {
     private readonly configuration: Configuration;
 
-    constructor(configurationInput: unknown) {
-        this.configuration = configurationSchema.parse(configurationInput);
+    constructor(configurationInput: unknown, overrides?: { databaseUrl?: string }) {
+        // Parse and validate first
+        const parsed = configurationSchema.parse(configurationInput);
+
+        // Apply override after parsing
+        if (overrides?.databaseUrl) {
+            parsed.app.databaseUrl = overrides.databaseUrl;
+        }
+
+        this.configuration = parsed;
     }
 
     public getApiConfiguration(): ApiConfigurationPort {
@@ -51,6 +60,7 @@ export class NodeConfigAdapter implements ConfigurationPort {
     public getAppConfiguration(): AppConfigurationPort {
         return {
             ...this.configuration.app,
+            databaseUrl: this.configuration.app.databaseUrl,
             logging: this.configuration.logging,
         };
     }

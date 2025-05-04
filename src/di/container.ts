@@ -36,8 +36,9 @@ import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/
  */
 const databaseFactory = Injectable(
     'Database',
-    ['Logger'] as const,
-    (logger: LoggerPort) => new PrismaAdapter(logger),
+    ['Logger', 'Configuration'] as const,
+    (logger: LoggerPort, config: ConfigurationPort) =>
+        new PrismaAdapter(logger, config.getAppConfiguration().databaseUrl),
 );
 
 const loggerFactory = Injectable(
@@ -178,10 +179,8 @@ const newRelicFactory = Injectable(
 /**
  * Inbound adapters
  */
-const configurationFactory = Injectable(
-    'Configuration',
-    () => new NodeConfigAdapter(nodeConfiguration),
-);
+const configurationFactory = (overrides?: ContainerOverrides) =>
+    Injectable('Configuration', () => new NodeConfigAdapter(nodeConfiguration, overrides));
 
 const httpServerFactory = Injectable(
     'HttpServer',
@@ -206,10 +205,14 @@ const jobRunnerFactory = Injectable(
 /**
  * Container configuration
  */
-export const createContainer = () =>
+export type ContainerOverrides = {
+    databaseUrl?: string;
+};
+
+export const createContainer = (overrides?: ContainerOverrides) =>
     Container
         // Outbound adapters
-        .provides(configurationFactory)
+        .provides(configurationFactory(overrides))
         .provides(loggerFactory)
         .provides(newRelicFactory)
         .provides(databaseFactory)

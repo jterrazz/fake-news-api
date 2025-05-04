@@ -6,9 +6,16 @@ import { type DatabasePort } from '../../../../application/ports/outbound/persis
 export class PrismaAdapter implements DatabasePort {
     private client: PrismaClient;
 
-    constructor(private readonly logger: LoggerPort) {
-        // TODO Move DATABASE_URL to a config file
+    constructor(
+        private readonly logger: LoggerPort,
+        databaseUrl: string,
+    ) {
         this.client = new PrismaClient({
+            datasources: {
+                db: {
+                    url: databaseUrl,
+                },
+            },
             log: [
                 {
                     emit: 'event',

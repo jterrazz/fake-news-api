@@ -4,6 +4,7 @@ app:
   host: localhost
   newRelic:
     enabled: false
+  databaseUrl: file:./database/test.sqlite
 
 logging:
   level: debug

@@ -18,6 +18,7 @@ export interface ApiConfigurationPort {
  * App configuration
  */
 export interface AppConfigurationPort {
+    databaseUrl: string;
     env: 'development' | 'production' | 'test';
     host: string;
     logging: {
