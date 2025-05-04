@@ -8,9 +8,9 @@
   },
   "scripts": {
     "build": "prisma generate && ts-compile",
-    "start": "prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
-    "dev": "prisma migrate deploy && NODE_ENV=development ts-watch",
-    "test": "prisma migrate deploy && LOG_LEVEL=silent vitest",
+    "start": "DATABASE_URL=file:./database/main.sqlite prisma migrate deploy && DATABASE_URL=file:./database/main.sqlite node --enable-source-maps -r newrelic dist/index.js",
+    "dev": "DATABASE_URL=file:./database/main.sqlite prisma migrate deploy && DATABASE_URL=file:./database/main.sqlite NODE_ENV=development ts-watch",
+    "test": "LOG_LEVEL=silent vitest",
     "lint": "code-standards"
   },
   "devDependencies": {

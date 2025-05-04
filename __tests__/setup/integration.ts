@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
+import { execSync } from 'child_process';
 import { randomUUID } from 'crypto';
-import { unlinkSync } from 'fs';
+import { existsSync, mkdirSync, unlinkSync } from 'fs';
 import type { RequestHandler } from 'msw';
 import { setupServer, type SetupServerApi } from 'msw/node';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
 
 import { type HttpServerPort } from '../../src/application/ports/inbound/http-server.port.js';
 import {
@@ -53,13 +54,19 @@ export async function setupIntegrationTest(
     const databasePath = resolve(__dirname, '../../tmp', databaseFile);
     const databaseUrl = `file:${databasePath}`;
 
-    // Set the env var for Prisma
+    // TODO Move to configuration
     process.env.DATABASE_URL = databaseUrl;
+    // TODO Move to real tmp directory
+    const tmpDir = dirname(databasePath);
+    if (!existsSync(tmpDir)) {
+        mkdirSync(tmpDir, { recursive: true });
+    }
 
-    // Run migrations
-    require('child_process').execSync(`DATABASE_URL=${databaseUrl} npx prisma migrate deploy`);
-
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // Run migrations on the new database file
+    execSync('npx prisma migrate deploy', {
+        env: { ...process.env, DATABASE_URL: databaseUrl },
+        stdio: 'inherit', // or 'ignore' if you want silence
+    });
 
     const container = createContainer();
     const httpServer = container.get('HttpServer');
@@ -76,5 +83,6 @@ export async function setupIntegrationTest(
 
     msw.listen({ onUnhandledRequest: 'warn' });
 
+    // TODO Expose as gateway, __internal
     return { databasePath, httpServer, jobRunner, jobs, msw, prisma };
 }

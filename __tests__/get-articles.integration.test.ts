@@ -17,7 +17,8 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     beforeEach(async () => {
         const { prisma } = testContext;
-        await cleanDatabase(prisma);
+        // TODO Move to integration helpers
+        await cleanDatabase(testContext.prisma);
         await seedArticles(prisma);
     });
 

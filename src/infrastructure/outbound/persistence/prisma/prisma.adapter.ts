@@ -7,8 +7,7 @@ export class PrismaAdapter implements DatabasePort {
     private client: PrismaClient;
 
     constructor(private readonly logger: LoggerPort) {
-        console.log('process.env.DATABASE_URL');
-        console.log(process.env.DATABASE_URL);
+        // TODO Move DATABASE_URL to a config file
         this.client = new PrismaClient({
             log: [
                 {
