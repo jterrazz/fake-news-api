@@ -8,6 +8,7 @@ app:
 
 logging:
   level: info
+  prettyPrint: true
 
 api:
   openRouter:

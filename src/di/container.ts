@@ -47,7 +47,7 @@ const loggerFactory = Injectable(
     (config: ConfigurationPort) =>
         new PinoLoggerAdapter({
             level: config.getAppConfiguration().logging.level,
-            prettyPrint: config.getAppConfiguration().env !== 'production', // TODO: Move to .yml
+            prettyPrint: config.getAppConfiguration().logging.prettyPrint,
         }),
 );
 

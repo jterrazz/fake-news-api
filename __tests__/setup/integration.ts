@@ -16,9 +16,7 @@ import {
 import { createContainer } from '../../src/di/container.js';
 
 export type IntegrationTestContext = {
-    _internal: {
-        databasePath: string;
-    };
+    _internal: { databasePath: string };
     gateways: {
         httpServer: HttpServerPort;
         jobRunner: JobRunnerPort;
@@ -28,41 +26,27 @@ export type IntegrationTestContext = {
     prisma: PrismaClient;
 };
 
-/**
- * Cleanup function to be called after tests
- * @param context - The integration test context
- */
 export async function cleanupIntegrationTest(context: IntegrationTestContext): Promise<void> {
     await context.gateways.jobRunner.stop();
     await context.gateways.httpServer.stop();
     await context.prisma.$disconnect();
     context.msw.close();
-
-    // Remove the SQLite file
     try {
         unlinkSync(context._internal.databasePath);
     } catch (err) {
-        console.error('Error deleting SQLite file', err);
+        console.debug('Could not delete SQLite file:', err);
     }
 }
 
-/**
- * Setup function to be called before tests
- * @param handlers - The request handlers to be used in the tests
- * @returns The integration test context
- */
 export async function setupIntegrationTest(
     handlers: RequestHandler[] = [],
 ): Promise<IntegrationTestContext> {
-    // Generate a unique SQLite file path in the system temp directory
     const databaseFile = `test-${randomUUID()}.sqlite`;
     const databasePath = resolve(os.tmpdir(), databaseFile);
     const databaseUrl = `file:${databasePath}`;
-
     const container = createContainer({ databaseUrl });
-    const level = container.get('Configuration').getAppConfiguration().logging.level;
+    const { level } = container.get('Configuration').getAppConfiguration().logging;
 
-    // Run migrations on the new database file
     execSync('npx prisma migrate deploy', {
         env: { ...process.env, DATABASE_URL: databaseUrl },
         stdio: level === 'silent' ? 'ignore' : 'inherit',
@@ -72,13 +56,7 @@ export async function setupIntegrationTest(
     const jobRunner = container.get('JobRunner');
     const jobs = container.get('Jobs');
     const msw = setupServer(...handlers);
-    const prisma = new PrismaClient({
-        datasources: {
-            db: {
-                url: databaseUrl,
-            },
-        },
-    });
+    const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 
     msw.listen({ onUnhandledRequest: 'warn' });
 

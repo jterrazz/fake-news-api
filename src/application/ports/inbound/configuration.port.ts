@@ -23,6 +23,7 @@ export interface AppConfigurationPort {
     host: string;
     logging: {
         level: LoggerLevel;
+        prettyPrint: boolean;
     };
     newRelic: NewRelicConfiguration;
     port: number;

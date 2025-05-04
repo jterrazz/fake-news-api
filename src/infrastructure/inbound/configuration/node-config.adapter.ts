@@ -30,6 +30,7 @@ const configurationSchema = z.object({
     }),
     logging: z.object({
         level: LoggerLevelSchema,
+        prettyPrint: z.boolean(),
     }),
 });
 

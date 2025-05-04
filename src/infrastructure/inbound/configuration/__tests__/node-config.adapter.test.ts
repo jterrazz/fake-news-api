@@ -26,6 +26,7 @@ describe('Node Config Adapter', () => {
         },
         logging: {
             level: 'info',
+            prettyPrint: false,
         },
     };
 
