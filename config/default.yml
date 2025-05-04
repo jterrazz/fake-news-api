@@ -8,8 +8,6 @@ inbound:
     prettyPrint: false
 
 outbound:
-  prisma:
-    databaseUrl: file:../database/main.sqlite
   openRouter:
     budget: paid
   worldNews:

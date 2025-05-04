@@ -76,6 +76,7 @@ export class OpenRouterAdapter implements AIProviderPort {
                     throw lastError;
                 }
 
+                await new Promise((resolve) => setTimeout(resolve, 10_000));
                 this.logRetryAttempt(lastError, attempts);
                 this.monitoring.recordCount('OpenRouter', 'Retries');
             }
@@ -116,10 +117,10 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     private getModel(capability: AIModelConfig['capability']): string {
         if (this.config.budget === 'free') {
-            return 'deepseek/deepseek-r1';
+            return 'google/gemini-2.5-pro-exp-03-25';
         }
 
-        return capability === 'reasoning' ? 'openai/o4-mini-high' : 'openai/o4-mini';
+        return capability === 'reasoning' ? 'google/gemini-2.5-pro-exp-03-25' : 'openai/o4-mini';
     }
 
     private logError(error: Error, attempts: number): void {
