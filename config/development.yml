@@ -1,4 +1,8 @@
-api:
+inbound:
+  http:
+    # host and port should be set via environment or default
+
+outbound:
   openRouter:
     budget: free
   worldNews:

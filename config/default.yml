@@ -1,17 +1,18 @@
-app:
+inbound:
   env: development
-  port: 3000
-  host: localhost
-  newRelic:
-    enabled: true
-  databaseUrl: file:./database/main.sqlite
+  http:
+    host: localhost
+    port: 3000
+  logger:
+    level: info
+    prettyPrint: true
 
-logging:
-  level: info
-  prettyPrint: true
-
-api:
+outbound:
+  prisma:
+    databaseUrl: file:./database/main.sqlite
   openRouter:
     budget: paid
   worldNews:
     useCache: false
+  newRelic:
+    enabled: true

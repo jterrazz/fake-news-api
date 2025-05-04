@@ -45,7 +45,7 @@ export async function setupIntegrationTest(
     const databasePath = resolve(os.tmpdir(), databaseFile);
     const databaseUrl = `file:${databasePath}`;
     const container = createContainer({ databaseUrl });
-    const { level } = container.get('Configuration').getAppConfiguration().logging;
+    const { level } = container.get('Configuration').getInboundConfiguration().logger;
 
     execSync('npx prisma migrate deploy', {
         env: { ...process.env, DATABASE_URL: databaseUrl },

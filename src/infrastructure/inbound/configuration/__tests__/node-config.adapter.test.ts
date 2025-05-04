@@ -5,46 +5,47 @@ import { NodeConfigAdapter } from '../node-config.adapter.js';
 
 describe('Node Config Adapter', () => {
     const validConfig = {
-        api: {
+        inbound: {
+            env: 'development',
+            http: {
+                host: 'localhost',
+                port: 3000,
+            },
+            logger: {
+                level: 'info',
+                prettyPrint: false,
+            },
+        },
+        outbound: {
+            newRelic: {
+                enabled: false,
+            },
             openRouter: {
                 apiKey: 'test-openrouter-key',
                 budget: 'free',
+            },
+            prisma: {
+                databaseUrl: 'file:./database/test.sqlite',
             },
             worldNews: {
                 apiKey: 'test-world-news-key',
                 useCache: false,
             },
         },
-        app: {
-            databaseUrl: 'file:./database/test.sqlite',
-            env: 'development',
-            host: 'localhost',
-            newRelic: {
-                enabled: false,
-            },
-            port: 3000,
-        },
-        logging: {
-            level: 'info',
-            prettyPrint: false,
-        },
     };
 
     it('should load valid configuration', () => {
         const configAdapter = new NodeConfigAdapter(validConfig);
 
-        expect(configAdapter.getApiConfiguration()).toEqual(validConfig.api);
-        expect(configAdapter.getAppConfiguration()).toEqual({
-            ...validConfig.app,
-            logging: validConfig.logging,
-        });
+        expect(configAdapter.getInboundConfiguration()).toEqual(validConfig.inbound);
+        expect(configAdapter.getOutboundConfiguration()).toEqual(validConfig.outbound);
     });
 
     it('should fail with invalid environment', () => {
         const invalidConfig = {
             ...validConfig,
-            app: {
-                ...validConfig.app,
+            inbound: {
+                ...validConfig.inbound,
                 env: 'invalid-env',
             },
         };
@@ -55,7 +56,8 @@ describe('Node Config Adapter', () => {
     it('should fail with missing API keys', () => {
         const invalidConfig = {
             ...validConfig,
-            api: {
+            outbound: {
+                ...validConfig.outbound,
                 worldNews: { apiKey: '' },
             },
         };
@@ -66,9 +68,12 @@ describe('Node Config Adapter', () => {
     it('should fail with invalid port', () => {
         const invalidConfig = {
             ...validConfig,
-            app: {
-                ...validConfig.app,
-                port: 'invalid-port',
+            inbound: {
+                ...validConfig.inbound,
+                http: {
+                    ...validConfig.inbound.http,
+                    port: 'invalid-port',
+                },
             },
         };
 
@@ -78,8 +83,12 @@ describe('Node Config Adapter', () => {
     it('should fail with invalid log level', () => {
         const invalidConfig = {
             ...validConfig,
-            logging: {
-                level: 'invalid-level',
+            inbound: {
+                ...validConfig.inbound,
+                logger: {
+                    ...validConfig.inbound.logger,
+                    level: 'invalid-level',
+                },
             },
         };
 
@@ -89,9 +98,11 @@ describe('Node Config Adapter', () => {
     it('should fail with missing host', () => {
         const invalidConfig = {
             ...validConfig,
-            app: {
-                env: 'development',
-                port: 3000,
+            inbound: {
+                ...validConfig.inbound,
+                http: {
+                    port: 3000,
+                },
             },
         };
 

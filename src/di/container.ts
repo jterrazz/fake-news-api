@@ -38,7 +38,7 @@ const databaseFactory = Injectable(
     'Database',
     ['Logger', 'Configuration'] as const,
     (logger: LoggerPort, config: ConfigurationPort) =>
-        new PrismaAdapter(logger, config.getAppConfiguration().databaseUrl),
+        new PrismaAdapter(logger, config.getOutboundConfiguration().prisma.databaseUrl),
 );
 
 const loggerFactory = Injectable(
@@ -46,8 +46,8 @@ const loggerFactory = Injectable(
     ['Configuration'] as const,
     (config: ConfigurationPort) =>
         new PinoLoggerAdapter({
-            level: config.getAppConfiguration().logging.level,
-            prettyPrint: config.getAppConfiguration().logging.prettyPrint,
+            level: config.getInboundConfiguration().logger.level,
+            prettyPrint: config.getInboundConfiguration().logger.prettyPrint,
         }),
 );
 
@@ -58,19 +58,19 @@ const newsFactory = Injectable(
         logger.info('Initializing WorldNews adapter');
         const newsAdapter = new WorldNewsAdapter(
             {
-                apiKey: config.getApiConfiguration().worldNews.apiKey,
+                apiKey: config.getOutboundConfiguration().worldNews.apiKey,
             },
             logger,
             monitoring,
         );
-        const useCache = config.getApiConfiguration().worldNews.useCache;
+        const useCache = config.getOutboundConfiguration().worldNews.useCache;
 
         if (useCache) {
             logger.info('Initializing CachedNews adapter');
             const cachedNewsAdapter = new CachedNewsAdapter(
                 newsAdapter,
                 logger,
-                config.getAppConfiguration().env,
+                config.getInboundConfiguration().env,
             );
             return cachedNewsAdapter;
         }
@@ -84,8 +84,8 @@ const aiProviderFactory = Injectable(
     ['Configuration', 'Logger', 'NewRelic'] as const,
     (config: ConfigurationPort, logger: LoggerPort, monitoring: MonitoringPort) => {
         return new OpenRouterAdapter(logger, monitoring, {
-            apiKey: config.getApiConfiguration().openRouter.apiKey,
-            budget: config.getApiConfiguration().openRouter.budget,
+            apiKey: config.getOutboundConfiguration().openRouter.apiKey,
+            budget: config.getOutboundConfiguration().openRouter.budget,
         });
     },
 );
@@ -161,16 +161,16 @@ const newRelicFactory = Injectable(
     'NewRelic',
     ['Configuration', 'Logger'] as const,
     (config: ConfigurationPort, logger: LoggerPort): MonitoringPort => {
-        const appConfig = config.getAppConfiguration();
+        const outboundConfig = config.getOutboundConfiguration();
 
-        if (!appConfig.newRelic.enabled) {
+        if (!outboundConfig.newRelic.enabled) {
             return new NoopMonitoringAdapter(logger);
         }
 
         logger.info('Initializing NewRelic adapter');
         return new NewRelicMonitoringAdapter({
-            environment: appConfig.env,
-            licenseKey: appConfig.newRelic.licenseKey,
+            environment: config.getInboundConfiguration().env,
+            licenseKey: outboundConfig.newRelic.licenseKey,
             logger,
         });
     },

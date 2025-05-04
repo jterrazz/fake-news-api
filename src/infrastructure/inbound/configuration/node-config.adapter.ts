@@ -2,35 +2,39 @@ import { LoggerLevelSchema } from '@jterrazz/logger';
 import { z } from 'zod';
 
 import {
-    type ApiConfigurationPort,
-    type AppConfigurationPort,
     type ConfigurationPort,
+    type InboundConfigurationPort,
+    type OutboundConfigurationPort,
 } from '../../../application/ports/inbound/configuration.port.js';
 
 const configurationSchema = z.object({
-    api: z.object({
+    inbound: z.object({
+        env: z.enum(['development', 'production', 'test']),
+        http: z.object({
+            host: z.string(),
+            port: z.coerce.number().int().positive(),
+        }),
+        logger: z.object({
+            level: LoggerLevelSchema,
+            prettyPrint: z.boolean(),
+        }),
+    }),
+    outbound: z.object({
+        newRelic: z.object({
+            enabled: z.boolean(),
+            licenseKey: z.string().optional(),
+        }),
         openRouter: z.object({
             apiKey: z.string().min(1),
             budget: z.enum(['free', 'paid']),
+        }),
+        prisma: z.object({
+            databaseUrl: z.string().min(1),
         }),
         worldNews: z.object({
             apiKey: z.string().min(1),
             useCache: z.coerce.boolean(),
         }),
-    }),
-    app: z.object({
-        databaseUrl: z.string().min(1),
-        env: z.enum(['development', 'production', 'test']),
-        host: z.string(),
-        newRelic: z.object({
-            enabled: z.boolean(),
-            licenseKey: z.string().optional(),
-        }),
-        port: z.coerce.number().int().positive(),
-    }),
-    logging: z.object({
-        level: LoggerLevelSchema,
-        prettyPrint: z.boolean(),
     }),
 });
 
@@ -48,21 +52,17 @@ export class NodeConfigAdapter implements ConfigurationPort {
 
         // Apply override after parsing
         if (overrides?.databaseUrl) {
-            parsed.app.databaseUrl = overrides.databaseUrl;
+            parsed.outbound.prisma.databaseUrl = overrides.databaseUrl;
         }
 
         this.configuration = parsed;
     }
 
-    public getApiConfiguration(): ApiConfigurationPort {
-        return this.configuration.api;
+    public getInboundConfiguration(): InboundConfigurationPort {
+        return this.configuration.inbound;
     }
 
-    public getAppConfiguration(): AppConfigurationPort {
-        return {
-            ...this.configuration.app,
-            databaseUrl: this.configuration.app.databaseUrl,
-            logging: this.configuration.logging,
-        };
+    public getOutboundConfiguration(): OutboundConfigurationPort {
+        return this.configuration.outbound;
     }
 }

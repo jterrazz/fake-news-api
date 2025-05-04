@@ -1,17 +1,18 @@
-app:
+inbound:
   env: test
-  port: 3000
-  host: localhost
-  newRelic:
-    enabled: false
-  databaseUrl: file:./database/test.sqlite
+  http:
+    host: localhost
+    port: 3000
+  logger:
+    level: debug
 
-logging:
-  level: debug
-
-api:
-  worldNews:
-    apiKey: test-world-news-key
+outbound:
+  prisma:
+    databaseUrl: file:./database/test.sqlite
   openRouter:
     apiKey: test-openrouter-key
     budget: free
+  worldNews:
+    apiKey: test-world-news-key
+  newRelic:
+    enabled: false

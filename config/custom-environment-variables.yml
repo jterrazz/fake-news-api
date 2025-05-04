@@ -1,16 +1,17 @@
-app:
+inbound:
   env: NODE_ENV
-  port: PORT
-  host: HOST
-  newRelic:
-    licenseKey: NEW_RELIC_LICENSE_KEY
-  databaseUrl: DATABASE_URL
+  http:
+    port: PORT
+    host: HOST
+  logger:
+    level: LOG_LEVEL
 
-logging:
-  level: LOG_LEVEL
-
-api:
+outbound:
+  prisma:
+    databaseUrl: DATABASE_URL
   openRouter:
     apiKey: OPEN_ROUTER_API_KEY
   worldNews:
     apiKey: WORLD_NEWS_API_KEY
+  newRelic:
+    licenseKey: NEW_RELIC_LICENSE_KEY
