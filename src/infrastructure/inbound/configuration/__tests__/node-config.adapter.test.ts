@@ -35,13 +35,16 @@ describe('Node Config Adapter', () => {
     };
 
     it('should load valid configuration', () => {
+        // Given - a valid configuration object
+        // When - creating a NodeConfigAdapter instance
         const configAdapter = new NodeConfigAdapter(validConfig);
-
+        // Then - it should return the correct inbound and outbound configuration
         expect(configAdapter.getInboundConfiguration()).toEqual(validConfig.inbound);
         expect(configAdapter.getOutboundConfiguration()).toEqual(validConfig.outbound);
     });
 
     it('should fail with invalid environment', () => {
+        // Given - a configuration with an invalid environment
         const invalidConfig = {
             ...validConfig,
             inbound: {
@@ -49,11 +52,12 @@ describe('Node Config Adapter', () => {
                 env: 'invalid-env',
             },
         };
-
+        // When/Then - creating a NodeConfigAdapter should throw a ZodError
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
     it('should fail with missing API keys', () => {
+        // Given - a configuration with missing API keys
         const invalidConfig = {
             ...validConfig,
             outbound: {
@@ -61,11 +65,12 @@ describe('Node Config Adapter', () => {
                 worldNews: { apiKey: '' },
             },
         };
-
+        // When/Then - creating a NodeConfigAdapter should throw a ZodError
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
     it('should fail with invalid port', () => {
+        // Given - a configuration with an invalid port
         const invalidConfig = {
             ...validConfig,
             inbound: {
@@ -76,11 +81,12 @@ describe('Node Config Adapter', () => {
                 },
             },
         };
-
+        // When/Then - creating a NodeConfigAdapter should throw a ZodError
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
     it('should fail with invalid log level', () => {
+        // Given - a configuration with an invalid log level
         const invalidConfig = {
             ...validConfig,
             inbound: {
@@ -91,11 +97,12 @@ describe('Node Config Adapter', () => {
                 },
             },
         };
-
+        // When/Then - creating a NodeConfigAdapter should throw a ZodError
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
     it('should fail with missing host', () => {
+        // Given - a configuration with missing host in http
         const invalidConfig = {
             ...validConfig,
             inbound: {
@@ -105,7 +112,7 @@ describe('Node Config Adapter', () => {
                 },
             },
         };
-
+        // When/Then - creating a NodeConfigAdapter should throw a ZodError
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 });

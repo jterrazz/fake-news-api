@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jterrazz/test';
 
-import { cleanDatabase } from './database/global.js';
+import { cleanDatabase } from './database/clean.js';
 import { seedArticles } from './database/seed-articles.js';
 import {
     cleanupIntegrationTest,
@@ -17,7 +17,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     beforeEach(async () => {
         const { prisma } = testContext;
-        // TODO Move to integration helpers
+
         await cleanDatabase(prisma);
         await seedArticles(prisma);
     });
@@ -27,14 +27,14 @@ describe('HTTP - Get Articles - Integration Tests', () => {
     });
 
     it('should return paginated articles with default parameters', async () => {
-        // Given
+        // Given - a set of articles in the database
         const { httpServer } = testContext.gateways;
 
-        // When
+        // When - requesting articles with default parameters
         const response = await httpServer.request('/articles');
         const data = await response.json();
 
-        // Then
+        // Then - it should return paginated articles
         expect(response.status).toBe(200);
         expect(data).toMatchObject({
             items: expect.arrayContaining([
@@ -59,16 +59,16 @@ describe('HTTP - Get Articles - Integration Tests', () => {
     });
 
     it('should filter articles by category and country', async () => {
-        // Given
+        // Given - articles exist in the database with different categories and countries
         const { httpServer } = testContext.gateways;
 
-        // When
+        // When - requesting articles filtered by category and country
         const response = await httpServer.request(
             '/articles?category=technology&country=fr&language=fr',
         );
         const data = await response.json();
 
-        // Then
+        // Then - it should return only the matching articles
         expect(response.status).toBe(200);
         expect(data.items).toHaveLength(1);
         expect(data.items[0]).toMatchObject({
@@ -79,7 +79,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
     });
 
     it('should handle pagination with limit', async () => {
-        // Given
+        // Given - multiple articles exist in the database
         const { httpServer, prisma } = { ...testContext.gateways, prisma: testContext.prisma };
 
         // Verify test data exists
@@ -89,11 +89,11 @@ describe('HTTP - Get Articles - Integration Tests', () => {
         });
         expect(dbArticles).toHaveLength(3);
 
-        // When - Get first page of articles
+        // When - requesting the first and second page of articles
         const firstResponse = await httpServer.request('/articles?limit=2');
         const firstData = await firstResponse.json();
 
-        // Then - verify first page
+        // Then - it should return the first page of articles
         expect(firstResponse.status).toBe(200);
         expect(firstData.items).toHaveLength(2);
         expect(firstData.total).toBe(3);
@@ -107,13 +107,13 @@ describe('HTTP - Get Articles - Integration Tests', () => {
             '2024-03-01T11:00:00.000Z',
         );
 
-        // When - Get next page using cursor
+        // When - requesting the next page using the cursor
         const secondResponse = await httpServer.request(
             `/articles?limit=2&cursor=${firstData.nextCursor}`,
         );
         const secondData = await secondResponse.json();
 
-        // Then - verify second page
+        // Then - it should return the second page of articles
         expect(secondResponse.status).toBe(200);
         expect(secondData.items).toHaveLength(1);
 
@@ -132,24 +132,24 @@ describe('HTTP - Get Articles - Integration Tests', () => {
     });
 
     it('should handle invalid cursor gracefully', async () => {
-        // Given
+        // Given - the database contains articles
         const { httpServer } = testContext.gateways;
 
-        // When - Invalid cursor format
+        // When - requesting articles with an invalid cursor format
         const invalidCursorResponse = await httpServer.request('/articles?cursor=invalid-cursor');
 
-        // Then
+        // Then - it should return a 422 error with an appropriate message
         expect(invalidCursorResponse.status).toBe(422);
         expect(await invalidCursorResponse.json()).toMatchObject({
             error: expect.stringContaining('Invalid cursor'),
         });
 
-        // When - Valid base64 but invalid timestamp
+        // When - requesting articles with a valid base64 but invalid timestamp
         const invalidTimestampResponse = await httpServer.request(
             `/articles?cursor=${Buffer.from('not-a-timestamp').toString('base64')}`,
         );
 
-        // Then
+        // Then - it should return a 422 error with an appropriate message
         expect(invalidTimestampResponse.status).toBe(422);
         expect(await invalidTimestampResponse.json()).toMatchObject({
             error: expect.stringContaining('Invalid cursor'),
@@ -157,13 +157,13 @@ describe('HTTP - Get Articles - Integration Tests', () => {
     });
 
     it('should handle invalid parameters gracefully', async () => {
-        // Given
+        // Given - the database contains articles
         const { httpServer } = testContext.gateways;
 
-        // When - Invalid category
+        // When - requesting articles with an invalid category
         const response = await httpServer.request('/articles?category=INVALID');
 
-        // Then
+        // Then - it should return a 400 error with an appropriate message
         expect(response.status).toBe(400);
         expect(await response.json()).toMatchObject({
             error: expect.any(String),

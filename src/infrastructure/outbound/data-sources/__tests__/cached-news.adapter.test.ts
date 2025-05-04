@@ -43,7 +43,7 @@ describe('CachedNewsAdapter', () => {
 
     describe('fetchNews', () => {
         it('should return cached data when valid cache exists', async () => {
-            // Given
+            // Given - a valid cache exists for the requested data
             const validCache = {
                 data: [mockArticle],
                 timestamp: Date.now(),
@@ -51,10 +51,10 @@ describe('CachedNewsAdapter', () => {
             (existsSync as Mock).mockReturnValue(true);
             (readFileSync as Mock).mockReturnValue(JSON.stringify(validCache));
 
-            // When
+            // When - fetching data from the adapter
             const result = await adapter.fetchTopNews(defaultOptions);
 
-            // Then
+            // Then - it should return the cached data
             expect(result).toEqual([mockArticle]);
             expect(mockNewsSource.fetchTopNews).not.toHaveBeenCalled();
             expect(mockLogger.info).toHaveBeenCalledWith('Using cached news data', {
@@ -63,7 +63,7 @@ describe('CachedNewsAdapter', () => {
         });
 
         it('should fetch fresh data when cache is expired', async () => {
-            // Given
+            // Given - a cache that is expired (older than allowed)
             const expiredCache = {
                 data: [mockArticle],
                 timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2 hours old
@@ -72,10 +72,10 @@ describe('CachedNewsAdapter', () => {
             (readFileSync as Mock).mockReturnValue(JSON.stringify(expiredCache));
             mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
-            // When
+            // When - fetching data from the adapter
             const result = await adapter.fetchTopNews(defaultOptions);
 
-            // Then
+            // Then - it should fetch fresh data and update the cache
             expect(result).toEqual([mockArticle]);
             expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
@@ -88,14 +88,14 @@ describe('CachedNewsAdapter', () => {
         });
 
         it('should fetch fresh data when cache does not exist', async () => {
-            // Given
+            // Given - no cache exists for the requested data
             (existsSync as Mock).mockReturnValue(false);
             mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
-            // When
+            // When - fetching data from the adapter
             const result = await adapter.fetchTopNews(defaultOptions);
 
-            // Then
+            // Then - it should fetch fresh data and return it
             expect(result).toEqual([mockArticle]);
             expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
@@ -105,17 +105,17 @@ describe('CachedNewsAdapter', () => {
 
         describe('error handling', () => {
             it('should fallback to fresh data when cache read fails', async () => {
-                // Given
+                // Given - reading the cache throws an error
                 (existsSync as Mock).mockReturnValue(true);
                 (readFileSync as Mock).mockImplementation(() => {
                     throw new Error('Read error');
                 });
                 mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
-                // When
+                // When - fetching data from the adapter
                 const result = await adapter.fetchTopNews(defaultOptions);
 
-                // Then
+                // Then - it should fetch fresh data and log the cache read error
                 expect(result).toEqual([mockArticle]);
                 expect(mockLogger.error).toHaveBeenCalledWith('Failed to read news cache', {
                     error: expect.any(Error),
@@ -124,17 +124,17 @@ describe('CachedNewsAdapter', () => {
             });
 
             it('should return data even when cache write fails', async () => {
-                // Given
+                // Given - writing to the cache throws an error
                 (existsSync as Mock).mockReturnValue(false);
                 (writeFileSync as Mock).mockImplementation(() => {
                     throw new Error('Write error');
                 });
                 mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
-                // When
+                // When - fetching data from the adapter
                 const result = await adapter.fetchTopNews(defaultOptions);
 
-                // Then
+                // Then - it should return the data and log the cache write error
                 expect(result).toEqual([mockArticle]);
                 expect(mockLogger.error).toHaveBeenCalledWith('Failed to write news cache', {
                     error: expect.any(Error),

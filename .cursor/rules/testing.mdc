@@ -40,9 +40,9 @@ Tests should follow this clear order depending on requirements:
 ## Best Practices
 
 - Write tests following Given/When/Then clearly with
-  // Given: A small description
-  // When: A small description
-  // Then: A small description
+  // Given - A small description
+  // When - A small description
+  // Then - A small description
 - Focus on testing behavior, not code implementation
 - Keep tests fast, isolated, and maintainable
 - Clearly differentiate between expected and unexpected errors

@@ -48,16 +48,16 @@ describe('GetArticlesUseCase', () => {
 
     describe('execute', () => {
         it('should return paginated articles with default parameters', async () => {
-            // Given
+            // Given - a set of articles in the repository
             const params = {
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };
 
-            // When
+            // When - calling the use case with default parameters
             const result = await useCase.execute(params);
 
-            // Then
+            // Then - it should return paginated articles
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith({
                 category: undefined,
                 country: ArticleCountry.create(CountryEnum.UnitedStates),
@@ -74,17 +74,17 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should handle custom limit parameter', async () => {
-            // Given
+            // Given - a custom limit parameter
             const limit = 5;
             const params = {
                 language: LanguageEnum.English,
                 limit,
             };
 
-            // When
+            // When - executing the use case with the custom limit
             const result = await useCase.execute(params);
 
-            // Then
+            // Then - it should return the correct number of articles
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({ limit }),
             );
@@ -92,17 +92,17 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should handle category filter', async () => {
-            // Given
+            // Given - a category filter parameter
             const params = {
                 category: CategoryEnum.Technology as CategoryEnum.Technology,
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };
 
-            // When
+            // When - executing the use case with the category filter
             await useCase.execute(params);
 
-            // Then
+            // Then - it should call the repository with the correct category
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     category: ArticleCategory.create(params.category),
@@ -111,17 +111,17 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should handle country filter', async () => {
-            // Given
+            // Given - a country filter parameter
             const params = {
                 country: CountryEnum.France,
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };
 
-            // When
+            // When - executing the use case with the country filter
             await useCase.execute(params);
 
-            // Then
+            // Then - it should call the repository with the correct country
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     country: ArticleCountry.create(params.country),
@@ -130,16 +130,16 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should handle language filter', async () => {
-            // Given
+            // Given - a language filter parameter
             const params = {
                 language: LanguageEnum.French,
                 limit: DEFAULT_LIMIT,
             };
 
-            // When
+            // When - executing the use case with the language filter
             await useCase.execute(params);
 
-            // Then
+            // Then - it should call the repository with the correct language
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     language: ArticleLanguage.create(params.language),
@@ -148,20 +148,20 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should handle cursor-based pagination', async () => {
-            // Given
+            // Given - a first page of results
             const firstPage = await useCase.execute({
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             });
 
-            // When
+            // When - requesting the next page using the cursor
             await useCase.execute({
                 cursor: firstPage.nextCursor!,
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             });
 
-            // Then
+            // Then - it should call the repository with the correct cursor
             expect(mockArticleRepository.findMany).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
@@ -171,54 +171,54 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should return null nextCursor when no more pages', async () => {
-            // Given
+            // Given - a repository response with fewer items than the page size
             mockArticleRepository.findMany.mockResolvedValue({
                 items: testArticles.slice(0, 5),
                 total: 5,
             });
 
-            // When
+            // When - executing the use case
             const result = await useCase.execute({
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             });
 
-            // Then
+            // Then - it should return null for nextCursor
             expect(result.nextCursor).toBeNull();
         });
 
         it('should throw error for invalid cursor', async () => {
-            // Given
+            // Given - an invalid cursor parameter
             const params = {
                 cursor: 'invalid-cursor',
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };
 
-            // When/Then
+            // When/Then - executing the use case should throw an error
             await expect(useCase.execute(params)).rejects.toThrow('Invalid cursor');
         });
 
         it('should throw error for invalid limit', async () => {
-            // Given
+            // Given - a limit parameter that exceeds the maximum allowed
             const params = {
                 language: LanguageEnum.English,
                 limit: 1000, // Exceeds MAX_PAGE_SIZE
             };
 
-            // When/Then
+            // When/Then - executing the use case should throw an error
             await expect(useCase.execute(params)).rejects.toThrow('Invalid pagination parameters');
         });
 
         it('should throw error for invalid category', async () => {
-            // Given
+            // Given - an invalid category parameter
             const params = {
                 category: 'invalid' as CategoryEnum.Politics,
                 language: LanguageEnum.English,
                 limit: DEFAULT_LIMIT,
             };
 
-            // When/Then
+            // When/Then - executing the use case should throw an error
             await expect(useCase.execute(params)).rejects.toThrow('Invalid pagination parameters');
         });
     });

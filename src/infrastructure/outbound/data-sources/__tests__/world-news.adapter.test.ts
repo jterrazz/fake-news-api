@@ -88,10 +88,11 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should fetch news successfully', async () => {
-        // When: Fetching news
+        // Given - a valid API key and request parameters
+        // When - fetching news from the adapter
+        // Then - it should return valid news articles
         const result = await adapter.fetchTopNews();
 
-        // Then: Should return valid news articles
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
             publishedAt: new Date('2024-03-10T12:00:00Z'),
@@ -102,12 +103,12 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should use correct date based on country timezone', async () => {
-        // Given: Create a date representing 2:30 AM in France on Jan 15
+        // Given - a date representing 2:30 AM in France on Jan 15
         const fakeDate = createTZDateForCountry(new Date(2024, 0, 15, 2, 30, 0, 0), 'fr');
         const utcTimestamp = fakeDate.getTime();
         mockOfDate.set(utcTimestamp);
 
-        // When: Fetching news
+        // When - fetching news for different countries
         const first = adapter.fetchTopNews();
         vitest.runAllTimers();
         await first;
@@ -117,7 +118,7 @@ describe('WorldNewsAdapter', () => {
         vitest.runAllTimers();
         await second;
 
-        // Then: Dates should be different based on timezone
+        // Then - it should use the correct date for each country
         expect(requestedDates['us']).toBe('2024-01-14');
         expect(requestedDates['fr']).toBe('2024-01-15');
 
@@ -125,17 +126,17 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should handle API errors gracefully', async () => {
-        // Given: API returns 500 error
+        // Given - the API returns a 500 error
         server.use(
             http.get('https://api.worldnewsapi.com/top-news', () => {
                 return new HttpResponse(null, { status: 500 });
             }),
         );
 
-        // When: Fetching news
+        // When - fetching news
         const result = await adapter.fetchTopNews();
 
-        // Then: Should return empty array and log error
+        // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch news:', {
             status: 500,
@@ -144,17 +145,17 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should handle invalid API key', async () => {
-        // Given: API returns 401 unauthorized
+        // Given - the API returns a 401 unauthorized error
         server.use(
             http.get('https://api.worldnewsapi.com/top-news', () => {
                 return new HttpResponse(null, { status: 401 });
             }),
         );
 
-        // When: Fetching news
+        // When - fetching news
         const result = await adapter.fetchTopNews();
 
-        // Then: Should return empty array and log error
+        // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch news:', {
             status: 401,
@@ -163,17 +164,17 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should handle invalid response data', async () => {
-        // Given: API returns invalid data structure
+        // Given - the API returns an invalid data structure
         server.use(
             http.get('https://api.worldnewsapi.com/top-news', () => {
                 return HttpResponse.json({ invalid: 'data' });
             }),
         );
 
-        // When: Fetching news
+        // When - fetching news
         const result = await adapter.fetchTopNews();
 
-        // Then: Should return empty array and log error
+        // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
         expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch en news:', {
             country: 'us',
@@ -183,7 +184,8 @@ describe('WorldNewsAdapter', () => {
     });
 
     it('should respect rate limiting between requests', async () => {
-        // When: Making two consecutive requests
+        // Given - two consecutive requests
+        // When - making the requests
         const first = adapter.fetchTopNews();
         vitest.runAllTimers();
         const firstResult = await first;
@@ -192,7 +194,7 @@ describe('WorldNewsAdapter', () => {
         vitest.runAllTimers();
         const secondResult = await second;
 
-        // Then: Both should be arrays (possibly empty)
+        // Then - both should return arrays (possibly empty)
         expect(Array.isArray(firstResult)).toBe(true);
         expect(Array.isArray(secondResult)).toBe(true);
     });

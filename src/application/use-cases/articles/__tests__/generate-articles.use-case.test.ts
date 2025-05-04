@@ -106,7 +106,7 @@ describe('GenerateArticlesUseCase', () => {
         ])(
             'should generate correct number of articles based on time - $hour:00 with $existingCount existing (US)',
             async ({ existingCount, expectedToGenerate, hour }) => {
-                // Given
+                // Given - a specific hour and existing article count for the US
                 const testDate = createDateAtHour(hour, 'America/New_York');
                 mockOfDate.set(testDate);
                 mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
@@ -114,10 +114,10 @@ describe('GenerateArticlesUseCase', () => {
                     testArticles.slice(0, expectedToGenerate),
                 );
 
-                // When
+                // When - executing the use case
                 await useCase.execute(TEST_LANGUAGE, TEST_COUNTRY);
 
-                // Then
+                // Then - it should generate and store the correct number of articles, or none if not needed
                 if (expectedToGenerate > 0) {
                     expect(mockArticleGenerator.generateArticles).toHaveBeenCalledTimes(1);
                     expect(mockArticleRepository.createMany).toHaveBeenCalledTimes(1);
@@ -153,7 +153,7 @@ describe('GenerateArticlesUseCase', () => {
         ])(
             'should generate correct number of articles based on time - $hour:00 with $existingCount existing (France)',
             async ({ existingCount, expectedToGenerate, hour }) => {
-                // Given
+                // Given - a specific hour and existing article count for France
                 const testDate = createDateAtHour(hour, 'Europe/Paris');
                 mockOfDate.set(testDate);
                 const frenchCountry = ArticleCountry.create(CountryEnum.France);
@@ -163,10 +163,10 @@ describe('GenerateArticlesUseCase', () => {
                     testArticles.slice(0, expectedToGenerate),
                 );
 
-                // When
+                // When - executing the use case
                 await useCase.execute(frenchLanguage, frenchCountry);
 
-                // Then
+                // Then - it should generate and store the correct number of articles, or none if not needed
                 if (expectedToGenerate > 0) {
                     expect(mockArticleGenerator.generateArticles).toHaveBeenCalledTimes(1);
                     expect(mockArticleRepository.createMany).toHaveBeenCalledTimes(1);
@@ -192,16 +192,16 @@ describe('GenerateArticlesUseCase', () => {
         );
 
         it('should not generate articles before 6am (France)', async () => {
-            // Given
+            // Given - a time before 6am in France
             const testDate = createDateAtHour(4, 'Europe/Paris');
             mockOfDate.set(testDate);
             const frenchCountry = ArticleCountry.create(CountryEnum.France);
             const frenchLanguage = ArticleLanguage.create(LanguageEnum.French);
 
-            // When
+            // When - executing the use case
             await useCase.execute(frenchLanguage, frenchCountry);
 
-            // Then
+            // Then - it should not generate any articles
             expect(mockLogger.info).toHaveBeenCalledWith(
                 'Starting article generation for fr in fr',
             );
@@ -218,31 +218,31 @@ describe('GenerateArticlesUseCase', () => {
         });
 
         it('should handle case when no news articles are found', async () => {
-            // Given
+            // Given - the news service returns no articles
             const testDate = createDateAtHour(7, 'America/New_York');
             mockOfDate.set(testDate);
             mockNewsService.fetchTopNews.mockResolvedValue([]);
 
-            // When
+            // When - executing the use case
             await useCase.execute(TEST_LANGUAGE, TEST_COUNTRY);
 
-            // Then
+            // Then - it should log a warning and not generate or store articles
             expect(mockLogger.warn).toHaveBeenCalledWith('No articles found', expect.any(Object));
             expect(mockArticleGenerator.generateArticles).not.toHaveBeenCalled();
             expect(mockArticleRepository.createMany).not.toHaveBeenCalled();
         });
 
         it('should handle and re-throw errors during execution', async () => {
-            // Given
+            // Given - the news service throws an error
             const testDate = new TZDate(2020, 0, 1, 14, 0, 0, 0, 'America/New_York');
             mockOfDate.set(testDate);
             const testError = new Error('Test error');
             mockNewsService.fetchTopNews.mockRejectedValue(testError);
 
-            // When/Then
+            // When/Then - executing the use case should throw the error and log it
             await expect(useCase.execute(TEST_LANGUAGE, TEST_COUNTRY)).rejects.toThrow(testError);
 
-            // Then
+            // Then - it should log the error
             expect(mockLogger.error).toHaveBeenCalledWith(
                 'Failed to generate articles',
                 expect.objectContaining({

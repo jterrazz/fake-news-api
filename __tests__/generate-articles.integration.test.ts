@@ -11,7 +11,7 @@ import {
 
 import { createTZDateForCountry as createTZDateAtCountry } from '../src/shared/date/timezone.js';
 
-import { cleanDatabase } from './database/global.js';
+import { cleanDatabase } from './database/clean.js';
 import { worldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
 import { openRouterGenerateArticlesResolver } from './resolvers/openrouter.ai/open-router.resolver.js';
 import {
@@ -50,7 +50,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
     });
 
     it('should generate articles based on time of day rules', async () => {
-        // Given
+        // Given - a specific time of day and news data
         const { jobs } = testContext.gateways;
         const { prisma } = testContext;
         const articleGenerationJob = jobs.find((job) => job.name === 'article-generation');
@@ -59,10 +59,10 @@ describe('Job - Generate Articles - Integration Tests', () => {
         expect(articleGenerationJob?.schedule).toBe('5 * * * *');
         expect(articleGenerationJob?.executeOnStartup).toBe(true);
 
-        // When
+        // When - running the article generation job
         await articleGenerationJob!.execute();
 
-        // Then: Verify the database state
+        // Then - it should generate articles according to the rules
         const articles = await prisma.article.findMany({
             orderBy: [{ headline: 'asc' }],
         });
