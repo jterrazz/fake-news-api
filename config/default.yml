@@ -1,11 +1,11 @@
 inbound:
-  env: development
+  env: production
   http:
     host: localhost
     port: 3000
   logger:
     level: info
-    prettyPrint: true
+    prettyPrint: false
 
 outbound:
   prisma:

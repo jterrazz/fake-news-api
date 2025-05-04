@@ -5,6 +5,7 @@ inbound:
     port: 3000
   logger:
     level: debug
+    prettyPrint: true
 
 outbound:
   prisma:
