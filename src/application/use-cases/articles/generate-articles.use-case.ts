@@ -65,9 +65,7 @@ export class GenerateArticlesUseCase {
             });
 
             // Filter news articles by publishedCount (moved from adapter)
-            const sortedByCount = [...news].sort(
-                (a, b) => b.publishedCount - a.publishedCount,
-            );
+            const sortedByCount = [...news].sort((a, b) => b.publishedCount - a.publishedCount);
             const top42PercentIndex = Math.ceil(sortedByCount.length * 0.42) - 1;
             const threshold = sortedByCount[top42PercentIndex]?.publishedCount ?? 0;
             const filteredNews = news.filter(

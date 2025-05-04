@@ -36,8 +36,8 @@ export async function cleanupIntegrationTest(context: IntegrationTestContext): P
     // Remove the SQLite file
     try {
         unlinkSync(context.databasePath);
-    } catch (_err) {
-        // File might already be deleted, ignore error
+    } catch (err) {
+        console.error('Error deleting SQLite file', err);
     }
 }
 
