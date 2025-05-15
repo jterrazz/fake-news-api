@@ -120,7 +120,7 @@ export class OpenRouterAdapter implements AIProviderPort {
             return 'google/gemini-2.5-pro-exp-03-25';
         }
 
-        return capability === 'reasoning' ? 'google/gemini-2.5-pro-exp-03-25' : 'openai/o4-mini';
+        return capability === 'reasoning' ? 'google/gemini-2.5-pro-preview' : 'openai/o4-mini';
     }
 
     private logError(error: Error, attempts: number): void {
