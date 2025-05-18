@@ -132,7 +132,7 @@ export function getArticleSystemPrompt(languageLabel: string): string {
 - Use ONLY the provided news ${NEWS_KEY} as the source of current events happening in the world
 - Multiple articles could eventually cover different angles of the same story if you think it's interesting
 - Double check if the field isFake is correctly set
-- You're allowed to use X / Twitter as a source of up to date information, and for contradictory information, balancing official mainstream media sources, and also more 
+- You're allowed to use X / Twitter as a source of up to date information, and for contradictory information, balancing official mainstream media sources, and also more silenced / alternative sources.
 
 In order to create a dynamic and engaging news feed experience:
 - The articles will be read by the player in the same order they are generated.
