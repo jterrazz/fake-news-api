@@ -76,10 +76,13 @@ export class GenerateArticlesUseCase {
                 return;
             }
 
-            if (filteredNews.length < 5) {
+            const minArticlesLength = Math.floor(targetArticleCount / 2);
+            if (filteredNews.length < minArticlesLength) {
                 this.logger.warn('Not enough articles found', {
                     country: country.toString(),
+                    currentCount: filteredNews.length,
                     language: language.toString(),
+                    minArticlesLength,
                 });
                 return;
             }
@@ -134,8 +137,9 @@ export class GenerateArticlesUseCase {
  * Determines the target number of articles based on the hour
  */
 function getTargetArticleCount(hour: number): number {
-    if (hour < 6) return 0;
-    if (hour < 12) return 6;
-    if (hour < 17) return 9;
-    return 15;
+    if (hour < 5) return 0;
+    if (hour < 8) return 2;
+    if (hour < 11) return 4;
+    if (hour < 19) return 8;
+    return 12;
 }
