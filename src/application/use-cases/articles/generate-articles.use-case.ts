@@ -76,7 +76,7 @@ export class GenerateArticlesUseCase {
                 return;
             }
 
-            if (filteredNews.length < 6) {
+            if (filteredNews.length < 5) {
                 this.logger.warn('Not enough articles found', {
                     country: country.toString(),
                     language: language.toString(),
