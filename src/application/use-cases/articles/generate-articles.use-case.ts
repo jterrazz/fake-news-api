@@ -66,7 +66,7 @@ export class GenerateArticlesUseCase {
 
             // Filter news articles by publishedCount (moved from adapter)
             const sortedByCount = [...news].sort((a, b) => b.publishedCount - a.publishedCount);
-            const filteredNews = sortedByCount.filter((article) => article.publishedCount > 3);
+            const filteredNews = sortedByCount.filter((article) => article.publishedCount > 2);
 
             if (filteredNews.length === 0) {
                 this.logger.warn('No articles found', {
