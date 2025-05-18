@@ -44,6 +44,7 @@ const server = setupServer(
             return new HttpResponse(null, { status: 401 });
         }
 
+        // Always return multiple articles for all tests
         const mockResponse = {
             country: sourceCountry || 'us',
             language: language || 'en',
@@ -53,9 +54,23 @@ const server = setupServer(
                         {
                             publish_date: '2024-03-10T12:00:00Z',
                             summary: 'Test summary',
-                            text: 'Test article text',
-                            title: 'Test Article',
-                            url: 'https://example.com/article',
+                            text: 'short',
+                            title: 'Short',
+                            url: 'https://example.com/article1',
+                        },
+                        {
+                            publish_date: '2024-03-11T12:00:00Z',
+                            summary: 'Test summary',
+                            text: 'a bit longer',
+                            title: 'Medium',
+                            url: 'https://example.com/article2',
+                        },
+                        {
+                            publish_date: '2024-03-12T12:00:00Z',
+                            summary: 'Test summary',
+                            text: 'this is the longest article text',
+                            title: 'Long',
+                            url: 'https://example.com/article3',
                         },
                     ],
                 },
@@ -66,39 +81,40 @@ const server = setupServer(
     }),
 );
 
+let adapter: WorldNewsAdapter;
+
+beforeAll(() => {
+    server.listen();
+    vitest.useFakeTimers();
+});
+beforeEach(() => {
+    const newRelicAdapter = mockOf<MonitoringPort>();
+    newRelicAdapter.monitorSegment.mockImplementation(async (_name, cb) => cb());
+    adapter = new WorldNewsAdapter(mockConfiguration, mockLogger, newRelicAdapter);
+    requestedDates = {};
+});
+afterEach(() => {
+    server.resetHandlers();
+});
+afterAll(() => {
+    server.close();
+    vitest.useRealTimers();
+});
+
 describe('WorldNewsAdapter', () => {
-    let adapter: WorldNewsAdapter;
-
-    beforeAll(() => {
-        server.listen();
-        vitest.useFakeTimers();
-    });
-    beforeEach(() => {
-        const newRelicAdapter = mockOf<MonitoringPort>();
-        newRelicAdapter.monitorSegment.mockImplementation(async (_name, cb) => cb());
-        adapter = new WorldNewsAdapter(mockConfiguration, mockLogger, newRelicAdapter);
-        requestedDates = {};
-    });
-    afterEach(() => {
-        server.resetHandlers();
-    });
-    afterAll(() => {
-        server.close();
-        vitest.useRealTimers();
-    });
-
     it('should fetch news successfully', async () => {
-        // Given - a valid API key and request parameters
+        // Given - a valid API key and a response with multiple articles
+
         // When - fetching news from the adapter
-        // Then - it should return valid news articles
         const result = await adapter.fetchTopNews();
 
+        // Then - it should return only the median-length article
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            publishedAt: new Date('2024-03-10T12:00:00Z'),
-            publishedCount: 1,
-            text: 'Test article text',
-            title: 'Test Article',
+            publishedAt: new Date('2024-03-11T12:00:00Z'),
+            publishedCount: 3,
+            text: 'a bit longer',
+            title: 'Medium',
         });
     });
 
@@ -197,5 +213,107 @@ describe('WorldNewsAdapter', () => {
         // Then - both should return arrays (possibly empty)
         expect(Array.isArray(firstResult)).toBe(true);
         expect(Array.isArray(secondResult)).toBe(true);
+    });
+});
+
+describe('WorldNewsAdapter.transformResponse', () => {
+    it('should select the article with the median text length from each section', () => {
+        // Given
+        const adapter = new WorldNewsAdapter(
+            { apiKey: 'irrelevant' },
+            mockLogger,
+            mockOf<MonitoringPort>(),
+        );
+        const response = {
+            country: 'us',
+            language: 'en',
+            top_news: [
+                {
+                    news: [
+                        {
+                            publish_date: '2024-01-01T00:00:00Z',
+                            text: 'short',
+                            title: 'Short',
+                        },
+                        {
+                            publish_date: '2024-01-02T00:00:00Z',
+                            text: 'a bit longer',
+                            title: 'Medium',
+                        },
+                        {
+                            publish_date: '2024-01-03T00:00:00Z',
+                            text: 'this is the longest article text',
+                            title: 'Long',
+                        },
+                    ],
+                },
+            ],
+        };
+
+        // When
+        // @ts-expect-error: testing private method
+        const result = adapter.transformResponse(response);
+
+        // Then
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({
+            publishedAt: new Date('2024-01-02T00:00:00Z'),
+            publishedCount: 3,
+            text: 'a bit longer',
+            title: 'Medium',
+        });
+    });
+
+    it('should select the lower median if even number of articles', () => {
+        // Given
+        const adapter = new WorldNewsAdapter(
+            { apiKey: 'irrelevant' },
+            mockLogger,
+            mockOf<MonitoringPort>(),
+        );
+        const response = {
+            country: 'us',
+            language: 'en',
+            top_news: [
+                {
+                    news: [
+                        {
+                            publish_date: '2024-01-01T00:00:00Z',
+                            text: 'a',
+                            title: 'A',
+                        },
+                        {
+                            publish_date: '2024-01-02T00:00:00Z',
+                            text: 'bb',
+                            title: 'BB',
+                        },
+                        {
+                            publish_date: '2024-01-03T00:00:00Z',
+                            text: 'ccc',
+                            title: 'CCC',
+                        },
+                        {
+                            publish_date: '2024-01-04T00:00:00Z',
+                            text: 'dddd',
+                            title: 'DDDD',
+                        },
+                    ],
+                },
+            ],
+        };
+
+        // When
+        // @ts-expect-error: testing private method
+        const result = adapter.transformResponse(response);
+
+        // Then
+        // Sorted by text length: a (1), bb (2), ccc (3), dddd (4) => medianIndex = 1 (bb)
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({
+            publishedAt: new Date('2024-01-02T00:00:00Z'),
+            publishedCount: 4,
+            text: 'bb',
+            title: 'BB',
+        });
     });
 });

@@ -130,14 +130,23 @@ export class WorldNewsAdapter implements NewsPort {
     }
 
     private transformResponse(response: z.infer<typeof WorldNewsResponseSchema>): NewsArticle[] {
-        // Flatten all articles and add publishedCount
-        return response.top_news.flatMap((section) =>
-            section.news.map((article) => ({
-                publishedAt: new Date(article.publish_date),
-                publishedCount: section.news.length,
-                text: article.text,
-                title: article.title,
-            })),
-        );
+        // For each section, select the article with the median text length
+        return response.top_news
+            .map((section) => {
+                if (section.news.length === 0) {
+                    return undefined;
+                }
+                // Sort articles by text length
+                const sorted = [...section.news].sort((a, b) => a.text.length - b.text.length);
+                const medianIndex = Math.floor((sorted.length - 1) / 2);
+                const article = sorted[medianIndex];
+                return {
+                    publishedAt: new Date(article.publish_date),
+                    publishedCount: section.news.length,
+                    text: article.text,
+                    title: article.title,
+                };
+            })
+            .filter(Boolean) as NewsArticle[];
     }
 }
