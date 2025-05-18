@@ -138,7 +138,7 @@ export class GenerateArticlesUseCase {
  */
 function getTargetArticleCount(hour: number): number {
     if (hour < 5) return 0;
-    if (hour < 8) return 2;
+    if (hour < 8) return 4;
     if (hour < 11) return 4;
     if (hour < 19) return 8;
     return 12;

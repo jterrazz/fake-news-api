@@ -136,7 +136,7 @@ export function getArticleSystemPrompt(languageLabel: string): string {
 
 In order to create a dynamic and engaging news feed experience:
 - The articles will be read by the player in the same order they are generated.
-- DO NOT group fake/real articles together. MIX their order RANDOMLY / UNPREDICTABLY.
+- The choice of fake/real articles MUST BE RANDOM / UNPREDICTABLE (in count, and in order).
 - Do not create duplicated articles talking about the exact same story.
 
 ## Article Guidelines:
