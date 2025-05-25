@@ -14,7 +14,7 @@ import {
 } from '@jterrazz/test';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { ZodError } from 'zod';
+import { ZodError } from 'zod/v4';
 
 import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 

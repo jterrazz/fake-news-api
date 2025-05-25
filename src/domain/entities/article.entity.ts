@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { ArticleCategory } from '../value-objects/article-category.vo.js';
 import { ArticleContent } from '../value-objects/article-content.vo.js';

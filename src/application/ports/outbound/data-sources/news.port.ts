@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import { type ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
 import { type ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';

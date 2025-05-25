@@ -1,4 +1,4 @@
-import { type z } from 'zod';
+import { type z } from 'zod/v4';
 
 /**
  * Prompt for AI content generation

@@ -1,6 +1,6 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import { type MonitoringPort } from '@jterrazz/monitoring';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import {
     type FetchNewsOptions as FetchTopNewsOptions,

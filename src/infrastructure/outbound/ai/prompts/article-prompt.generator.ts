@@ -1,5 +1,4 @@
-import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod/v4';
 
 import { type GenerateArticlesParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
 import {
@@ -48,10 +47,7 @@ const generatedArticleSchema = z.object({
 /**
  * Schema for generated articles from AI with transformations to domain objects
  */
-const generatedSchemaDescription = zodToJsonSchema(z.array(generatedArticleSchema), {
-    $refStrategy: 'none',
-    definitionPath: 'schemas',
-});
+const generatedSchemaDescription = z.toJSONSchema(z.array(generatedArticleSchema));
 
 type GeneratedArticle = {
     category: ArticleCategory;

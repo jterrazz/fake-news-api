@@ -2,7 +2,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import {
     type FetchNewsOptions,

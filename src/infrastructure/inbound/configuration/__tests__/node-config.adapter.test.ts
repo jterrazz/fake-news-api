@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jterrazz/test';
-import { ZodError } from 'zod';
+import { ZodError } from 'zod/v4';
 
 import { NodeConfigAdapter } from '../node-config.adapter.js';
 

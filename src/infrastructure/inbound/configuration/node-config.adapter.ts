@@ -1,5 +1,5 @@
 import { LoggerLevelSchema } from '@jterrazz/logger';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 import {
     type ConfigurationPort,
