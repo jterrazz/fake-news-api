@@ -98,11 +98,13 @@ describe('GenerateArticlesUseCase', () => {
         it.each([
             { existingCount: 0, expectedToGenerate: 4, hour: 7 },
             { existingCount: 2, expectedToGenerate: 2, hour: 7 },
+            { existingCount: 4, expectedToGenerate: 0, hour: 7 },
+            { existingCount: 0, expectedToGenerate: 8, hour: 14 },
             { existingCount: 4, expectedToGenerate: 4, hour: 14 },
-            { existingCount: 6, expectedToGenerate: 2, hour: 14 },
-            { existingCount: 8, expectedToGenerate: 4, hour: 18 },
-            { existingCount: 10, expectedToGenerate: 2, hour: 18 },
-            { existingCount: 0, expectedToGenerate: 12, hour: 18 },
+            { existingCount: 8, expectedToGenerate: 0, hour: 14 },
+            { existingCount: 0, expectedToGenerate: 12, hour: 20 },
+            { existingCount: 8, expectedToGenerate: 4, hour: 20 },
+            { existingCount: 12, expectedToGenerate: 0, hour: 20 },
         ])(
             'should generate correct number of articles based on time - $hour:00 with $existingCount existing (US)',
             async ({ existingCount, expectedToGenerate, hour }) => {
@@ -145,11 +147,13 @@ describe('GenerateArticlesUseCase', () => {
         it.each([
             { existingCount: 0, expectedToGenerate: 4, hour: 7 },
             { existingCount: 2, expectedToGenerate: 2, hour: 7 },
+            { existingCount: 4, expectedToGenerate: 0, hour: 7 },
+            { existingCount: 0, expectedToGenerate: 8, hour: 14 },
             { existingCount: 4, expectedToGenerate: 4, hour: 14 },
-            { existingCount: 6, expectedToGenerate: 2, hour: 14 },
-            { existingCount: 8, expectedToGenerate: 4, hour: 18 },
-            { existingCount: 10, expectedToGenerate: 2, hour: 18 },
-            { existingCount: 0, expectedToGenerate: 12, hour: 18 },
+            { existingCount: 8, expectedToGenerate: 0, hour: 14 },
+            { existingCount: 0, expectedToGenerate: 12, hour: 20 },
+            { existingCount: 8, expectedToGenerate: 4, hour: 20 },
+            { existingCount: 12, expectedToGenerate: 0, hour: 20 },
         ])(
             'should generate correct number of articles based on time - $hour:00 with $existingCount existing (France)',
             async ({ existingCount, expectedToGenerate, hour }) => {

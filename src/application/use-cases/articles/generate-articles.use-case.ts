@@ -137,9 +137,9 @@ export class GenerateArticlesUseCase {
  * Determines the target number of articles based on the hour
  */
 function getTargetArticleCount(hour: number): number {
-    if (hour < 5) return 0;
-    if (hour < 8) return 2;
-    if (hour < 11) return 4;
-    if (hour < 19) return 8;
+    // 3 updates per day: 7:00, 14:00, 20:00
+    if (hour < 7) return 0;
+    if (hour < 14) return 4;
+    if (hour < 20) return 8;
     return 12;
 }

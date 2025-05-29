@@ -102,22 +102,6 @@ describe('Job - Generate Articles - Integration Tests', () => {
             },
             {
                 article:
-                    'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
-                category: 'TECHNOLOGY',
-                country: 'us',
-                createdAt: expect.any(Date),
-                fakeReason:
-                    'While quantum computing research is ongoing, room temperature qubit stability remains a significant challenge. This article fabricates a breakthrough that has not occurred.',
-                headline:
-                    'Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough 5',
-                id: expect.any(String),
-                isFake: true,
-                language: 'en',
-                summary:
-                    'Major technology companies have achieved a significant breakthrough in quantum computing, demonstrating stable qubit operations at room temperature. (Article 5)',
-            },
-            {
-                article:
                     'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
                 category: 'TECHNOLOGY',
                 country: 'us',
@@ -143,20 +127,6 @@ describe('Job - Generate Articles - Integration Tests', () => {
                 language: 'en',
                 summary:
                     'Test summary showcasing advances in AI-powered news generation. (Article 4)',
-            },
-            {
-                article:
-                    'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
-                category: 'TECHNOLOGY',
-                country: 'us',
-                createdAt: expect.any(Date),
-                fakeReason: null,
-                headline: 'Test Article Shows Promise in News Generation Research 6',
-                id: expect.any(String),
-                isFake: false,
-                language: 'en',
-                summary:
-                    'Test summary showcasing advances in AI-powered news generation. (Article 6)',
             },
         ]);
     }, 20000);
