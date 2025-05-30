@@ -117,10 +117,10 @@ export class OpenRouterAdapter implements AIProviderPort {
 
     private getModel(capability: AIModelConfig['capability']): string {
         if (this.config.budget === 'free') {
-            return 'x-ai/grok-3-beta'; //'deepseek/deepseek-r1:free';
+            return 'deepseek/deepseek-r1:free';
         }
 
-        return capability === 'reasoning' ? 'x-ai/grok-3-beta' : 'openai/o4-mini';
+        return capability === 'reasoning' ? 'deepseek/deepseek-r1-0528' : 'openai/o4-mini';
     }
 
     private logError(error: Error, attempts: number): void {
