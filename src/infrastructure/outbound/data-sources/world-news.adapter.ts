@@ -8,11 +8,8 @@ import {
     type NewsPort,
 } from '../../../application/ports/outbound/data-sources/news.port.js';
 
-import { ArticleCountry, CountryEnum } from '../../../domain/value-objects/article-country.vo.js';
-import {
-    ArticleLanguage,
-    LanguageEnum,
-} from '../../../domain/value-objects/article-language.vo.js';
+import { ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
+import { ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
 
 import {
     createCurrentTZDateForCountry,
@@ -52,8 +49,8 @@ export class WorldNewsAdapter implements NewsPort {
 
     public async fetchTopNews(options?: FetchTopNewsOptions): Promise<NewsArticle[]> {
         const {
-            country = ArticleCountry.create(CountryEnum.UnitedStates),
-            language = ArticleLanguage.create(LanguageEnum.English),
+            country = ArticleCountry.create('us'),
+            language = ArticleLanguage.create('en'),
         } = options || {};
         return this.monitoring.monitorSegment('Api/WorldNews/FetchTopNews', async () => {
             try {

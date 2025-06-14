@@ -17,10 +17,6 @@ export class ArticleHeadline {
         return new ArticleHeadline(result.data);
     }
 
-    public equals(other: ArticleHeadline): boolean {
-        return this.value === other.value;
-    }
-
     public toString(): string {
         return this.value;
     }

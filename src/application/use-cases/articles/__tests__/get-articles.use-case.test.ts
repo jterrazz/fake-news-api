@@ -5,15 +5,15 @@ import { buildTestArticles } from '../../../../domain/entities/__mocks__/article
 import { type Article } from '../../../../domain/entities/article.entity.js';
 import {
     ArticleCategory,
-    CategoryEnum,
+    type CategoryEnum,
 } from '../../../../domain/value-objects/article-category.vo.js';
 import {
     ArticleCountry,
-    CountryEnum,
+    type CountryEnum,
 } from '../../../../domain/value-objects/article-country.vo.js';
 import {
     ArticleLanguage,
-    LanguageEnum,
+    type LanguageEnum,
 } from '../../../../domain/value-objects/article-language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
@@ -35,8 +35,8 @@ describe('GetArticlesUseCase', () => {
         useCase = new GetArticlesUseCase(mockArticleRepository);
         testArticles = buildTestArticles(
             TEST_ARTICLES_COUNT,
-            ArticleCountry.create(CountryEnum.UnitedStates),
-            ArticleLanguage.create(LanguageEnum.English),
+            ArticleCountry.create('us'),
+            ArticleLanguage.create('en'),
         );
 
         // Default mock response
@@ -50,7 +50,7 @@ describe('GetArticlesUseCase', () => {
         it('should return paginated articles with default parameters', async () => {
             // Given - a set of articles in the repository
             const params = {
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             };
 
@@ -60,9 +60,9 @@ describe('GetArticlesUseCase', () => {
             // Then - it should return paginated articles
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith({
                 category: undefined,
-                country: ArticleCountry.create(CountryEnum.UnitedStates),
+                country: ArticleCountry.create('us'),
                 cursor: undefined,
-                language: ArticleLanguage.create(LanguageEnum.English),
+                language: ArticleLanguage.create('en'),
                 limit: DEFAULT_LIMIT,
             });
 
@@ -77,7 +77,7 @@ describe('GetArticlesUseCase', () => {
             // Given - a custom limit parameter
             const limit = 5;
             const params = {
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit,
             };
 
@@ -94,8 +94,8 @@ describe('GetArticlesUseCase', () => {
         it('should handle category filter', async () => {
             // Given - a category filter parameter
             const params = {
-                category: CategoryEnum.Technology as CategoryEnum.Technology,
-                language: LanguageEnum.English,
+                category: 'technology' as CategoryEnum,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             };
 
@@ -113,8 +113,8 @@ describe('GetArticlesUseCase', () => {
         it('should handle country filter', async () => {
             // Given - a country filter parameter
             const params = {
-                country: CountryEnum.France,
-                language: LanguageEnum.English,
+                country: 'fr' as CountryEnum,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             };
 
@@ -132,7 +132,7 @@ describe('GetArticlesUseCase', () => {
         it('should handle language filter', async () => {
             // Given - a language filter parameter
             const params = {
-                language: LanguageEnum.French,
+                language: 'fr' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             };
 
@@ -150,14 +150,14 @@ describe('GetArticlesUseCase', () => {
         it('should handle cursor-based pagination', async () => {
             // Given - a first page of results
             const firstPage = await useCase.execute({
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             });
 
             // When - requesting the next page using the cursor
             await useCase.execute({
                 cursor: firstPage.nextCursor!,
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             });
 
@@ -179,7 +179,7 @@ describe('GetArticlesUseCase', () => {
 
             // When - executing the use case
             const result = await useCase.execute({
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             });
 
@@ -191,7 +191,7 @@ describe('GetArticlesUseCase', () => {
             // Given - an invalid cursor parameter
             const params = {
                 cursor: 'invalid-cursor',
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             };
 
@@ -202,7 +202,7 @@ describe('GetArticlesUseCase', () => {
         it('should throw error for invalid limit', async () => {
             // Given - a limit parameter that exceeds the maximum allowed
             const params = {
-                language: LanguageEnum.English,
+                language: 'en' as LanguageEnum,
                 limit: 1000, // Exceeds MAX_PAGE_SIZE
             };
 
@@ -213,8 +213,8 @@ describe('GetArticlesUseCase', () => {
         it('should throw error for invalid category', async () => {
             // Given - an invalid category parameter
             const params = {
-                category: 'invalid' as CategoryEnum.Politics,
-                language: LanguageEnum.English,
+                category: 'invalid' as CategoryEnum,
+                language: 'en' as LanguageEnum,
                 limit: DEFAULT_LIMIT,
             };
 

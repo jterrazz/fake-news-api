@@ -3,12 +3,12 @@ import { z } from 'zod/v4';
 import { type Article } from '../../../domain/entities/article.entity.js';
 import {
     ArticleCategory,
-    CategoryEnum,
+    categorySchema,
 } from '../../../domain/value-objects/article-category.vo.js';
-import { ArticleCountry, CountryEnum } from '../../../domain/value-objects/article-country.vo.js';
+import { ArticleCountry, countrySchema } from '../../../domain/value-objects/article-country.vo.js';
 import {
     ArticleLanguage,
-    LanguageEnum,
+    languageSchema,
 } from '../../../domain/value-objects/article-language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
@@ -19,10 +19,10 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 100;
 
 export const getArticlesParamsSchema = z.object({
-    category: z.nativeEnum(CategoryEnum).optional(),
-    country: z.nativeEnum(CountryEnum).optional(),
+    category: categorySchema.optional(),
+    country: countrySchema.optional(),
     cursor: z.string().optional(),
-    language: z.nativeEnum(LanguageEnum).optional(),
+    language: languageSchema.optional(),
     limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
 });
 
@@ -59,9 +59,7 @@ export class GetArticlesUseCase {
 
         const { items, total } = await this.articleRepository.findMany({
             category: category ? ArticleCategory.create(category) : undefined,
-            country: country
-                ? ArticleCountry.create(country)
-                : ArticleCountry.create(CountryEnum.UnitedStates), // Default to US if not specified
+            country: country ? ArticleCountry.create(country) : ArticleCountry.create('us'), // Default to US if not specified
             cursor: cursorDate,
             language: language ? ArticleLanguage.create(language) : undefined,
             limit,

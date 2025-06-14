@@ -17,10 +17,6 @@ export class ArticleSummary {
         return new ArticleSummary(result.data);
     }
 
-    public equals(other: ArticleSummary): boolean {
-        return this.value === other.value;
-    }
-
     public toString(): string {
         return this.value;
     }

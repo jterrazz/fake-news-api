@@ -1,34 +1,23 @@
 import { z } from 'zod/v4';
 
-export enum CountryEnum {
-    France = 'fr',
-    Germany = 'de',
-    Italy = 'it',
-    Spain = 'es',
-    UnitedKingdom = 'uk',
-    UnitedStates = 'us',
-}
+export const countrySchema = z.enum(['fr', 'de', 'it', 'es', 'uk', 'us']);
 
-export const countrySchema = z.nativeEnum(CountryEnum);
+export type CountryEnum = z.infer<typeof countrySchema>;
 
 export class ArticleCountry {
     private constructor(public readonly value: CountryEnum) {}
 
     public static create(country: string): ArticleCountry {
-        const normalizedCountry = country.toLowerCase() as CountryEnum;
+        const normalizedCountry = country.toLowerCase();
         const result = countrySchema.safeParse(normalizedCountry);
 
         if (!result.success) {
             throw new Error(
-                `Invalid country: ${country}. Supported countries are: ${Object.values(CountryEnum).join(', ')}`,
+                `Invalid country: ${country}. Supported countries are: ${countrySchema.options.join(', ')}`,
             );
         }
 
         return new ArticleCountry(result.data);
-    }
-
-    public equals(other: ArticleCountry): boolean {
-        return this.value === other.value;
     }
 
     public toString(): string {

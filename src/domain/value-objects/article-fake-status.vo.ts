@@ -33,10 +33,6 @@ export class ArticleFakeStatus {
         return new ArticleFakeStatus(false, null);
     }
 
-    public equals(other: ArticleFakeStatus): boolean {
-        return this.isFake === other.isFake && this.reason === other.reason;
-    }
-
     public markAsFake(reason: string): ArticleFakeStatus {
         return ArticleFakeStatus.createFake(reason);
     }

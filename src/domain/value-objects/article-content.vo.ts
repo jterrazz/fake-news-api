@@ -17,10 +17,6 @@ export class ArticleContent {
         return new ArticleContent(result.data);
     }
 
-    public equals(other: ArticleContent): boolean {
-        return this.value === other.value;
-    }
-
     public toString(): string {
         return this.value;
     }
