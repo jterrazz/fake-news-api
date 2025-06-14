@@ -20,4 +20,4 @@ export class ArticleHeadline {
     public toString(): string {
         return this.value;
     }
-}
+} 

@@ -1,44 +1,29 @@
-import { type MonitoringPort } from '@jterrazz/monitoring';
+import { type LoggerPort } from '@jterrazz/logger';
+import type { Job } from 'bullmq';
 
-import { type Job } from '../../../../application/ports/inbound/job-runner.port.js';
 import { type GenerateArticlesUseCase } from '../../../../application/use-cases/articles/generate-articles.use-case.js';
 
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { Country } from '../../../../domain/value-objects/country.vo.js';
+import { Language } from '../../../../domain/value-objects/language.vo.js';
 
-type Dependencies = {
-    generateArticles: GenerateArticlesUseCase;
-    monitoring: MonitoringPort;
-};
+export class ArticleGenerationJob {
+    constructor(
+        private readonly generateArticlesUseCase: GenerateArticlesUseCase,
+        private readonly logger: LoggerPort,
+    ) {}
 
-/**
- * Creates the article generation job with its dependencies
- */
-export const createArticleGenerationJob = ({
-    generateArticles,
-    monitoring,
-}: Dependencies): Job => ({
-    execute: async () => {
-        return monitoring.monitorTransaction('Jobs', 'ArticleGeneration', async () => {
-            try {
-                await Promise.allSettled([
-                    generateArticles.execute(
-                        ArticleLanguage.create('en'),
-                        ArticleCountry.create('us'),
-                    ),
-                    generateArticles.execute(
-                        ArticleLanguage.create('fr'),
-                        ArticleCountry.create('fr'),
-                    ),
-                ]);
-                monitoring.recordCount('Jobs', 'ArticleGeneration/Success');
-            } catch (error) {
-                monitoring.recordCount('Jobs', 'ArticleGeneration/Error');
-                throw error;
-            }
-        });
-    },
-    executeOnStartup: true,
-    name: 'article-generation',
-    schedule: '5 * * * *', // Run at 5 minutes past every hour
-});
+    async process(_job: Job): Promise<void> {
+        this.logger.info('Starting article generation job');
+
+        const languages = [
+            { country: Country.create('us'), language: Language.create('en') },
+            { country: Country.create('fr'), language: Language.create('fr') },
+        ];
+
+        for (const { country, language } of languages) {
+            await this.generateArticlesUseCase.execute(language, country);
+        }
+
+        this.logger.info('Article generation job completed');
+    }
+}

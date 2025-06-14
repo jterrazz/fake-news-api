@@ -1,28 +1,34 @@
 import { type Article } from '../../../../domain/entities/article.entity.js';
-import { type ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { type ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { type Country } from '../../../../domain/value-objects/country.vo.js';
+import { type Language } from '../../../../domain/value-objects/language.vo.js';
+
+export interface ArticleGenerationContext {
+    country: Country;
+    language: Language;
+}
+
+export interface ArticleGenerationOptions {
+    existingArticleSummaries: string[];
+    news: NewsForGeneration[];
+}
+
+export interface ArticleGenerationResult {
+    articlesCount: number;
+}
+
+export interface ArticleGeneratorPort {
+    generateArticles(
+        context: ArticleGenerationContext,
+        options: ArticleGenerationOptions,
+    ): Promise<Article[]>;
+}
 
 /**
  * Port for generating articles using AI
  */
-export interface ArticleGeneratorPort {
-    /**
-     * Generate a mix of real and fake articles based on source articles
-     * @param params Parameters for article generation
-     * @returns Generated articles with metadata
-     */
-    generateArticles(params: GenerateArticlesParams): Promise<Article[]>;
+export interface NewsForGeneration {
+    publishedAt: Date;
+    publishedCount: number;
+    text: string;
+    title: string;
 }
-
-/**
- * Parameters for generating articles
- */
-export type GenerateArticlesParams = {
-    articles: {
-        news: Array<{ content: string; title: string }>;
-        publicationHistory: Array<{ headline: string; summary: string }>;
-    };
-    count: number;
-    country: ArticleCountry;
-    language: ArticleLanguage;
-};

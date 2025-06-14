@@ -1,7 +1,7 @@
 import { type LoggerPort } from '@jterrazz/logger';
 
-import { type ArticleCountry } from '../../../domain/value-objects/article-country.vo.js';
-import { type ArticleLanguage } from '../../../domain/value-objects/article-language.vo.js';
+import { type Country } from '../../../domain/value-objects/country.vo.js';
+import { type Language } from '../../../domain/value-objects/language.vo.js';
 
 import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-generator.port.js';
 import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
@@ -27,7 +27,7 @@ export class GenerateArticlesUseCase {
     /**
      * Generate articles for a specific language and country
      */
-    public async execute(language: ArticleLanguage, country: ArticleCountry): Promise<void> {
+    public async execute(language: Language, country: Country): Promise<void> {
         try {
             this.logger.info(
                 `Starting article generation for ${country.toString()} in ${language.toString()}`,

@@ -1,28 +1,27 @@
 import { z } from 'zod/v4';
 
-import { type GenerateArticlesParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
 import {
     type AIPrompt,
     type AIPromptGenerator,
 } from '../../../../application/ports/outbound/ai/prompt.port.js';
 
 import {
-    ArticleCategory,
-    categorySchema,
-} from '../../../../domain/value-objects/article-category.vo.js';
-import {
     ArticleContent,
     contentSchema,
-} from '../../../../domain/value-objects/article-content.vo.js';
-import { ArticleFakeStatus } from '../../../../domain/value-objects/article-fake-status.vo.js';
+} from '../../../../domain/value-objects/article/content.vo.js';
+import { ArticleFakeStatus } from '../../../../domain/value-objects/article/fake-status.vo.js';
 import {
     ArticleHeadline,
     headlineSchema,
-} from '../../../../domain/value-objects/article-headline.vo.js';
+} from '../../../../domain/value-objects/article/headline.vo.js';
 import {
     ArticleSummary,
     summarySchema,
-} from '../../../../domain/value-objects/article-summary.vo.js';
+} from '../../../../domain/value-objects/article/summary.vo.js';
+import {
+    Category,
+    categorySchema,
+} from '../../../../domain/value-objects/category.vo.js';
 
 /**
  * Raw input schema for AI responses before transformation
@@ -50,7 +49,7 @@ const generatedArticleSchema = z.object({
 const generatedSchemaDescription = z.toJSONSchema(z.array(generatedArticleSchema));
 
 type GeneratedArticle = {
-    category: ArticleCategory;
+    category: Category;
     content: ArticleContent;
     fakeStatus: ArticleFakeStatus;
     headline: ArticleHeadline;
@@ -62,7 +61,7 @@ type GeneratedArticle = {
  */
 const generatedArticleArraySchema = z.array(
     generatedArticleSchema.transform((item) => ({
-        category: ArticleCategory.create(item.category),
+        category: Category.create(item.category),
         content: ArticleContent.create(item.contentInMarkdown),
         fakeStatus: item.isFake
             ? ArticleFakeStatus.createFake(item.fakeReason!)
@@ -74,6 +73,28 @@ const generatedArticleArraySchema = z.array(
 
 const NEWS_KEY = '"RealWorldNews"';
 const HISTORY_KEY = '"ArticlesAlreadyPublishedInTheGame"';
+
+export interface ExistingArticleSummary {
+    category: Category;
+    headline: string;
+    summary: string;
+}
+
+export interface GenerateArticlesParams {
+    articles: {
+        news: Array<{ category: string; content: string; title: string }>;
+        publicationHistory: Array<{ headline: string; summary: string }>;
+    };
+    count: number;
+    language: { toString(): string };
+}
+
+export interface NewsForPrompt {
+    category: string;
+    content: string;
+    title: string;
+}
+
 /**
  * Article content generator class
  */
@@ -177,4 +198,12 @@ Create an informative summary that will be used in future generations in the fie
 
 ## Output Format:
 - Directly give me a JSON (like a JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription, null, 2)}`;
+}
+
+export function mapNewsForPrompt(params: GenerateArticlesParams): NewsForPrompt[] {
+    return params.articles.news.map((item: { category: string; content: string; title: string }) => ({
+        category: item.category,
+        content: item.content,
+        title: item.title,
+    }));
 }

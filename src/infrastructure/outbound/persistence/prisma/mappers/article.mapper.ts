@@ -1,42 +1,42 @@
 import {
     type Article as PrismaArticle,
-    type Category,
-    type Country,
-    type Language,
+    type Category as PrismaCategory,
+    type Country as PrismaCountry,
+    type Language as PrismaLanguage,
 } from '@prisma/client';
 
 import { Article } from '../../../../../domain/entities/article.entity.js';
-import { ArticleCategory } from '../../../../../domain/value-objects/article-category.vo.js';
-import { ArticleContent } from '../../../../../domain/value-objects/article-content.vo.js';
-import { ArticleCountry } from '../../../../../domain/value-objects/article-country.vo.js';
-import { ArticleFakeStatus } from '../../../../../domain/value-objects/article-fake-status.vo.js';
-import { ArticleHeadline } from '../../../../../domain/value-objects/article-headline.vo.js';
-import { ArticleLanguage } from '../../../../../domain/value-objects/article-language.vo.js';
-import { ArticleSummary } from '../../../../../domain/value-objects/article-summary.vo.js';
+import { ArticleContent } from '../../../../../domain/value-objects/article/content.vo.js';
+import { ArticleFakeStatus } from '../../../../../domain/value-objects/article/fake-status.vo.js';
+import { ArticleHeadline } from '../../../../../domain/value-objects/article/headline.vo.js';
+import { ArticleSummary } from '../../../../../domain/value-objects/article/summary.vo.js';
+import { Category } from '../../../../../domain/value-objects/category.vo.js';
+import { Country } from '../../../../../domain/value-objects/country.vo.js';
+import { Language } from '../../../../../domain/value-objects/language.vo.js';
 
 export class ArticleMapper {
-    mapCategoryToDomain(category: Category): ArticleCategory {
-        return ArticleCategory.create(category.toLowerCase());
+    mapCategoryToDomain(category: PrismaCategory): Category {
+        return Category.create(category.toLowerCase());
     }
 
-    mapCategoryToPrisma(category: ArticleCategory): Category {
-        return category.toString().toUpperCase() as Category;
+    mapCategoryToPrisma(category: Category): PrismaCategory {
+        return category.toString().toUpperCase() as PrismaCategory;
     }
 
-    mapCountryToDomain(country: Country): ArticleCountry {
-        return ArticleCountry.create(country.toLowerCase());
+    mapCountryToDomain(country: PrismaCountry): Country {
+        return Country.create(country.toLowerCase());
     }
 
-    mapCountryToPrisma(country: ArticleCountry): Country {
-        return country.toString().toLowerCase() as Country;
+    mapCountryToPrisma(country: Country): PrismaCountry {
+        return country.toString().toLowerCase() as PrismaCountry;
     }
 
-    mapLanguageToDomain(language: Language): ArticleLanguage {
-        return ArticleLanguage.create(language.toLowerCase());
+    mapLanguageToDomain(language: PrismaLanguage): Language {
+        return Language.create(language.toLowerCase());
     }
 
-    mapLanguageToPrisma(language: ArticleLanguage): Language {
-        return language.toString().toLowerCase() as Language;
+    mapLanguageToPrisma(language: Language): PrismaLanguage {
+        return language.toString().toLowerCase() as PrismaLanguage;
     }
 
     toDomain(prisma: PrismaArticle): Article {
@@ -51,6 +51,7 @@ export class ArticleMapper {
             headline: ArticleHeadline.create(prisma.headline),
             id: prisma.id,
             language: this.mapLanguageToDomain(prisma.language),
+            publishedAt: prisma.createdAt,
             summary: ArticleSummary.create(prisma.summary),
         });
     }

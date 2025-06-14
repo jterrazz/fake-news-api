@@ -4,13 +4,12 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { vitest } from 'vitest';
 
 import {
-    type FetchNewsOptions,
     type NewsArticle,
     type NewsPort,
 } from '../../../../application/ports/outbound/data-sources/news.port.js';
 
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { Country } from '../../../../domain/value-objects/country.vo.js';
+import { Language } from '../../../../domain/value-objects/language.vo.js';
 
 import { CachedNewsAdapter } from '../cached-news.adapter.js';
 
@@ -22,9 +21,9 @@ describe('CachedNewsAdapter', () => {
     const mockLogger = mockOf<LoggerPort>();
     const cacheDirectory = 'test';
 
-    const defaultOptions: FetchNewsOptions = {
-        country: ArticleCountry.create('us'),
-        language: ArticleLanguage.create('en'),
+    const options = {
+        country: Country.create('us'),
+        language: Language.create('en'),
     };
 
     const mockArticle: NewsArticle = {
@@ -52,7 +51,7 @@ describe('CachedNewsAdapter', () => {
             (readFileSync as Mock).mockReturnValue(JSON.stringify(validCache));
 
             // When - fetching data from the adapter
-            const result = await adapter.fetchTopNews(defaultOptions);
+            const result = await adapter.fetchTopNews(options);
 
             // Then - it should return the cached data
             expect(result).toEqual([mockArticle]);
@@ -73,11 +72,11 @@ describe('CachedNewsAdapter', () => {
             mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
             // When - fetching data from the adapter
-            const result = await adapter.fetchTopNews(defaultOptions);
+            const result = await adapter.fetchTopNews(options);
 
             // Then - it should fetch fresh data and update the cache
             expect(result).toEqual([mockArticle]);
-            expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
+            expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(options);
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
                 language: 'en',
             });
@@ -93,11 +92,11 @@ describe('CachedNewsAdapter', () => {
             mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
             // When - fetching data from the adapter
-            const result = await adapter.fetchTopNews(defaultOptions);
+            const result = await adapter.fetchTopNews(options);
 
             // Then - it should fetch fresh data and return it
             expect(result).toEqual([mockArticle]);
-            expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
+            expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(options);
             expect(mockLogger.info).toHaveBeenCalledWith('Fetching fresh news data', {
                 language: 'en',
             });
@@ -113,14 +112,14 @@ describe('CachedNewsAdapter', () => {
                 mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
                 // When - fetching data from the adapter
-                const result = await adapter.fetchTopNews(defaultOptions);
+                const result = await adapter.fetchTopNews(options);
 
                 // Then - it should fetch fresh data and log the cache read error
                 expect(result).toEqual([mockArticle]);
                 expect(mockLogger.error).toHaveBeenCalledWith('Failed to read news cache', {
                     error: expect.any(Error),
                 });
-                expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(defaultOptions);
+                expect(mockNewsSource.fetchTopNews).toHaveBeenCalledWith(options);
             });
 
             it('should return data even when cache write fails', async () => {
@@ -132,7 +131,7 @@ describe('CachedNewsAdapter', () => {
                 mockNewsSource.fetchTopNews.mockResolvedValue([mockArticle]);
 
                 // When - fetching data from the adapter
-                const result = await adapter.fetchTopNews(defaultOptions);
+                const result = await adapter.fetchTopNews(options);
 
                 // Then - it should return the data and log the cache write error
                 expect(result).toEqual([mockArticle]);

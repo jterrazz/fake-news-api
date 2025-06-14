@@ -4,10 +4,10 @@ export const countrySchema = z.enum(['fr', 'de', 'it', 'es', 'uk', 'us']);
 
 export type CountryEnum = z.infer<typeof countrySchema>;
 
-export class ArticleCountry {
+export class Country {
     private constructor(public readonly value: CountryEnum) {}
 
-    public static create(country: string): ArticleCountry {
+    public static create(country: string): Country {
         const normalizedCountry = country.toLowerCase();
         const result = countrySchema.safeParse(normalizedCountry);
 
@@ -17,10 +17,10 @@ export class ArticleCountry {
             );
         }
 
-        return new ArticleCountry(result.data);
+        return new Country(result.data);
     }
 
     public toString(): string {
         return this.value;
     }
-}
+} 

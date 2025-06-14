@@ -1,7 +1,7 @@
-import type { Article } from '../../../../domain/entities/article.entity.js';
-import type { ArticleCategory } from '../../../../domain/value-objects/article-category.vo.js';
-import { type ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { type ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { type Article } from '../../../../domain/entities/article.entity.js';
+import { type Category } from '../../../../domain/value-objects/category.vo.js';
+import { type Country } from '../../../../domain/value-objects/country.vo.js';
+import { type Language } from '../../../../domain/value-objects/language.vo.js';
 
 /**
  * Article repository port
@@ -10,56 +10,46 @@ export interface ArticleRepositoryPort {
     /**
      * Count articles for a specific day
      */
-    countManyForDay(params: CountArticlesForDayParams): Promise<number>;
+    countManyForDay(options: FindPublishedSummariesOptions): Promise<number>;
 
     /**
      * Create multiple articles in a single transaction
      * @param articles Array of articles to create
      * @returns Created articles with their IDs
      */
-    createMany(articles: Article[]): Promise<Article[]>;
+    createMany(articles: Article[]): Promise<SaveArticlesResult>;
 
     /**
      * Find many articles
      */
-    findMany(params: FindManyParams): Promise<{
-        items: Article[];
-        total: number;
-    }>;
+    findMany(options: FindManyOptions): Promise<FindManyResult>;
 
     /**
      * Find published article summaries since a given date
      */
     findPublishedSummaries(
-        params: FindPublishedSummariesParams,
+        options: FindPublishedSummariesOptions,
     ): Promise<Array<{ headline: string; summary: string }>>;
 }
 
-/**
- * Parameters for counting articles for a specific day
- */
-export interface CountArticlesForDayParams {
-    country: ArticleCountry;
-    date: Date;
-    language: ArticleLanguage;
-}
-
-/**
- * Parameters for finding many articles
- */
-export interface FindManyParams {
-    category?: ArticleCategory;
-    country: ArticleCountry;
+export interface FindManyOptions {
+    category?: Category;
+    country: Country;
     cursor?: Date;
-    language?: ArticleLanguage;
+    language?: Language;
     limit: number;
 }
 
-/**
- * Parameters for finding published summaries
- */
-export interface FindPublishedSummariesParams {
-    country: ArticleCountry;
-    language: ArticleLanguage;
-    since: Date;
+export interface FindManyResult {
+    items: Article[];
+    total: number;
+}
+
+export interface FindPublishedSummariesOptions {
+    country: Country;
+    language: Language;
+}
+
+export interface SaveArticlesResult {
+    articlesCount: number;
 }

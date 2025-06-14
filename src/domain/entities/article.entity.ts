@@ -1,20 +1,48 @@
 import { z } from 'zod/v4';
 
-import { ArticleCategory } from '../value-objects/article-category.vo.js';
-import { ArticleContent } from '../value-objects/article-content.vo.js';
-import { ArticleCountry } from '../value-objects/article-country.vo.js';
-import { ArticleFakeStatus } from '../value-objects/article-fake-status.vo.js';
-import { ArticleHeadline } from '../value-objects/article-headline.vo.js';
-import { ArticleLanguage } from '../value-objects/article-language.vo.js';
-import { ArticleSummary } from '../value-objects/article-summary.vo.js';
+import { ArticleContent } from '../value-objects/article/content.vo.js';
+import { ArticleFakeStatus } from '../value-objects/article/fake-status.vo.js';
+import { ArticleHeadline } from '../value-objects/article/headline.vo.js';
+import { ArticleSummary } from '../value-objects/article/summary.vo.js';
+import { Category } from '../value-objects/category.vo.js';
+import { Country } from '../value-objects/country.vo.js';
+import { Language } from '../value-objects/language.vo.js';
 
+/**
+ * Represents a news article entity.
+ * @description Core article entity containing all article data and metadata.
+ * @example
+ * const article = Article.create({
+ *   category: Category.create('technology'),
+ *   country: z.custom<Country>((val) => val instanceof Country, 'Invalid country'),
+ *   createdAt: z.date().default(() => new Date()),
+ *   fakeStatus: z.custom<ArticleFakeStatus>(
+ *     (val) => val instanceof ArticleFakeStatus,
+ *     'Invalid fake status',
+ *   ),
+ *   headline: z.custom<ArticleHeadline>(
+ *     (val) => val instanceof ArticleHeadline,
+ *     'Invalid headline',
+ *   ),
+ *   id: z.string().uuid(),
+ *   language: z.custom<Language>(
+ *     (val) => val instanceof Language,
+ *     'Invalid language',
+ *   ),
+ *   publishedAt: z.date(),
+ *   summary: z.custom<ArticleSummary>(
+ *     (val) => val instanceof ArticleSummary,
+ *     'Invalid summary',
+ *   ),
+ * });
+ */
 export const articleSchema = z.object({
-    category: z.custom<ArticleCategory>(
-        (val) => val instanceof ArticleCategory,
+    category: z.custom<Category>(
+        (val) => val instanceof Category,
         'Invalid category',
     ),
     content: z.custom<ArticleContent>((val) => val instanceof ArticleContent, 'Invalid content'),
-    country: z.custom<ArticleCountry>((val) => val instanceof ArticleCountry, 'Invalid country'),
+    country: z.custom<Country>((val) => val instanceof Country, 'Invalid country'),
     createdAt: z.date().default(() => new Date()),
     fakeStatus: z.custom<ArticleFakeStatus>(
         (val) => val instanceof ArticleFakeStatus,
@@ -24,46 +52,53 @@ export const articleSchema = z.object({
         (val) => val instanceof ArticleHeadline,
         'Invalid headline',
     ),
-    id: z.string().uuid().optional(),
-    language: z.custom<ArticleLanguage>(
-        (val) => val instanceof ArticleLanguage,
+    id: z.string().uuid(),
+    language: z.custom<Language>(
+        (val) => val instanceof Language,
         'Invalid language',
     ),
-    summary: z.custom<ArticleSummary>((val) => val instanceof ArticleSummary, 'Invalid summary'),
+    publishedAt: z.date(),
+    summary: z.custom<ArticleSummary>(
+        (val) => val instanceof ArticleSummary,
+        'Invalid summary',
+    ),
 });
 
 export type ArticleProps = z.input<typeof articleSchema>;
 
 export class Article {
-    public readonly category: ArticleCategory;
+    public readonly category: Category;
     public readonly content: ArticleContent;
-    public readonly country: ArticleCountry;
+    public readonly country: Country;
     public readonly createdAt: Date;
     public readonly fakeStatus: ArticleFakeStatus;
     public readonly headline: ArticleHeadline;
     public readonly id: string;
-    public readonly language: ArticleLanguage;
+    public readonly language: Language;
+    public readonly publishedAt: Date;
     public readonly summary: ArticleSummary;
 
-    private constructor(props: ArticleProps) {
-        const validatedProps = articleSchema.parse(props);
-
-        this.id = validatedProps.id ?? crypto.randomUUID();
-        this.headline = validatedProps.headline;
-        this.summary = validatedProps.summary;
-        this.content = validatedProps.content;
-        this.category = validatedProps.category;
-        this.country = validatedProps.country;
-        this.language = validatedProps.language;
-        this.fakeStatus = validatedProps.fakeStatus;
-        this.createdAt = validatedProps.createdAt;
+    private constructor(data: z.infer<typeof articleSchema>) {
+        this.category = data.category;
+        this.content = data.content;
+        this.country = data.country;
+        this.createdAt = data.createdAt;
+        this.fakeStatus = data.fakeStatus;
+        this.headline = data.headline;
+        this.id = data.id;
+        this.language = data.language;
+        this.publishedAt = data.publishedAt;
+        this.summary = data.summary;
     }
 
-    public static create(props: ArticleProps): Article {
-        return new Article({
-            ...props,
-            fakeStatus: props.fakeStatus ?? ArticleFakeStatus.createNonFake(),
-        });
+    public static create(data: z.infer<typeof articleSchema>): Article {
+        const result = articleSchema.safeParse(data);
+
+        if (!result.success) {
+            throw new Error(`Invalid article data: ${result.error.message}`);
+        }
+
+        return new Article(result.data);
     }
 
     public isFake(): boolean {
@@ -80,6 +115,7 @@ export class Article {
             headline: this.headline,
             id: this.id,
             language: this.language,
+            publishedAt: this.publishedAt,
             summary: this.summary,
         };
     }

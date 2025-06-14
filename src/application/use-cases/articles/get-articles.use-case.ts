@@ -2,14 +2,14 @@ import { z } from 'zod/v4';
 
 import { type Article } from '../../../domain/entities/article.entity.js';
 import {
-    ArticleCategory,
+    Category,
     categorySchema,
-} from '../../../domain/value-objects/article-category.vo.js';
-import { ArticleCountry, countrySchema } from '../../../domain/value-objects/article-country.vo.js';
+} from '../../../domain/value-objects/category.vo.js';
+import { Country, countrySchema } from '../../../domain/value-objects/country.vo.js';
 import {
-    ArticleLanguage,
+    Language,
     languageSchema,
-} from '../../../domain/value-objects/article-language.vo.js';
+} from '../../../domain/value-objects/language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
@@ -58,10 +58,10 @@ export class GetArticlesUseCase {
         }
 
         const { items, total } = await this.articleRepository.findMany({
-            category: category ? ArticleCategory.create(category) : undefined,
-            country: country ? ArticleCountry.create(country) : ArticleCountry.create('us'), // Default to US if not specified
+            category: category ? Category.create(category) : undefined,
+            country: country ? Country.create(country) : Country.create('us'), // Default to US if not specified
             cursor: cursorDate,
-            language: language ? ArticleLanguage.create(language) : undefined,
+            language: language ? Language.create(language) : undefined,
             limit,
         });
 

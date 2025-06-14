@@ -14,18 +14,18 @@ export const categorySchema = z.enum([
 
 export type CategoryEnum = z.infer<typeof categorySchema>;
 
-export class ArticleCategory {
+export class Category {
     private constructor(public readonly value: CategoryEnum) {}
 
-    public static create(category: string): ArticleCategory {
+    public static create(category: string): Category {
         const normalizedCategory = category.toLowerCase();
         const result = categorySchema.safeParse(normalizedCategory);
 
         if (!result.success) {
-            return new ArticleCategory('other');
+            return new Category('other');
         }
 
-        return new ArticleCategory(result.data);
+        return new Category(result.data);
     }
 
     public toString(): string {

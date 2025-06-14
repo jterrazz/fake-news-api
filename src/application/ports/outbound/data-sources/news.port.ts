@@ -1,7 +1,7 @@
 import { z } from 'zod/v4';
 
-import { type ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { type ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { type Country } from '../../../../domain/value-objects/country.vo.js';
+import { type Language } from '../../../../domain/value-objects/language.vo.js';
 
 export const NewsArticleSchema = z.object({
     publishedAt: z
@@ -17,8 +17,8 @@ export const NewsArticleSchema = z.object({
  * Options for fetching news articles
  */
 export interface FetchNewsOptions {
-    country?: ArticleCountry;
-    language?: ArticleLanguage;
+    country?: Country;
+    language?: Language;
 }
 
 export type NewsArticle = z.output<typeof NewsArticleSchema>;

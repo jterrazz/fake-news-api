@@ -4,17 +4,17 @@ import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
 import { type Article } from '../../../../domain/entities/article.entity.js';
 import {
-    ArticleCategory,
+    Category,
     type CategoryEnum,
-} from '../../../../domain/value-objects/article-category.vo.js';
+} from '../../../../domain/value-objects/category.vo.js';
 import {
-    ArticleCountry,
+    Country,
     type CountryEnum,
-} from '../../../../domain/value-objects/article-country.vo.js';
+} from '../../../../domain/value-objects/country.vo.js';
 import {
-    ArticleLanguage,
+    Language,
     type LanguageEnum,
-} from '../../../../domain/value-objects/article-language.vo.js';
+} from '../../../../domain/value-objects/language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
@@ -35,8 +35,8 @@ describe('GetArticlesUseCase', () => {
         useCase = new GetArticlesUseCase(mockArticleRepository);
         testArticles = buildTestArticles(
             TEST_ARTICLES_COUNT,
-            ArticleCountry.create('us'),
-            ArticleLanguage.create('en'),
+            Country.create('us'),
+            Language.create('en'),
         );
 
         // Default mock response
@@ -60,9 +60,9 @@ describe('GetArticlesUseCase', () => {
             // Then - it should return paginated articles
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith({
                 category: undefined,
-                country: ArticleCountry.create('us'),
+                country: Country.create('us'),
                 cursor: undefined,
-                language: ArticleLanguage.create('en'),
+                language: Language.create('en'),
                 limit: DEFAULT_LIMIT,
             });
 
@@ -105,7 +105,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct category
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    category: ArticleCategory.create(params.category),
+                    category: Category.create(params.category),
                 }),
             );
         });
@@ -124,7 +124,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct country
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    country: ArticleCountry.create(params.country),
+                    country: Country.create(params.country),
                 }),
             );
         });
@@ -142,7 +142,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct language
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    language: ArticleLanguage.create(params.language),
+                    language: Language.create(params.language),
                 }),
             );
         });

@@ -20,4 +20,4 @@ export class ArticleSummary {
     public toString(): string {
         return this.value;
     }
-}
+} 

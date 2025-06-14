@@ -5,8 +5,8 @@ import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
 import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
 import { type Article } from '../../../../domain/entities/article.entity.js';
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
-import { ArticleLanguage } from '../../../../domain/value-objects/article-language.vo.js';
+import { Country } from '../../../../domain/value-objects/country.vo.js';
+import { Language } from '../../../../domain/value-objects/language.vo.js';
 
 import { type ArticleGeneratorPort } from '../../../ports/outbound/ai/article-generator.port.js';
 import { type NewsArticle, type NewsPort } from '../../../ports/outbound/data-sources/news.port.js';
@@ -37,8 +37,8 @@ describe('GenerateArticlesUseCase', () => {
         );
     }
 
-    const TEST_COUNTRY = ArticleCountry.create('us');
-    const TEST_LANGUAGE = ArticleLanguage.create('en');
+    const TEST_COUNTRY = Country.create('us');
+    const TEST_LANGUAGE = Language.create('en');
     const TEST_ARTICLE_COUNT = 12;
 
     let mockArticleGenerator: DeepMockProxy<ArticleGeneratorPort>;
@@ -154,8 +154,8 @@ describe('GenerateArticlesUseCase', () => {
                 // Given - a specific hour and existing article count for France
                 const testDate = createDateAtHour(hour, 'Europe/Paris');
                 mockOfDate.set(testDate);
-                const frenchCountry = ArticleCountry.create('fr');
-                const frenchLanguage = ArticleLanguage.create('fr');
+                const frenchCountry = Country.create('fr');
+                const frenchLanguage = Language.create('fr');
                 mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
@@ -193,8 +193,8 @@ describe('GenerateArticlesUseCase', () => {
             // Given - a time before 6am in France
             const testDate = createDateAtHour(4, 'Europe/Paris');
             mockOfDate.set(testDate);
-            const frenchCountry = ArticleCountry.create('fr');
-            const frenchLanguage = ArticleLanguage.create('fr');
+            const frenchCountry = Country.create('fr');
+            const frenchLanguage = Language.create('fr');
 
             // When - executing the use case
             await useCase.execute(frenchLanguage, frenchCountry);

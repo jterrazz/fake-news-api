@@ -40,4 +40,4 @@ export class ArticleFakeStatus {
     public toString(): string {
         return this.isFake ? `Fake article (Reason: ${this.reason})` : 'Legitimate article';
     }
-}
+} 

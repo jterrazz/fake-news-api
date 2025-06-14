@@ -16,7 +16,7 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { ZodError } from 'zod/v4';
 
-import { ArticleCountry } from '../../../../domain/value-objects/article-country.vo.js';
+import { Country } from '../../../../domain/value-objects/country.vo.js';
 
 import { createTZDateForCountry } from '../../../../shared/date/timezone.js';
 import { WorldNewsAdapter, type WorldNewsAdapterConfiguration } from '../world-news.adapter.js';
@@ -130,7 +130,7 @@ describe('WorldNewsAdapter', () => {
         await first;
 
         vitest.advanceTimersByTime(1500);
-        const second = adapter.fetchTopNews({ country: ArticleCountry.create('fr') });
+        const second = adapter.fetchTopNews({ country: Country.create('fr') });
         vitest.runAllTimers();
         await second;
 
