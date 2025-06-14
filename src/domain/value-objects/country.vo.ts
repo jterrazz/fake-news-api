@@ -5,9 +5,9 @@ export const countrySchema = z.enum(['fr', 'de', 'it', 'es', 'uk', 'us']);
 export type CountryEnum = z.infer<typeof countrySchema>;
 
 export class Country {
-    private constructor(public readonly value: CountryEnum) {}
+    private readonly value: CountryEnum;
 
-    public static create(country: string): Country {
+    constructor(country: string) {
         const normalizedCountry = country.toLowerCase();
         const result = countrySchema.safeParse(normalizedCountry);
 
@@ -17,10 +17,10 @@ export class Country {
             );
         }
 
-        return new Country(result.data);
+        this.value = result.data;
     }
 
     public toString(): string {
         return this.value;
     }
-} 
+}

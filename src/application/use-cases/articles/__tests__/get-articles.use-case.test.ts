@@ -35,8 +35,8 @@ describe('GetArticlesUseCase', () => {
         useCase = new GetArticlesUseCase(mockArticleRepository);
         testArticles = buildTestArticles(
             TEST_ARTICLES_COUNT,
-            Country.create('us'),
-            Language.create('en'),
+            new Country('us'),
+            new Language('en'),
         );
 
         // Default mock response
@@ -60,9 +60,9 @@ describe('GetArticlesUseCase', () => {
             // Then - it should return paginated articles
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith({
                 category: undefined,
-                country: Country.create('us'),
+                country: new Country('us'),
                 cursor: undefined,
-                language: Language.create('en'),
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             });
 
@@ -105,7 +105,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct category
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    category: Category.create(params.category),
+                    category: new Category(params.category),
                 }),
             );
         });
@@ -124,7 +124,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct country
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    country: Country.create(params.country),
+                    country: new Country(params.country),
                 }),
             );
         });
@@ -142,7 +142,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct language
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    language: Language.create(params.language),
+                    language: new Language(params.language),
                 }),
             );
         });

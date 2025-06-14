@@ -37,8 +37,8 @@ describe('GenerateArticlesUseCase', () => {
         );
     }
 
-    const TEST_COUNTRY = Country.create('us');
-    const TEST_LANGUAGE = Language.create('en');
+    const TEST_COUNTRY = new Country('us');
+    const TEST_LANGUAGE = new Language('en');
     const TEST_ARTICLE_COUNT = 12;
 
     let mockArticleGenerator: DeepMockProxy<ArticleGeneratorPort>;
@@ -154,8 +154,8 @@ describe('GenerateArticlesUseCase', () => {
                 // Given - a specific hour and existing article count for France
                 const testDate = createDateAtHour(hour, 'Europe/Paris');
                 mockOfDate.set(testDate);
-                const frenchCountry = Country.create('fr');
-                const frenchLanguage = Language.create('fr');
+                const frenchCountry = new Country('fr');
+                const frenchLanguage = new Language('fr');
                 mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
@@ -193,8 +193,8 @@ describe('GenerateArticlesUseCase', () => {
             // Given - a time before 6am in France
             const testDate = createDateAtHour(4, 'Europe/Paris');
             mockOfDate.set(testDate);
-            const frenchCountry = Country.create('fr');
-            const frenchLanguage = Language.create('fr');
+            const frenchCountry = new Country('fr');
+            const frenchLanguage = new Language('fr');
 
             // When - executing the use case
             await useCase.execute(frenchLanguage, frenchCountry);

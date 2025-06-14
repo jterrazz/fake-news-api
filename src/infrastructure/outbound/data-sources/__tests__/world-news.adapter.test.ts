@@ -130,7 +130,7 @@ describe('WorldNewsAdapter', () => {
         await first;
 
         vitest.advanceTimersByTime(1500);
-        const second = adapter.fetchTopNews({ country: Country.create('fr') });
+        const second = adapter.fetchTopNews({ country: new Country('fr') });
         vitest.runAllTimers();
         await second;
 

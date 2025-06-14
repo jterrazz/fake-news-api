@@ -58,10 +58,10 @@ export class GetArticlesUseCase {
         }
 
         const { items, total } = await this.articleRepository.findMany({
-            category: category ? Category.create(category) : undefined,
-            country: country ? Country.create(country) : Country.create('us'), // Default to US if not specified
+            category: category ? new Category(category) : undefined,
+            country: country ? new Country(country) : new Country('us'), // Default to US if not specified
             cursor: cursorDate,
-            language: language ? Language.create(language) : undefined,
+            language: language ? new Language(language) : undefined,
             limit,
         });
 

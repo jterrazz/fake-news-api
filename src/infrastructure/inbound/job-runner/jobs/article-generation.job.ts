@@ -16,8 +16,8 @@ export class ArticleGenerationJob {
         this.logger.info('Starting article generation job');
 
         const languages = [
-            { country: Country.create('us'), language: Language.create('en') },
-            { country: Country.create('fr'), language: Language.create('fr') },
+            { country: new Country('us'), language: new Language('en') },
+            { country: new Country('fr'), language: new Language('fr') },
         ];
 
         for (const { country, language } of languages) {

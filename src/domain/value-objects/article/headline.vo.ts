@@ -4,20 +4,20 @@ export const headlineSchema = z
     .string()
     .min(1, 'Article headline must be at least 1 characters long');
 
-export class ArticleHeadline {
-    private constructor(public readonly value: string) {}
+export class Headline {
+    private readonly value: string;
 
-    public static create(headline: string): ArticleHeadline {
+    constructor(headline: string) {
         const result = headlineSchema.safeParse(headline);
 
         if (!result.success) {
             throw new Error(`Invalid headline: ${result.error.message}`);
         }
 
-        return new ArticleHeadline(result.data);
+        this.value = result.data;
     }
 
     public toString(): string {
         return this.value;
     }
-} 
+}

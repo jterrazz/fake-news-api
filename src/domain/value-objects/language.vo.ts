@@ -5,9 +5,9 @@ export const languageSchema = z.enum(['en', 'fr', 'de', 'it', 'es']);
 export type LanguageEnum = z.infer<typeof languageSchema>;
 
 export class Language {
-    private constructor(public readonly value: LanguageEnum) {}
+    private readonly value: LanguageEnum;
 
-    public static create(language: string): Language {
+    constructor(language: string) {
         const normalizedLanguage = language.toLowerCase();
         const result = languageSchema.safeParse(normalizedLanguage);
 
@@ -17,10 +17,10 @@ export class Language {
             );
         }
 
-        return new Language(result.data);
+        this.value = result.data;
     }
 
     public toString(): string {
         return this.value;
     }
-} 
+}

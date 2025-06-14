@@ -22,8 +22,8 @@ describe('CachedNewsAdapter', () => {
     const cacheDirectory = 'test';
 
     const options = {
-        country: Country.create('us'),
-        language: Language.create('en'),
+        country: new Country('us'),
+        language: new Language('en'),
     };
 
     const mockArticle: NewsArticle = {

@@ -15,17 +15,17 @@ export const categorySchema = z.enum([
 export type CategoryEnum = z.infer<typeof categorySchema>;
 
 export class Category {
-    private constructor(public readonly value: CategoryEnum) {}
+    private readonly value: CategoryEnum;
 
-    public static create(category: string): Category {
+    constructor(category: string) {
         const normalizedCategory = category.toLowerCase();
         const result = categorySchema.safeParse(normalizedCategory);
 
         if (!result.success) {
-            return new Category('other');
+            this.value = 'other';
+        } else {
+            this.value = result.data;
         }
-
-        return new Category(result.data);
     }
 
     public toString(): string {

@@ -54,12 +54,13 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
                 // Add index * 1 second to ensure unique timestamps
                 uniqueDate.setSeconds(uniqueDate.getSeconds() - index);
 
-                return Article.create({
+                return new Article({
                     ...article,
                     country: params.country,
                     createdAt: uniqueDate,
                     id: crypto.randomUUID(),
                     language: params.language,
+                    publishedAt: uniqueDate,
                 });
             });
 

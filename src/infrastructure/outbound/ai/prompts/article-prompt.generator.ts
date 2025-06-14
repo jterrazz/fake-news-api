@@ -5,17 +5,17 @@ import {
     type AIPromptGenerator,
 } from '../../../../application/ports/outbound/ai/prompt.port.js';
 
+import { Authenticity } from '../../../../domain/value-objects/article/authenticity.vo.js';
 import {
-    ArticleContent,
+    Content,
     contentSchema,
 } from '../../../../domain/value-objects/article/content.vo.js';
-import { ArticleFakeStatus } from '../../../../domain/value-objects/article/fake-status.vo.js';
 import {
-    ArticleHeadline,
+    Headline,
     headlineSchema,
 } from '../../../../domain/value-objects/article/headline.vo.js';
 import {
-    ArticleSummary,
+    Summary,
     summarySchema,
 } from '../../../../domain/value-objects/article/summary.vo.js';
 import {
@@ -49,11 +49,11 @@ const generatedArticleSchema = z.object({
 const generatedSchemaDescription = z.toJSONSchema(z.array(generatedArticleSchema));
 
 type GeneratedArticle = {
+    authenticity: Authenticity;
     category: Category;
-    content: ArticleContent;
-    fakeStatus: ArticleFakeStatus;
-    headline: ArticleHeadline;
-    summary: ArticleSummary;
+    content: Content;
+    headline: Headline;
+    summary: Summary;
 };
 
 /**
@@ -61,13 +61,11 @@ type GeneratedArticle = {
  */
 const generatedArticleArraySchema = z.array(
     generatedArticleSchema.transform((item) => ({
-        category: Category.create(item.category),
-        content: ArticleContent.create(item.contentInMarkdown),
-        fakeStatus: item.isFake
-            ? ArticleFakeStatus.createFake(item.fakeReason!)
-            : ArticleFakeStatus.createNonFake(),
-        headline: ArticleHeadline.create(item.headline),
-        summary: ArticleSummary.create(item.summary),
+        authenticity: new Authenticity(item.isFake, item.fakeReason),
+        category: new Category(item.category),
+        content: new Content(item.contentInMarkdown),
+        headline: new Headline(item.headline),
+        summary: new Summary(item.summary),
     })),
 ) as unknown as z.ZodType<GeneratedArticle[]>;
 

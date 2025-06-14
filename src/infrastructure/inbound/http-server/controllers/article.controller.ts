@@ -51,7 +51,7 @@ export class ArticleController {
                 contentWithAnnotations,
                 country: article.country.toString() as Country,
                 createdAt: article.createdAt,
-                fakeReason: article.fakeStatus.reason,
+                fakeReason: article.authenticity.reason,
                 headline: article.headline.toString(),
                 id: article.id,
                 isFake: article.isFake(),

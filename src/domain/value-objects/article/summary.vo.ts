@@ -4,20 +4,20 @@ export const summarySchema = z
     .string()
     .min(30, 'Article summary must be at least 30 characters long');
 
-export class ArticleSummary {
-    private constructor(public readonly value: string) {}
+export class Summary {
+    private readonly value: string;
 
-    public static create(summary: string): ArticleSummary {
+    constructor(summary: string) {
         const result = summarySchema.safeParse(summary);
 
         if (!result.success) {
             throw new Error(`Invalid summary: ${result.error.message}`);
         }
 
-        return new ArticleSummary(result.data);
+        this.value = result.data;
     }
 
     public toString(): string {
         return this.value;
     }
-} 
+}
