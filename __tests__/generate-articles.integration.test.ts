@@ -20,7 +20,7 @@ import {
     setupIntegrationTest,
 } from './setup/integration.js';
 
-describe('Job - Generate Articles - Integration Tests', () => {
+describe('Task - Generate Articles - Integration Tests', () => {
     let testContext: IntegrationTestContext;
     const EXPECTED_HOUR = 13;
 
@@ -41,7 +41,7 @@ describe('Job - Generate Articles - Integration Tests', () => {
     });
 
     afterEach(async () => {
-        await testContext.gateways.jobRunner.stop();
+        await testContext.gateways.executor.stop();
         mockOfDate.reset();
     });
 
@@ -51,16 +51,16 @@ describe('Job - Generate Articles - Integration Tests', () => {
 
     it('should generate articles based on time of day rules', async () => {
         // Given - a specific time of day and news data
-        const { jobs } = testContext.gateways;
+        const { taskList } = testContext.gateways;
         const { prisma } = testContext;
-        const articleGenerationJob = jobs.find((job) => job.name === 'article-generation');
+        const articleGenerationTask = taskList.find((task) => task.name === 'article-generation');
 
-        expect(articleGenerationJob).toBeDefined();
-        expect(articleGenerationJob?.schedule).toBe('5 * * * *');
-        expect(articleGenerationJob?.executeOnStartup).toBe(true);
+        expect(articleGenerationTask).toBeDefined();
+        expect(articleGenerationTask?.schedule).toBe('0 */6 * * *');
+        expect(articleGenerationTask?.executeOnStartup).toBe(true);
 
-        // When - running the article generation job
-        await articleGenerationJob!.execute();
+        // When - running the article generation task
+        await articleGenerationTask!.execute();
 
         // Then - it should generate articles according to the rules
         const articles = await prisma.article.findMany({

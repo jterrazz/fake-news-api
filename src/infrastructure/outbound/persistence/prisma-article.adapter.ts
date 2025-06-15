@@ -3,9 +3,10 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 import type {
     ArticleRepositoryPort,
-    FindManyParams,
+    FindManyOptions,
+    FindManyResult,
     FindPublishedSummariesOptions,
-    FindPublishedSummariesParams,
+    SaveArticlesResult,
 } from '../../../application/ports/outbound/persistence/article-repository.port.js';
 
 import type { Article } from '../../../domain/entities/article.entity.js';
@@ -35,7 +36,9 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         }
 
         // Create a timezone-aware date
-        const tzDate = new TZDate(params.date, timezone);
+        const tzDate = params.date
+            ? new TZDate(params.date, timezone)
+            : new TZDate(new Date(), timezone);
 
         // Get start and end of day in the target timezone
         const start = startOfDay(tzDate);
@@ -53,10 +56,10 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         });
     }
 
-    async createMany(articles: Article[]): Promise<Article[]> {
+    async createMany(articles: Article[]): Promise<SaveArticlesResult> {
         const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
 
-        const createdArticles = await this.prisma.getPrismaClient().$transaction(
+        await this.prisma.getPrismaClient().$transaction(
             prismaArticles.map((article) =>
                 this.prisma.getPrismaClient().article.create({
                     data: article,
@@ -64,13 +67,12 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
             ),
         );
 
-        return createdArticles.map((article) => this.mapper.toDomain(article));
+        return {
+            articlesCount: articles.length,
+        };
     }
 
-    async findMany(params: FindManyParams): Promise<{
-        items: Article[];
-        total: number;
-    }> {
+    async findMany(params: FindManyOptions): Promise<FindManyResult> {
         const baseWhere = {
             ...(params.language && { language: this.mapper.mapLanguageToPrisma(params.language) }),
             ...(params.category && { category: this.mapper.mapCategoryToPrisma(params.category) }),
@@ -104,7 +106,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
     }
 
     async findPublishedSummaries(
-        params: FindPublishedSummariesParams,
+        params: FindPublishedSummariesOptions,
     ): Promise<Array<{ headline: string; summary: string }>> {
         const articles = await this.prisma.getPrismaClient().article.findMany({
             orderBy: {
@@ -116,9 +118,11 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
             },
             where: {
                 country: this.mapper.mapCountryToPrisma(params.country),
-                createdAt: {
-                    gte: params.since,
-                },
+                ...(params.since && {
+                    createdAt: {
+                        gte: params.since,
+                    },
+                }),
                 language: this.mapper.mapLanguageToPrisma(params.language),
             },
         });

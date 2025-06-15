@@ -9,8 +9,8 @@ import { default as nodeConfiguration } from 'config';
 
 import type { ConfigurationPort } from '../application/ports/inbound/configuration.port.js';
 
-import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
-import { type JobPort } from '../application/ports/inbound/job-runner.port.js';
+import type { ExecutorPort } from '../application/ports/inbound/executor.port.js';
+import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
 import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
@@ -20,10 +20,10 @@ import { GenerateArticlesUseCase } from '../application/use-cases/articles/gener
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
-import { ArticleController } from '../infrastructure/inbound/http-server/articles/article.controller.js';
-import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
-import { ArticleGenerationJob } from '../infrastructure/inbound/job-runner/jobs/article-generation.job.js';
-import { NodeCronAdapter } from '../infrastructure/inbound/job-runner/node-cron.adapter.js';
+import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.adapter.js';
+import { ArticleGenerationTask } from '../infrastructure/inbound/executor/tasks/article-generation.task.js';
+import { ArticleController } from '../infrastructure/inbound/server/articles/article.controller.js';
+import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
@@ -139,13 +139,13 @@ const articleControllerFactory = Injectable(
 );
 
 /**
- * Job factories
+ * Task factories
  */
-const jobsFactory = Injectable(
-    'Jobs',
+const taskListFactory = Injectable(
+    'TaskList',
     ['GenerateArticles', 'Logger'] as const,
-    (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): JobPort[] => {
-        return [new ArticleGenerationJob(generateArticles, logger)];
+    (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): TaskPort[] => {
+        return [new ArticleGenerationTask(generateArticles, logger)];
     },
 );
 
@@ -177,23 +177,23 @@ const newRelicFactory = Injectable(
 const configurationFactory = (overrides?: ContainerOverrides) =>
     Injectable('Configuration', () => new NodeConfigAdapter(nodeConfiguration, overrides));
 
-const httpServerFactory = Injectable(
-    'HttpServer',
+const serverFactory = Injectable(
+    'Server',
     ['Logger', 'ArticleController'] as const,
     (logger: LoggerPort, articleController: ArticleController): ServerPort => {
-        logger.info('Initializing Hono HTTP server');
-        const httpServer = new HonoServerAdapter(logger, articleController);
-        return httpServer;
+        logger.info('Initializing Hono server');
+        const server = new HonoServerAdapter(logger, articleController);
+        return server;
     },
 );
 
-const jobRunnerFactory = Injectable(
-    'JobRunner',
-    ['Logger', 'Jobs'] as const,
-    (logger: LoggerPort, jobs: JobPort[]): JobRunnerPort => {
-        logger.info('Initializing NodeCron job runner');
-        const jobRunner = new NodeCronAdapter(logger, jobs);
-        return jobRunner;
+const executorFactory = Injectable(
+    'Executor',
+    ['Logger', 'TaskList'] as const,
+    (logger: LoggerPort, tasks: TaskPort[]): ExecutorPort => {
+        logger.info('Initializing NodeCron executor');
+        const executor = new NodeCronAdapter(logger, tasks);
+        return executor;
     },
 );
 
@@ -219,9 +219,9 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         // Use cases
         .provides(generateArticlesUseCaseFactory)
         .provides(getArticlesUseCaseFactory)
-        // Controllers and jobs
+        // Controllers and tasks
         .provides(articleControllerFactory)
-        .provides(jobsFactory)
+        .provides(taskListFactory)
         // Inbound adapters
-        .provides(httpServerFactory)
-        .provides(jobRunnerFactory);
+        .provides(serverFactory)
+        .provides(executorFactory);

@@ -47,7 +47,9 @@ export interface FindManyResult {
 
 export interface FindPublishedSummariesOptions {
     country: Country;
+    date?: Date;
     language: Language;
+    since?: Date;
 }
 
 export interface SaveArticlesResult {

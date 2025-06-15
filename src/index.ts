@@ -5,8 +5,8 @@ const start = async () => {
     const logger = container.get('Logger');
     const config = container.get('Configuration');
     const newRelic = container.get('NewRelic');
-    const server = container.get('HttpServer');
-    const jobRunner = container.get('JobRunner');
+    const server = container.get('Server');
+    const executor = container.get('Executor');
 
     try {
         logger.info('Starting application');
@@ -14,7 +14,7 @@ const start = async () => {
         const { host, port } = config.getInboundConfiguration().http;
 
         await newRelic.initialize();
-        await jobRunner.initialize();
+        await executor.initialize();
         await server.start({
             host,
             port,
