@@ -7,7 +7,7 @@ import {
 } from '../../../../application/ports/outbound/ai/prompt.port.js';
 
 import { Authenticity } from '../../../../domain/value-objects/article/authenticity.vo.js';
-import { Content, contentSchema } from '../../../../domain/value-objects/article/content.vo.js';
+import { Body, bodySchema } from '../../../../domain/value-objects/article/body.vo.js';
 import { Headline, headlineSchema } from '../../../../domain/value-objects/article/headline.vo.js';
 import { Summary, summarySchema } from '../../../../domain/value-objects/article/summary.vo.js';
 import { Category, categorySchema } from '../../../../domain/value-objects/category.vo.js';
@@ -19,7 +19,7 @@ const generatedArticleSchema = z.object({
     category: categorySchema.describe(
         'The category of the article that strictly matches the category enum',
     ),
-    contentInMarkdown: contentSchema.describe('The content of the article in markdown format.'),
+    contentInMarkdown: bodySchema.describe('The body of the article in markdown format.'),
     fakeReason: z
         .string()
         .nullable()
@@ -39,8 +39,8 @@ const generatedSchemaDescription = z.toJSONSchema(z.array(generatedArticleSchema
 
 type GeneratedArticle = {
     authenticity: Authenticity;
+    body: Body;
     category: Category;
-    content: Content;
     headline: Headline;
     summary: Summary;
 };
@@ -51,8 +51,8 @@ type GeneratedArticle = {
 const generatedArticleArraySchema = z.array(
     generatedArticleSchema.transform((item) => ({
         authenticity: new Authenticity(item.isFake, item.fakeReason),
+        body: new Body(item.contentInMarkdown),
         category: new Category(item.category),
-        content: new Content(item.contentInMarkdown),
         headline: new Headline(item.headline),
         summary: new Summary(item.summary),
     })),
@@ -111,7 +111,7 @@ export function getArticleSystemPrompt(languageLabel: string): string {
 - Write each article professionally in the same style as would Reuters, BBC, etc, maintaining identical writing quality all articles.
 - Maintain a strictly neutral and impartial journalistic tone, presenting facts without any inherent bias, even when source materials might lean one way or another. The game should subtly demonstrate how news can be manipulated to appeal to different political ideologies, reflecting real-world patterns where both far-left and far-right groups might interpret or twist information to support their narratives.
 - If needed, give a short general context in each article (without explicitly saying context, but like a journalistic would introduce a subject to readers that are not familiar with the topic)
-- Never reveal if an article is fake/real in its content
+- Never reveal if an article is fake/real in its body
 - Use ONLY the provided news ${NEWS_KEY} as the source of current events happening in the world
 - Multiple articles could eventually cover different angles of the same story if you think it's interesting
 - Double check if the field isFake is correctly set
@@ -140,7 +140,7 @@ For FAKE articles:
 
 ## Format:
 - Headline: 8-16 words
-- Content: Around 40-100 words encoded in markdown
+- Body: Around 40-100 words encoded in markdown
 - Language: All generated text, summary, etc etc MUST be in ${languageLabel} (but enums must still follow the given enum values)
 
 ## Markdown Capabilities:
@@ -148,11 +148,11 @@ For FAKE articles:
 - If needed, use two newlines between paragraphs
 
 ## Markdown Annotations:
-- Annotate each fake information in the "content" field with a metadata annotation
+- Annotate each fake information in the "body" field with a metadata annotation
 - The format is %%[the annotated information](the annotation): only %%[]() but do not put a %% in the end
   Example: "SpaceX successfully launched its latest mission to Mars, but %%[the spacecraft carried 12 astronauts on board](SpaceX's current Mars missions are uncrewed - they have not yet sent humans to Mars)"
-- You can still use **bold** for the "the annotated information" part if some fake information is bolded in the original content.
-- The ENTIRE false information in the content MUST be annotated. DO NOT leave any false information unannotated. So do not hesitate to use large sections of it, and even annotate the entire content if needed.
+- You can still use **bold** for the "the annotated information" part if some fake information is bolded in the original body.
+- The ENTIRE false information in the body MUST be annotated. DO NOT leave any false information unannotated. So do not hesitate to use large sections of it, and even annotate the entire body if needed.
 - This will allow the game to visually highlight these sections when revealing the truth to players.
 - Metadata annotations don't count towards word limits.
 - Keep metadata annotations concise and factual

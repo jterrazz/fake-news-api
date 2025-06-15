@@ -24,10 +24,10 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
             ...(params.country && { country: this.mapper.mapCountryToPrisma(params.country) }),
             ...(params.startDate &&
                 params.endDate && {
-                createdAt: {
+                    createdAt: {
                         gte: params.startDate,
                         lte: params.endDate,
-                },
+                    },
                 }),
         };
 

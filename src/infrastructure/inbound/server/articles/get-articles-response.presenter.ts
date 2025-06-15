@@ -84,7 +84,7 @@ export class GetArticlesResponsePresenter {
      * Maps a domain article to the HTTP response format
      */
     private mapArticleToResponse(article: Article): ArticleResponse {
-        const content = article.content.toString();
+        const content = article.body.toString();
         const { contentRaw, contentWithAnnotations } = this.processContent(content);
 
         // Main properties

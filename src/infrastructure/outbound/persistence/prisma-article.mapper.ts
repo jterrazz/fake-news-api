@@ -7,7 +7,7 @@ import {
 
 import { Article } from '../../../domain/entities/article.entity.js';
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
-import { Content } from '../../../domain/value-objects/article/content.vo.js';
+import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
 import { Summary } from '../../../domain/value-objects/article/summary.vo.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
@@ -30,8 +30,8 @@ export class ArticleMapper {
     toDomain(prisma: PrismaArticle): Article {
         return new Article({
             authenticity: new Authenticity(prisma.isFake, prisma.fakeReason),
+            body: new Body(prisma.article),
             category: new Category(prisma.category),
-            content: new Content(prisma.article),
             country: new Country(prisma.country),
             createdAt: prisma.createdAt,
             headline: new Headline(prisma.headline),
@@ -44,7 +44,7 @@ export class ArticleMapper {
 
     toPrisma(domain: Article): PrismaArticle {
         return {
-            article: domain.content.value,
+            article: domain.body.value,
             category: this.mapCategoryToPrisma(domain.category),
             country: this.mapCountryToPrisma(domain.country),
             createdAt: domain.createdAt,

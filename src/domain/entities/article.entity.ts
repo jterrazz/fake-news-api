@@ -1,7 +1,7 @@
 import { z } from 'zod/v4';
 
 import { Authenticity } from '../value-objects/article/authenticity.vo.js';
-import { Content } from '../value-objects/article/content.vo.js';
+import { Body } from '../value-objects/article/body.vo.js';
 import { Headline } from '../value-objects/article/headline.vo.js';
 import { Summary } from '../value-objects/article/summary.vo.js';
 import { Category } from '../value-objects/category.vo.js';
@@ -10,8 +10,8 @@ import { Language } from '../value-objects/language.vo.js';
 
 export const articleSchema = z.object({
     authenticity: z.instanceof(Authenticity),
+    body: z.instanceof(Body),
     category: z.instanceof(Category),
-    content: z.instanceof(Content),
     country: z.instanceof(Country),
     createdAt: z.date(),
     headline: z.instanceof(Headline),
@@ -25,8 +25,8 @@ export type ArticleProps = z.input<typeof articleSchema>;
 
 export class Article {
     public readonly authenticity: Authenticity;
+    public readonly body: Body;
     public readonly category: Category;
-    public readonly content: Content;
     public readonly country: Country;
     public readonly createdAt: Date;
     public readonly headline: Headline;
@@ -44,7 +44,7 @@ export class Article {
 
         const validatedData = result.data;
         this.category = validatedData.category;
-        this.content = validatedData.content;
+        this.body = validatedData.body;
         this.country = validatedData.country;
         this.createdAt = validatedData.createdAt;
         this.authenticity = validatedData.authenticity;

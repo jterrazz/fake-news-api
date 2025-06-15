@@ -131,7 +131,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
                 .withCountry('us')
                 .withLanguage('en')
                 .withHeadline('Revolutionary AI Breakthrough Announced')
-                .withContent(
+                .withBody(
                     'Scientists at leading universities have announced a groundbreaking advancement.',
                 )
                 .withSummary('A major breakthrough in AI technology has been announced.')

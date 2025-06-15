@@ -1,5 +1,5 @@
 import { Authenticity } from '../../value-objects/article/authenticity.vo.js';
-import { Content } from '../../value-objects/article/content.vo.js';
+import { Body } from '../../value-objects/article/body.vo.js';
 import { Headline } from '../../value-objects/article/headline.vo.js';
 import { Summary } from '../../value-objects/article/summary.vo.js';
 import { Category } from '../../value-objects/category.vo.js';
@@ -20,8 +20,8 @@ export function mockArticles(count: number, country: Country, language: Language
 function createMockArticle(index: number, country: Country, language: Language): Article {
     return new Article({
         authenticity: createMockAuthenticity(),
+        body: generateMockArticleBody(index),
         category: getMockArticleCategory(index),
-        content: generateMockArticleContent(index),
         country,
         createdAt: new Date(),
         headline: createMockHeadline(index),
@@ -58,13 +58,13 @@ function createMockSummary(index: number): Summary {
 }
 
 /**
- * Generates detailed content for a mock article
+ * Generates detailed body for a mock article
  */
-function generateMockArticleContent(index: number): Content {
+function generateMockArticleBody(index: number): Body {
     const categoryName = index % 2 === 0 ? 'political' : 'technological';
-    const content = `This is article ${index + 1} with detailed content about ${categoryName} developments. The content discusses various aspects and their potential impacts on society. Multiple perspectives are presented to provide a balanced view of the current situation and its implications for the future.`;
+    const body = `This is article ${index + 1} with detailed body about ${categoryName} developments. The body discusses various aspects and their potential impacts on society. Multiple perspectives are presented to provide a balanced view of the current situation and its implications for the future.`;
 
-    return new Content(content);
+    return new Body(body);
 }
 
 /**

@@ -8,7 +8,7 @@ import { addDays, subDays } from 'date-fns';
 
 import { Article } from '../../src/domain/entities/article.entity.js';
 import { Authenticity } from '../../src/domain/value-objects/article/authenticity.vo.js';
-import { Content } from '../../src/domain/value-objects/article/content.vo.js';
+import { Body } from '../../src/domain/value-objects/article/body.vo.js';
 import { Headline } from '../../src/domain/value-objects/article/headline.vo.js';
 import { Summary } from '../../src/domain/value-objects/article/summary.vo.js';
 import { Category } from '../../src/domain/value-objects/category.vo.js';
@@ -22,8 +22,8 @@ import { Language } from '../../src/domain/value-objects/language.vo.js';
 export class ArticleFactory {
     private data: {
         authenticity: Authenticity;
+        body: Body;
         category: Category;
-        content: Content;
         country: Country;
         createdAt: Date;
         headline: Headline;
@@ -36,10 +36,8 @@ export class ArticleFactory {
     constructor() {
         this.data = {
             authenticity: new Authenticity(false),
+            body: new Body('Default test article body with detailed information about the topic.'),
             category: new Category('technology'),
-            content: new Content(
-                'Default test article content with detailed information about the topic.',
-            ),
             country: new Country('us'),
             createdAt: new Date('2024-03-01T12:00:00.000Z'),
             headline: new Headline('Default Test Article'),
@@ -89,7 +87,7 @@ export class ArticleFactory {
         const article = this.build();
         await prisma.article.create({
             data: {
-                article: article.content.value,
+                article: article.body.value,
                 category: article.category.toString().toUpperCase() as PrismaCategory,
                 country: article.country.toString() as PrismaCountry,
                 createdAt: article.createdAt,
@@ -113,7 +111,7 @@ export class ArticleFactory {
                     .withCountry(article.country.toString())
                     .withLanguage(article.language.toString())
                     .withHeadline(article.headline.value)
-                    .withContent(article.content.value)
+                    .withBody(article.body.value)
                     .withSummary(article.summary.value)
                     .withCreatedAt(article.createdAt)
                     .withPublishedAt(article.publishedAt)
@@ -123,13 +121,13 @@ export class ArticleFactory {
         return articles;
     }
 
-    withCategory(category: string): ArticleFactory {
-        this.data.category = new Category(category);
+    withBody(body: string): ArticleFactory {
+        this.data.body = new Body(body);
         return this;
     }
 
-    withContent(content: string): ArticleFactory {
-        this.data.content = new Content(content);
+    withCategory(category: string): ArticleFactory {
+        this.data.category = new Category(category);
         return this;
     }
 
