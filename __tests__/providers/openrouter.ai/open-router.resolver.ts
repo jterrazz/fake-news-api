@@ -3,8 +3,8 @@ import { http, HttpResponse } from 'msw';
 const TEST_API_KEY = 'test-openrouter-key';
 
 interface MockArticle {
+    bodyInMarkdown: string;
     category: string;
-    contentInMarkdown: string;
     fakeReason: null | string;
     headline: string;
     isFake: boolean;
@@ -34,9 +34,9 @@ interface MockOpenRouterResponse {
 
 const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
     {
-        category: 'technology',
-        contentInMarkdown:
+        bodyInMarkdown:
             'A consortium of leading tech companies unveiled a groundbreaking advancement in quantum computing technology, achieving unprecedented qubit stability at room temperature. The development promises to accelerate the commercialization of quantum computers.',
+        category: 'technology',
         fakeReason:
             'While quantum computing research is ongoing, room temperature qubit stability remains a significant challenge. This article fabricates a breakthrough that has not occurred.',
         headline: 'Global Tech Leaders Announce Revolutionary Quantum Computing Breakthrough',
@@ -45,9 +45,9 @@ const MOCK_ARTICLE_TEMPLATES: MockArticle[] = [
             'Major technology companies have achieved a significant breakthrough in quantum computing, demonstrating stable qubit operations at room temperature.',
     },
     {
-        category: 'technology',
-        contentInMarkdown:
+        bodyInMarkdown:
             'Recent developments in automated content generation demonstrate significant progress in creating factual news articles. Researchers emphasize the importance of maintaining journalistic standards in AI-generated content.',
+        category: 'technology',
         fakeReason: null,
         headline: 'Test Article Shows Promise in News Generation Research',
         isFake: false,

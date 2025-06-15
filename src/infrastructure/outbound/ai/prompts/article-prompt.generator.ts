@@ -16,10 +16,10 @@ import { Category, categorySchema } from '../../../../domain/value-objects/categ
  * Raw input schema for AI responses before transformation
  */
 const generatedArticleSchema = z.object({
+    bodyInMarkdown: bodySchema.describe('The body of the article in markdown format.'),
     category: categorySchema.describe(
         'The category of the article that strictly matches the category enum',
     ),
-    contentInMarkdown: bodySchema.describe('The body of the article in markdown format.'),
     fakeReason: z
         .string()
         .nullable()
@@ -51,7 +51,7 @@ type GeneratedArticle = {
 const generatedArticleArraySchema = z.array(
     generatedArticleSchema.transform((item) => ({
         authenticity: new Authenticity(item.isFake, item.fakeReason),
-        body: new Body(item.contentInMarkdown),
+        body: new Body(item.bodyInMarkdown),
         category: new Category(item.category),
         headline: new Headline(item.headline),
         summary: new Summary(item.summary),

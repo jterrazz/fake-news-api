@@ -105,7 +105,7 @@ export class GenerateArticlesUseCase {
             const generatedArticles = await this.articleGenerator.generateArticles({
                 articles: {
                     news: filteredNews.map((article) => ({
-                        content: article.body,
+                        body: article.body,
                         headline: article.headline,
                     })),
                     publicationHistory: publishedSummaries.map((summary) => ({
