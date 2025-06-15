@@ -3,10 +3,10 @@ import { type MonitoringPort } from '@jterrazz/monitoring';
 import { z } from 'zod/v4';
 
 import {
-    type FetchNewsOptions as FetchTopNewsOptions,
     type NewsArticle,
-    type NewsPort,
-} from '../../../application/ports/outbound/data-sources/news.port.js';
+    type NewsOptions,
+    type NewsProviderPort,
+} from '../../../application/ports/outbound/providers/news.port.js';
 
 import { Country } from '../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../domain/value-objects/language.vo.js';
@@ -38,7 +38,7 @@ const worldNewsResponseSchema = z.object({
     ),
 });
 
-export class WorldNewsAdapter implements NewsPort {
+export class WorldNewsAdapter implements NewsProviderPort {
     private lastRequestTime = 0;
 
     constructor(
@@ -47,9 +47,9 @@ export class WorldNewsAdapter implements NewsPort {
         private readonly monitoring: MonitoringPort,
     ) {}
 
-    public async fetchTopNews(options?: FetchTopNewsOptions): Promise<NewsArticle[]> {
+    public async fetchNews(options?: NewsOptions): Promise<NewsArticle[]> {
         const { country = new Country('us'), language = new Language('en') } = options || {};
-        return this.monitoring.monitorSegment('Api/WorldNews/FetchTopNews', async () => {
+        return this.monitoring.monitorSegment('Api/WorldNews/FetchNews', async () => {
             try {
                 this.logger.info('Retrieving news articles:', {
                     country: country.toString(),
@@ -135,10 +135,10 @@ export class WorldNewsAdapter implements NewsPort {
                 const medianIndex = Math.floor((sorted.length - 1) / 2);
                 const article = sorted[medianIndex];
                 return {
+                    coverage: section.news.length,
+                    headline: article.title,
                     publishedAt: new Date(article.publish_date),
-                    publishedCount: section.news.length,
                     text: article.text,
-                    title: article.title,
                 };
             })
             .filter(Boolean) as NewsArticle[];

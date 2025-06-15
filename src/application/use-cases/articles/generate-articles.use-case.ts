@@ -5,8 +5,8 @@ import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
 
 import { type ArticleGeneratorPort } from '../../ports/outbound/ai/article-generator.port.js';
-import { type NewsPort } from '../../ports/outbound/data-sources/news.port.js';
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
+import { type NewsProviderPort } from '../../ports/outbound/providers/news.port.js';
 
 import {
     createCurrentTZDateForCountry,
@@ -22,7 +22,7 @@ export class GenerateArticlesUseCase {
         private readonly articleGenerator: ArticleGeneratorPort,
         private readonly articleRepository: ArticleRepositoryPort,
         private readonly logger: LoggerPort,
-        private readonly newsService: NewsPort,
+        private readonly newsService: NewsProviderPort,
     ) {}
 
     /**
@@ -65,14 +65,14 @@ export class GenerateArticlesUseCase {
             }
 
             // Fetch real articles from news service
-            const news = await this.newsService.fetchTopNews({
+            const news = await this.newsService.fetchNews({
                 country,
                 language,
             });
 
-            // Filter news articles by publishedCount (moved from adapter)
-            const sortedByCount = [...news].sort((a, b) => b.publishedCount - a.publishedCount);
-            const filteredNews = sortedByCount.filter((article) => article.publishedCount > 2);
+            // Filter news articles by coverage (moved from adapter)
+            const sortedByCount = [...news].sort((a, b) => b.coverage - a.coverage);
+            const filteredNews = sortedByCount.filter((article) => article.coverage > 2);
 
             if (filteredNews.length === 0) {
                 this.logger.warn('No articles found', {
@@ -106,7 +106,7 @@ export class GenerateArticlesUseCase {
                 articles: {
                     news: filteredNews.map((article) => ({
                         content: article.text,
-                        title: article.title,
+                        headline: article.headline,
                     })),
                     publicationHistory: publishedSummaries.map((summary) => ({
                         headline: summary.headline,

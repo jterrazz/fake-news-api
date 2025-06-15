@@ -106,15 +106,15 @@ describe('WorldNewsAdapter', () => {
         // Given - a valid API key and a response with multiple articles
 
         // When - fetching news from the adapter
-        const result = await adapter.fetchTopNews();
+        const result = await adapter.fetchNews();
 
         // Then - it should return only the median-length article
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
+            coverage: 3,
+            headline: 'Medium',
             publishedAt: new Date('2024-03-11T12:00:00Z'),
-            publishedCount: 3,
             text: 'a bit longer',
-            title: 'Medium',
         });
     });
 
@@ -125,12 +125,12 @@ describe('WorldNewsAdapter', () => {
         mockOfDate.set(utcTimestamp);
 
         // When - fetching news for different countries
-        const first = adapter.fetchTopNews();
+        const first = adapter.fetchNews();
         vitest.runAllTimers();
         await first;
 
         vitest.advanceTimersByTime(1500);
-        const second = adapter.fetchTopNews({ country: new Country('fr') });
+        const second = adapter.fetchNews({ country: new Country('fr') });
         vitest.runAllTimers();
         await second;
 
@@ -150,7 +150,7 @@ describe('WorldNewsAdapter', () => {
         );
 
         // When - fetching news
-        const result = await adapter.fetchTopNews();
+        const result = await adapter.fetchNews();
 
         // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
@@ -169,7 +169,7 @@ describe('WorldNewsAdapter', () => {
         );
 
         // When - fetching news
-        const result = await adapter.fetchTopNews();
+        const result = await adapter.fetchNews();
 
         // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
@@ -188,7 +188,7 @@ describe('WorldNewsAdapter', () => {
         );
 
         // When - fetching news
-        const result = await adapter.fetchTopNews();
+        const result = await adapter.fetchNews();
 
         // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
@@ -202,11 +202,11 @@ describe('WorldNewsAdapter', () => {
     it('should respect rate limiting between requests', async () => {
         // Given - two consecutive requests
         // When - making the requests
-        const first = adapter.fetchTopNews();
+        const first = adapter.fetchNews();
         vitest.runAllTimers();
         const firstResult = await first;
         vitest.advanceTimersByTime(1500);
-        const second = adapter.fetchTopNews();
+        const second = adapter.fetchNews();
         vitest.runAllTimers();
         const secondResult = await second;
 
@@ -257,10 +257,10 @@ describe('WorldNewsAdapter.transformResponse', () => {
         // Then
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
+            coverage: 3,
+            headline: 'Medium',
             publishedAt: new Date('2024-01-02T00:00:00Z'),
-            publishedCount: 3,
             text: 'a bit longer',
-            title: 'Medium',
         });
     });
 
@@ -310,10 +310,10 @@ describe('WorldNewsAdapter.transformResponse', () => {
         // Sorted by text length: a (1), bb (2), ccc (3), dddd (4) => medianIndex = 1 (bb)
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
+            coverage: 4,
+            headline: 'BB',
             publishedAt: new Date('2024-01-02T00:00:00Z'),
-            publishedCount: 4,
             text: 'bb',
-            title: 'BB',
         });
     });
 });

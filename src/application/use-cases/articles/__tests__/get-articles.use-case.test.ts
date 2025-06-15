@@ -9,14 +9,16 @@ import { Language } from '../../../../domain/value-objects/language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
-import { GetArticlesUseCase } from '../get-articles.use-case.js';
+import { type GetArticlesParams, GetArticlesUseCase } from '../get-articles.use-case.js';
 
 describe('GetArticlesUseCase', () => {
-    // Test fixtures
+    // Test constants
     const DEFAULT_LIMIT = 10;
     const TEST_ARTICLES_COUNT = 20;
+    const DEFAULT_COUNTRY = new Country('us');
+    const DEFAULT_LANGUAGE = new Language('en');
 
-    // Mocks setup
+    // Test fixtures
     let mockArticleRepository: DeepMockProxy<ArticleRepositoryPort>;
     let useCase: GetArticlesUseCase;
     let testArticles: Article[];
@@ -24,40 +26,47 @@ describe('GetArticlesUseCase', () => {
     beforeEach(() => {
         mockArticleRepository = mock<ArticleRepositoryPort>();
         useCase = new GetArticlesUseCase(mockArticleRepository);
-        testArticles = mockArticles(TEST_ARTICLES_COUNT, new Country('us'), new Language('en'));
+        testArticles = mockArticles(TEST_ARTICLES_COUNT, DEFAULT_COUNTRY, DEFAULT_LANGUAGE);
 
-        // Default mock responses for separated methods
+        // Default mock responses
         mockArticleRepository.findMany.mockResolvedValue(testArticles);
         mockArticleRepository.countMany.mockResolvedValue(TEST_ARTICLES_COUNT);
     });
 
+    /**
+     * Helper to create basic test parameters
+     */
+    const createParams = (overrides: Partial<GetArticlesParams> = {}): GetArticlesParams => ({
+        country: DEFAULT_COUNTRY,
+        language: DEFAULT_LANGUAGE,
+        limit: DEFAULT_LIMIT,
+        ...overrides,
+    });
+
     describe('execute', () => {
         it('should return paginated articles with default parameters', async () => {
-            // Given - a set of articles in the repository
-            const params = {
-                country: new Country('us'),
-                language: new Language('en'),
-                limit: DEFAULT_LIMIT,
-            };
+            // Given - basic parameters
+            const params = createParams();
 
-            // When - calling the use case with default parameters
+            // When - executing the use case
             const result = await useCase.execute(params);
 
-            // Then - it should call both findMany and countMany
+            // Then - it should call repository methods correctly
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith({
                 category: undefined,
-                country: new Country('us'),
+                country: DEFAULT_COUNTRY,
                 cursor: undefined,
-                language: new Language('en'),
+                language: DEFAULT_LANGUAGE,
                 limit: DEFAULT_LIMIT,
             });
 
             expect(mockArticleRepository.countMany).toHaveBeenCalledWith({
                 category: undefined,
-                country: new Country('us'),
-                language: new Language('en'),
+                country: DEFAULT_COUNTRY,
+                language: DEFAULT_LANGUAGE,
             });
 
+            // And return correct paginated response
             expect(result).toEqual({
                 items: testArticles.slice(0, DEFAULT_LIMIT),
                 lastItemDate: expect.any(Date),
@@ -66,144 +75,99 @@ describe('GetArticlesUseCase', () => {
         });
 
         it('should handle custom limit parameter', async () => {
-            // Given - a custom limit parameter
-            const limit = 5;
-            const params = {
-                country: new Country('us'),
-                language: new Language('en'),
-                limit,
-            };
+            // Given - custom limit
+            const customLimit = 5;
+            const params = createParams({ limit: customLimit });
 
-            // When - executing the use case with the custom limit
+            // When - executing the use case
             const result = await useCase.execute(params);
 
-            // Then - it should return the correct number of articles
+            // Then - it should respect the custom limit
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({ limit }),
+                expect.objectContaining({ limit: customLimit }),
             );
-            expect(result.items).toHaveLength(limit);
+            expect(result.items).toHaveLength(customLimit);
         });
 
         it('should handle category filter', async () => {
-            // Given - a category filter parameter
-            const params = {
-                category: new Category('technology'),
-                country: new Country('us'),
-                language: new Language('en'),
-                limit: DEFAULT_LIMIT,
-            };
+            // Given - category filter
+            const category = new Category('technology');
+            const params = createParams({ category });
 
-            // When - executing the use case with the category filter
+            // When - executing the use case
             await useCase.execute(params);
 
-            // Then - it should call both methods with the correct category
+            // Then - it should pass category to both repository methods
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    category: new Category('technology'),
-                }),
+                expect.objectContaining({ category }),
             );
             expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    category: new Category('technology'),
-                }),
+                expect.objectContaining({ category }),
             );
         });
 
         it('should handle country filter', async () => {
-            // Given - a country filter parameter
-            const params = {
-                country: new Country('fr'),
-                language: new Language('en'),
-                limit: DEFAULT_LIMIT,
-            };
+            // Given - different country
+            const country = new Country('fr');
+            const params = createParams({ country });
 
-            // When - executing the use case with the country filter
+            // When - executing the use case
             await useCase.execute(params);
 
-            // Then - it should call both methods with the correct country
+            // Then - it should pass country to both repository methods
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    country: new Country('fr'),
-                }),
+                expect.objectContaining({ country }),
             );
             expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    country: new Country('fr'),
-                }),
+                expect.objectContaining({ country }),
             );
         });
 
         it('should handle language filter', async () => {
-            // Given - a language filter parameter
-            const params = {
-                country: new Country('us'),
-                language: new Language('fr'),
-                limit: DEFAULT_LIMIT,
-            };
+            // Given - different language
+            const language = new Language('fr');
+            const params = createParams({ language });
 
-            // When - executing the use case with the language filter
+            // When - executing the use case
             await useCase.execute(params);
 
-            // Then - it should call both methods with the correct language
+            // Then - it should pass language to both repository methods
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    language: new Language('fr'),
-                }),
+                expect.objectContaining({ language }),
             );
             expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    language: new Language('fr'),
-                }),
+                expect.objectContaining({ language }),
             );
         });
 
         it('should handle cursor-based pagination', async () => {
-            // Given - a first page of results and a cursor date
-            const cursorDate = new Date('2024-01-01T10:00:00Z');
-            const firstPage = await useCase.execute({
-                country: new Country('us'),
-                language: new Language('en'),
-                limit: DEFAULT_LIMIT,
-            });
+            // Given - cursor for pagination
+            const cursor = new Date('2024-01-01T10:00:00Z');
+            const params = createParams({ cursor });
 
-            // When - requesting the next page using the cursor
-            await useCase.execute({
-                country: new Country('us'),
-                cursor: cursorDate,
-                language: new Language('en'),
-                limit: DEFAULT_LIMIT,
-            });
+            // When - executing the use case
+            await useCase.execute(params);
 
-            // Then - it should call findMany with the cursor (countMany shouldn't include cursor)
-            expect(mockArticleRepository.findMany).toHaveBeenNthCalledWith(
-                2,
-                expect.objectContaining({
-                    cursor: cursorDate,
-                }),
+            // Then - it should pass cursor to findMany but not countMany
+            expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({ cursor }),
             );
-            expect(mockArticleRepository.countMany).toHaveBeenNthCalledWith(
-                2,
-                expect.objectContaining({
-                    country: new Country('us'),
-                    language: new Language('en'),
-                    // cursor should NOT be included in countMany
-                }),
+            expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
+                expect.not.objectContaining({ cursor }),
             );
         });
 
-        it('should return null nextCursor when no more pages', async () => {
-            // Given - a repository response with fewer items than the page size
-            mockArticleRepository.findMany.mockResolvedValue(testArticles.slice(0, 5));
+        it('should return null lastItemDate when no more pages', async () => {
+            // Given - fewer items than page size
+            const partialResults = testArticles.slice(0, 5);
+            mockArticleRepository.findMany.mockResolvedValue(partialResults);
 
             // When - executing the use case
-            const result = await useCase.execute({
-                country: new Country('us'),
-                language: new Language('en'),
-                limit: DEFAULT_LIMIT,
-            });
+            const result = await useCase.execute(createParams());
 
-            // Then - it should return null for lastItemDate
+            // Then - it should indicate no more pages
             expect(result.lastItemDate).toBeNull();
+            expect(result.items).toHaveLength(5);
         });
     });
 });

@@ -4,7 +4,7 @@ import { type Language } from '../../../../domain/value-objects/language.vo.js';
 
 export interface ArticleGenerationParams {
     articles: {
-        news: Array<{ content: string; title: string }>;
+        news: Array<{ content: string; headline: string }>;
         publicationHistory: Array<{ headline: string; summary: string }>;
     };
     count: number;
@@ -17,14 +17,4 @@ export interface ArticleGenerationParams {
  */
 export interface ArticleGeneratorPort {
     generateArticles(params: ArticleGenerationParams): Promise<Article[]>;
-}
-
-/**
- * News article for generation
- */
-export interface NewsForGeneration {
-    publishedAt: Date;
-    publishedCount: number;
-    text: string;
-    title: string;
 }

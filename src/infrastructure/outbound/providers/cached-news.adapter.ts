@@ -5,19 +5,28 @@ import { dirname } from 'node:path';
 import { z } from 'zod/v4';
 
 import {
-    type FetchNewsOptions,
     type NewsArticle,
-    NewsArticleSchema,
-    type NewsPort,
-} from '../../../application/ports/outbound/data-sources/news.port.js';
+    type NewsOptions,
+    type NewsProviderPort,
+} from '../../../application/ports/outbound/providers/news.port.js';
 
 const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
 const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>
     `${CACHE_DIR(env)}/articles/${lang}.json`;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
+const newsArticleSchema = z.object({
+    coverage: z.number(),
+    headline: z.string(),
+    publishedAt: z
+        .string()
+        .datetime()
+        .transform((date) => new Date(date)),
+    text: z.string(),
+});
+
 const CacheDataSchema = z.object({
-    data: z.array(NewsArticleSchema),
+    data: z.array(newsArticleSchema),
     timestamp: z.number(),
 });
 
@@ -26,14 +35,14 @@ type CacheData = z.infer<typeof CacheDataSchema>;
 /**
  * Decorator that adds caching behavior to any news data source
  */
-export class CachedNewsAdapter implements NewsPort {
+export class CachedNewsAdapter implements NewsProviderPort {
     constructor(
-        private readonly newsSource: NewsPort,
+        private readonly newsSource: NewsProviderPort,
         private readonly logger: LoggerPort,
-        private readonly environment: string,
+        private readonly cacheDirectory: string,
     ) {}
 
-    public async fetchTopNews(options: FetchNewsOptions): Promise<NewsArticle[]> {
+    public async fetchNews(options: NewsOptions): Promise<NewsArticle[]> {
         const language = options.language?.toString() ?? 'en';
         // Try to read from cache first
         const cache = this.readCache(language);
@@ -44,7 +53,7 @@ export class CachedNewsAdapter implements NewsPort {
 
         // If no cache or expired, fetch fresh data
         this.logger.info('Fetching fresh news data', { language });
-        const articles = await this.newsSource.fetchTopNews(options);
+        const articles = await this.newsSource.fetchNews(options);
 
         // Cache the response
         this.writeCache(articles, language);
@@ -61,7 +70,7 @@ export class CachedNewsAdapter implements NewsPort {
 
     private readCache(language: string): CacheData | null {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE(this.environment, language);
+            const cachePath = CACHE_PATH_TEMPLATE(this.cacheDirectory, language);
             if (!existsSync(cachePath)) return null;
 
             const cacheContent = readFileSync(cachePath, 'utf-8');
@@ -80,7 +89,7 @@ export class CachedNewsAdapter implements NewsPort {
 
     private writeCache(data: NewsArticle[], language: string): void {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE(this.environment, language);
+            const cachePath = CACHE_PATH_TEMPLATE(this.cacheDirectory, language);
             this.ensureDirectoryExists(cachePath);
 
             const cacheData: CacheData = {
