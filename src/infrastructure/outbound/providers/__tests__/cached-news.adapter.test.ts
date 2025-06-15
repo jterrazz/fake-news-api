@@ -28,12 +28,12 @@ describe('CachedNewsAdapter', () => {
         language: new Language('en'),
     };
 
-            const mockArticle: NewsArticle = {
-            body: 'Test summary',
-            coverage: 1,
-            headline: 'Test title',
-            publishedAt: new Date('2024-03-08T00:00:00.000Z'),
-        };
+    const mockArticle: NewsArticle = {
+        body: 'Test summary',
+        coverage: 1,
+        headline: 'Test title',
+        publishedAt: new Date('2024-03-08T00:00:00.000Z'),
+    };
 
     let adapter: CachedNewsAdapter;
 

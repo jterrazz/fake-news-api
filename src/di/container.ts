@@ -14,8 +14,8 @@ import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
 import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
-import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
+import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 
@@ -26,10 +26,10 @@ import { GetArticlesController } from '../infrastructure/inbound/server/articles
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
-import { CachedNewsAdapter } from '../infrastructure/outbound/providers/cached-news.adapter.js';
-import { WorldNewsAdapter } from '../infrastructure/outbound/providers/world-news.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
+import { CachedNewsAdapter } from '../infrastructure/outbound/providers/cached-news.adapter.js';
+import { WorldNewsAdapter } from '../infrastructure/outbound/providers/world-news.adapter.js';
 
 /**
  * Outbound adapters

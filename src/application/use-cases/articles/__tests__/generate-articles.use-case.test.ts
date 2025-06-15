@@ -10,7 +10,10 @@ import { Language } from '../../../../domain/value-objects/language.vo.js';
 
 import { type ArticleGeneratorPort } from '../../../ports/outbound/ai/article-generator.port.js';
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
-import { type NewsArticle, type NewsProviderPort } from '../../../ports/outbound/providers/news.port.js';
+import {
+    type NewsArticle,
+    type NewsProviderPort,
+} from '../../../ports/outbound/providers/news.port.js';
 
 import { GenerateArticlesUseCase } from '../generate-articles.use-case.js';
 
