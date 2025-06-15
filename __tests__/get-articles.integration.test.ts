@@ -95,7 +95,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
         it('should handle pagination with limit', async () => {
             // Given - multiple articles exist in the database for pagination testing
             const { prisma } = testContext;
-            const articles = await new ArticleFactory()
+            await new ArticleFactory()
                 .withCategory('technology')
                 .withCountry('us')
                 .withLanguage('en')
@@ -196,7 +196,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
             const { prisma } = testContext;
             const testDate = new Date('2024-03-15T14:30:00.000Z');
 
-            const createdArticle = await new ArticleFactory()
+            await new ArticleFactory()
                 .withCategory('technology')
                 .withCountry('us')
                 .withLanguage('en')
