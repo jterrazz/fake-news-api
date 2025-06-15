@@ -9,7 +9,7 @@ import { Language } from '../../../../domain/value-objects/language.vo.js';
 export class ArticleGenerationTask implements TaskPort {
     public readonly executeOnStartup = true;
     public readonly name = 'article-generation';
-    public readonly schedule = '0 */6 * * *'; // Every 6 hours
+    public readonly schedule = '0 */1 * * *'; // Every 1 hours
 
     constructor(
         private readonly generateArticles: GenerateArticlesUseCase,

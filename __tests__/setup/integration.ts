@@ -20,7 +20,7 @@ export type IntegrationTestContext = {
     gateways: {
         executor: ExecutorPort;
         httpServer: ServerPort;
-        taskList: TaskPort[];
+        tasks: TaskPort[];
     };
     msw: SetupServerApi;
     prisma: PrismaClient;
@@ -54,7 +54,7 @@ export async function setupIntegrationTest(
 
     const server = testContainer.get('Server');
     const executor = testContainer.get('Executor');
-    const tasks = testContainer.get('TaskList');
+    const tasks = testContainer.get('Tasks');
     const msw = setupServer(...handlers);
     const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 
@@ -62,7 +62,7 @@ export async function setupIntegrationTest(
 
     return {
         _internal: { databasePath },
-        gateways: { executor: executor, httpServer: server, taskList: tasks },
+        gateways: { executor: executor, httpServer: server, tasks: tasks },
         msw,
         prisma,
     };

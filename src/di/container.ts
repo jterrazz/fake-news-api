@@ -22,7 +22,7 @@ import { GetArticlesUseCase } from '../application/use-cases/articles/get-articl
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.adapter.js';
 import { ArticleGenerationTask } from '../infrastructure/inbound/executor/tasks/article-generation.task.js';
-import { ArticleController } from '../infrastructure/inbound/server/articles/article.controller.js';
+import { GetArticlesController } from '../infrastructure/inbound/server/articles/article.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
@@ -132,17 +132,17 @@ const getArticlesUseCaseFactory = Injectable(
 /**
  * Controller factories
  */
-const articleControllerFactory = Injectable(
-    'ArticleController',
+const getArticlesControllerFactory = Injectable(
+    'GetArticlesController',
     ['GetArticles'] as const,
-    (getArticles: GetArticlesUseCase) => new ArticleController(getArticles),
+    (getArticles: GetArticlesUseCase) => new GetArticlesController(getArticles),
 );
 
 /**
  * Task factories
  */
-const taskListFactory = Injectable(
-    'TaskList',
+const tasksFactory = Injectable(
+    'Tasks',
     ['GenerateArticles', 'Logger'] as const,
     (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): TaskPort[] => {
         return [new ArticleGenerationTask(generateArticles, logger)];
@@ -179,17 +179,17 @@ const configurationFactory = (overrides?: ContainerOverrides) =>
 
 const serverFactory = Injectable(
     'Server',
-    ['Logger', 'ArticleController'] as const,
-    (logger: LoggerPort, articleController: ArticleController): ServerPort => {
+    ['Logger', 'GetArticlesController'] as const,
+    (logger: LoggerPort, getArticlesController: GetArticlesController): ServerPort => {
         logger.info('Initializing Hono server');
-        const server = new HonoServerAdapter(logger, articleController);
+        const server = new HonoServerAdapter(logger, getArticlesController);
         return server;
     },
 );
 
 const executorFactory = Injectable(
     'Executor',
-    ['Logger', 'TaskList'] as const,
+    ['Logger', 'Tasks'] as const,
     (logger: LoggerPort, tasks: TaskPort[]): ExecutorPort => {
         logger.info('Initializing NodeCron executor');
         const executor = new NodeCronAdapter(logger, tasks);
@@ -220,8 +220,8 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(generateArticlesUseCaseFactory)
         .provides(getArticlesUseCaseFactory)
         // Controllers and tasks
-        .provides(articleControllerFactory)
-        .provides(taskListFactory)
+        .provides(getArticlesControllerFactory)
+        .provides(tasksFactory)
         // Inbound adapters
         .provides(serverFactory)
         .provides(executorFactory);

@@ -7,7 +7,7 @@ import {
     type ServerPort,
 } from '../../../application/ports/inbound/server.port.js';
 
-import { type ArticleController } from './articles/article.controller.js';
+import { type GetArticlesController } from './articles/article.controller.js';
 import { createArticlesRouter } from './articles/articles.routes.js';
 import { createHealthRouter } from './health/health.routes.js';
 import { createErrorHandlerMiddleware } from './middleware/error-handler.middleware.js';
@@ -18,7 +18,7 @@ export class HonoServerAdapter implements ServerPort {
 
     constructor(
         private readonly logger: LoggerPort,
-        private readonly articleController: ArticleController,
+        private readonly getArticlesController: GetArticlesController,
     ) {
         this.app = new Hono();
         this.setupGlobalMiddleware();
@@ -56,7 +56,7 @@ export class HonoServerAdapter implements ServerPort {
 
     private registerRoutes(): void {
         this.app.route('/', createHealthRouter());
-        this.app.route('/articles', createArticlesRouter(this.articleController));
+        this.app.route('/articles', createArticlesRouter(this.getArticlesController));
     }
 
     private setupGlobalMiddleware(): void {

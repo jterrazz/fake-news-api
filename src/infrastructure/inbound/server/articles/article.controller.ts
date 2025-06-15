@@ -7,10 +7,10 @@ import {
 import { GetArticlesResponsePresenter } from './get-articles-response.presenter.js';
 
 /**
- * Orchestrates HTTP request handling for articles endpoint
+ * Orchestrates HTTP request handling for get articles endpoint
  * Delegates request processing, use case execution, and response formatting
  */
-export class ArticleController {
+export class GetArticlesController {
     private readonly requestHandler: GetArticlesRequestHandler;
     private readonly responsePresenter: GetArticlesResponsePresenter;
 

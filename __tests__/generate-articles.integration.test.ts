@@ -51,9 +51,9 @@ describe('Task - Generate Articles - Integration Tests', () => {
 
     it('should generate articles based on time of day rules', async () => {
         // Given - a specific time of day and news data
-        const { taskList } = testContext.gateways;
+        const { tasks } = testContext.gateways;
         const { prisma } = testContext;
-        const articleGenerationTask = taskList.find((task) => task.name === 'article-generation');
+        const articleGenerationTask = tasks.find((task) => task.name === 'article-generation');
 
         expect(articleGenerationTask).toBeDefined();
         expect(articleGenerationTask?.schedule).toBe('0 */6 * * *');
