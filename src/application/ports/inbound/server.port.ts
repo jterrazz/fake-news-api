@@ -19,10 +19,9 @@ export interface ServerConfiguration {
 export interface ServerPort {
     /**
      * Make a test request to the server
-     * @param path Must start with /
      */
     request(
-        path: `/${string}`,
+        path: string,
         options?: { body?: object | string; headers?: Record<string, string>; method?: string },
     ): Promise<Response>;
 

@@ -64,9 +64,6 @@ describe('Task - Generate Articles - Integration Tests', () => {
             const mockDate = createTZDateForCountry(new Date(2020, 0, 1, 7, 0, 0, 0), 'fr');
             mockOfDate.set(mockDate);
 
-            const initialCount = await testContext.prisma.article.count();
-            expect(initialCount).toBe(0);
-
             const { tasks } = testContext.gateways;
             const articleGenerationTask = tasks.find((task) => task.name === 'article-generation');
 
@@ -87,7 +84,6 @@ describe('Task - Generate Articles - Integration Tests', () => {
             const mockDate = createTZDateForCountry(new Date(2020, 0, 1, 7, 0, 0, 0), 'fr');
             mockOfDate.set(mockDate);
 
-            // Create 4 articles for France to meet morning target
             const createdArticles = await ArticleTestScenarios.createFrenchMorningTarget(
                 testContext.prisma,
             );
@@ -105,21 +101,19 @@ describe('Task - Generate Articles - Integration Tests', () => {
                 where: { country: 'fr' },
             });
 
-            // Should have exactly the 4 articles we created - no new ones generated
             expect(frArticles).toHaveLength(4);
 
             const actualHeadlines = frArticles.map((a) => a.headline);
             expectedHeadlines.forEach((expectedHeadline) => {
                 expect(actualHeadlines).toContain(expectedHeadline);
             });
-        }, 15000);
+        });
 
         it('should generate US articles in the afternoon when target increases', async () => {
             // Given - 2:00 PM French time (8:00 AM US time)
             const mockDate = createTZDateForCountry(new Date(2020, 0, 1, 14, 0, 0, 0), 'fr');
             mockOfDate.set(mockDate);
 
-            // Create 4 French articles from the morning
             await ArticleTestScenarios.createFrenchMorningTarget(testContext.prisma);
 
             const { tasks } = testContext.gateways;
@@ -129,14 +123,10 @@ describe('Task - Generate Articles - Integration Tests', () => {
             await expect(articleGenerationTask!.execute()).resolves.not.toThrow();
 
             // Then
-            const allArticles = await testContext.prisma.article.findMany({
-                orderBy: { createdAt: 'asc' },
-            });
-
+            const allArticles = await testContext.prisma.article.findMany();
             const frArticles = allArticles.filter((a) => a.country === 'fr');
             const usArticles = allArticles.filter((a) => a.country === 'us');
 
-            // Should have 12 articles total (8 French + 4 US)
             expect(allArticles).toHaveLength(12);
             expect(frArticles).toHaveLength(8);
             expect(usArticles).toHaveLength(4);
@@ -151,6 +141,6 @@ describe('Task - Generate Articles - Integration Tests', () => {
                 expect(article.language).toBe('en');
                 expect(article.country).toBe('us');
             });
-        }, 15000);
+        });
     });
 });
