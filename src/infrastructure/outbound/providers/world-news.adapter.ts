@@ -16,12 +16,23 @@ import {
     formatTZDateForCountry,
 } from '../../../shared/date/timezone.js';
 
+// Constants
 const RATE_LIMIT_DELAY = 1200; // 1.2 seconds between requests for safety margin
+const API_BASE_URL = 'https://api.worldnewsapi.com';
+const TOP_NEWS_ENDPOINT = '/top-news';
+const DEFAULT_COUNTRY = 'us';
+const DEFAULT_LANGUAGE = 'en';
+const DATE_FORMAT = 'yyyy-MM-dd';
 
+// Types
 export interface WorldNewsAdapterConfiguration {
     apiKey: string;
 }
 
+type WorldNewsArticle = z.infer<typeof worldNewsArticleSchema>;
+type WorldNewsResponse = z.infer<typeof worldNewsResponseSchema>;
+
+// Schemas
 const worldNewsArticleSchema = z.object({
     publish_date: z.string(),
     text: z.string(),
@@ -48,55 +59,28 @@ export class WorldNewsAdapter implements NewsProviderPort {
     ) {}
 
     public async fetchNews(options?: NewsOptions): Promise<NewsArticle[]> {
-        const { country = new Country('us'), language = new Language('en') } = options || {};
+        const {
+            country = new Country(DEFAULT_COUNTRY),
+            language = new Language(DEFAULT_LANGUAGE),
+        } = options || {};
+
         return this.monitoring.monitorSegment('Api/WorldNews/FetchNews', async () => {
             try {
-                this.logger.info('Retrieving news articles:', {
+                this.logger.info('Starting news fetch:', {
                     country: country.toString(),
                     language: language.toString(),
                 });
                 await this.enforceRateLimit();
 
-                const tzDate = createCurrentTZDateForCountry(country.toString());
-                const countryDate = formatTZDateForCountry(
-                    tzDate,
-                    country.toString(),
-                    'yyyy-MM-dd',
-                );
-                const url = new URL('https://api.worldnewsapi.com/top-news');
-
-                // Add query parameters
-                url.searchParams.append('api-key', this.configuration.apiKey);
-                url.searchParams.append('source-country', country.toString());
-                url.searchParams.append('language', language.toString());
-                url.searchParams.append('date', countryDate);
-
-                this.logger.info('Fetching news with date', {
-                    country: country.toString(),
-                    countryDate,
-                });
-
-                const response = await fetch(url.toString());
-
-                if (!response.ok) {
-                    this.monitoring.recordCount('WorldNews', 'Errors');
-                    this.logger.error('Failed to fetch news:', {
-                        status: response.status,
-                        statusText: response.statusText,
-                    });
-                    return [];
-                }
-
-                const data = await response.json();
-                const parsed = worldNewsResponseSchema.parse(data);
-                const articles = this.transformResponse(parsed);
+                const url = this.buildApiUrl(country, language);
+                const response = await this.makeApiRequest(url);
+                const articles = await this.processApiResponse(response);
 
                 this.logger.info('Successfully retrieved news articles:', {
                     articleCount: articles.length,
                     country: country.toString(),
                     language: language.toString(),
                 });
-
                 return articles;
             } catch (error) {
                 this.monitoring.recordCount('WorldNews', 'Errors');
@@ -108,6 +92,24 @@ export class WorldNewsAdapter implements NewsProviderPort {
                 return [];
             }
         });
+    }
+
+    private buildApiUrl(country: Country, language: Language): URL {
+        const tzDate = createCurrentTZDateForCountry(country.toString());
+        const countryDate = formatTZDateForCountry(tzDate, country.toString(), DATE_FORMAT);
+        const url = new URL(`${API_BASE_URL}${TOP_NEWS_ENDPOINT}`);
+
+        url.searchParams.append('api-key', this.configuration.apiKey);
+        url.searchParams.append('source-country', country.toString());
+        url.searchParams.append('language', language.toString());
+        url.searchParams.append('date', countryDate);
+
+        this.logger.info('Built API URL with date', {
+            country: country.toString(),
+            countryDate,
+        });
+
+        return url;
     }
 
     private async enforceRateLimit(): Promise<void> {
@@ -123,24 +125,51 @@ export class WorldNewsAdapter implements NewsProviderPort {
         this.lastRequestTime = Date.now();
     }
 
-    private transformResponse(response: z.infer<typeof worldNewsResponseSchema>): NewsArticle[] {
-        // For each section, select the article with the median text length
+    private async makeApiRequest(url: URL): Promise<Response> {
+        const response = await fetch(url.toString());
+
+        if (!response.ok) {
+            this.monitoring.recordCount('WorldNews', 'Errors');
+            this.logger.error('API request failed:', {
+                status: response.status,
+                statusText: response.statusText,
+                url: url.toString(),
+            });
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        return response;
+    }
+
+    private async processApiResponse(response: Response): Promise<NewsArticle[]> {
+        const data = await response.json();
+        const parsed = worldNewsResponseSchema.parse(data);
+        return this.transformResponse(parsed);
+    }
+
+    private selectMedianArticle(articles: WorldNewsArticle[]): WorldNewsArticle {
+        const sorted = [...articles].sort((a, b) => a.text.length - b.text.length);
+        const medianIndex = Math.floor((sorted.length - 1) / 2);
+        return sorted[medianIndex];
+    }
+
+    private transformResponse(response: WorldNewsResponse): NewsArticle[] {
         return response.top_news
-            .map((section) => {
-                if (section.news.length === 0) {
-                    return undefined;
-                }
-                // Sort articles by text length
-                const sorted = [...section.news].sort((a, b) => a.text.length - b.text.length);
-                const medianIndex = Math.floor((sorted.length - 1) / 2);
-                const article = sorted[medianIndex];
-                return {
-                    coverage: section.news.length,
-                    headline: article.title,
-                    publishedAt: new Date(article.publish_date),
-                    text: article.text,
-                };
-            })
+            .map((section) => this.transformSection(section))
             .filter(Boolean) as NewsArticle[];
+    }
+
+    private transformSection(section: { news: WorldNewsArticle[] }): NewsArticle | undefined {
+        if (section.news.length === 0) {
+            return undefined;
+        }
+
+        const medianArticle = this.selectMedianArticle(section.news);
+        return {
+            body: medianArticle.text,
+            coverage: section.news.length,
+            headline: medianArticle.title,
+            publishedAt: new Date(medianArticle.publish_date),
+        };
     }
 }

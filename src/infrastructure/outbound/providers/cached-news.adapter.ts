@@ -10,27 +10,31 @@ import {
     type NewsProviderPort,
 } from '../../../application/ports/outbound/providers/news.port.js';
 
-const CACHE_DIR = (env: string) => `${tmpdir()}/fake-news/${env}`;
-const CACHE_PATH_TEMPLATE = (env: string, lang: string) =>
-    `${CACHE_DIR(env)}/articles/${lang}.json`;
+// Constants
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+const DEFAULT_LANGUAGE = 'en';
+const CACHE_FILE_ENCODING = 'utf-8';
+const JSON_INDENT = 2;
 
+// Helper functions
+const getCacheDir = (env: string) => `${tmpdir()}/fake-news/${env}`;
+const getCachePath = (env: string, lang: string) => `${getCacheDir(env)}/articles/${lang}.json`;
+
+// Types
+type CacheData = z.infer<typeof cacheDataSchema>;
+
+// Schemas
 const newsArticleSchema = z.object({
+    body: z.string(),
     coverage: z.number(),
     headline: z.string(),
-    publishedAt: z
-        .string()
-        .datetime()
-        .transform((date) => new Date(date)),
-    text: z.string(),
+    publishedAt: z.iso.datetime().transform((date) => new Date(date)),
 });
 
-const CacheDataSchema = z.object({
+const cacheDataSchema = z.object({
     data: z.array(newsArticleSchema),
     timestamp: z.number(),
 });
-
-type CacheData = z.infer<typeof CacheDataSchema>;
 
 /**
  * Decorator that adds caching behavior to any news data source
@@ -43,19 +47,16 @@ export class CachedNewsAdapter implements NewsProviderPort {
     ) {}
 
     public async fetchNews(options: NewsOptions): Promise<NewsArticle[]> {
-        const language = options.language?.toString() ?? 'en';
-        // Try to read from cache first
-        const cache = this.readCache(language);
-        if (cache) {
+        const language = options.language?.toString() ?? DEFAULT_LANGUAGE;
+
+        const cachedData = this.readCache(language);
+        if (cachedData) {
             this.logger.info('Using cached news data', { language });
-            return cache.data;
+            return cachedData.data;
         }
 
-        // If no cache or expired, fetch fresh data
         this.logger.info('Fetching fresh news data', { language });
         const articles = await this.newsSource.fetchNews(options);
-
-        // Cache the response
         this.writeCache(articles, language);
 
         return articles;
@@ -68,37 +69,46 @@ export class CachedNewsAdapter implements NewsProviderPort {
         }
     }
 
+    private isCacheExpired(timestamp: number): boolean {
+        return Date.now() - timestamp > CACHE_TTL;
+    }
+
     private readCache(language: string): CacheData | null {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE(this.cacheDirectory, language);
-            if (!existsSync(cachePath)) return null;
+            const cachePath = getCachePath(this.cacheDirectory, language);
 
-            const cacheContent = readFileSync(cachePath, 'utf-8');
+            if (!existsSync(cachePath)) {
+                return null;
+            }
+
+            const cacheContent = readFileSync(cachePath, CACHE_FILE_ENCODING);
             const parsedCache = JSON.parse(cacheContent);
-            const cache = CacheDataSchema.parse(parsedCache);
+            const cache = cacheDataSchema.parse(parsedCache);
 
-            // Check if cache is still valid
-            if (Date.now() - cache.timestamp > CACHE_TTL) return null;
+            if (this.isCacheExpired(cache.timestamp)) {
+                return null;
+            }
 
             return cache;
         } catch (error) {
-            this.logger.error('Failed to read news cache', { error });
+            this.logger.error('Failed to read news cache', { error, language });
             return null;
         }
     }
 
     private writeCache(data: NewsArticle[], language: string): void {
         try {
-            const cachePath = CACHE_PATH_TEMPLATE(this.cacheDirectory, language);
+            const cachePath = getCachePath(this.cacheDirectory, language);
             this.ensureDirectoryExists(cachePath);
 
             const cacheData: CacheData = {
                 data,
                 timestamp: Date.now(),
             };
-            writeFileSync(cachePath, JSON.stringify(cacheData, null, 2));
+
+            writeFileSync(cachePath, JSON.stringify(cacheData, null, JSON_INDENT));
         } catch (error) {
-            this.logger.error('Failed to write news cache', { error });
+            this.logger.error('Failed to write news cache', { error, language });
         }
     }
 }

@@ -70,10 +70,10 @@ describe('GenerateArticlesUseCase', () => {
      */
     function createTestNews(count: number): NewsArticle[] {
         return Array.from({ length: count }, (_, i) => ({
+            body: `Summary of real news ${i + 1}`,
             coverage: 10,
             headline: `Real News ${i + 1}`,
             publishedAt: new Date(`2024-03-${String(i + 1).padStart(2, '0')}`),
-            text: `Summary of real news ${i + 1}`,
         }));
     }
 

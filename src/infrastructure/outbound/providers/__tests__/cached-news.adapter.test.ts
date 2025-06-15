@@ -29,10 +29,10 @@ describe('CachedNewsAdapter', () => {
     };
 
             const mockArticle: NewsArticle = {
+            body: 'Test summary',
             coverage: 1,
             headline: 'Test title',
             publishedAt: new Date('2024-03-08T00:00:00.000Z'),
-            text: 'Test summary',
         };
 
     let adapter: CachedNewsAdapter;
@@ -120,6 +120,7 @@ describe('CachedNewsAdapter', () => {
                 expect(result).toEqual([mockArticle]);
                 expect(mockLogger.error).toHaveBeenCalledWith('Failed to read news cache', {
                     error: expect.any(Error),
+                    language: 'en',
                 });
                 expect(mockNewsSource.fetchNews).toHaveBeenCalledWith(options);
             });
@@ -139,6 +140,7 @@ describe('CachedNewsAdapter', () => {
                 expect(result).toEqual([mockArticle]);
                 expect(mockLogger.error).toHaveBeenCalledWith('Failed to write news cache', {
                     error: expect.any(Error),
+                    language: 'en',
                 });
             });
         });

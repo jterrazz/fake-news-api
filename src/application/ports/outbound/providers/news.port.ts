@@ -5,10 +5,10 @@ import { type Language } from '../../../../domain/value-objects/language.vo.js';
  * News article from external providers
  */
 export interface NewsArticle {
+    body: string;
     coverage: number;
     headline: string;
     publishedAt: Date;
-    text: string;
 }
 
 /**

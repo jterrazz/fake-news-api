@@ -111,10 +111,10 @@ describe('WorldNewsAdapter', () => {
         // Then - it should return only the median-length article
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
+            body: 'a bit longer',
             coverage: 3,
             headline: 'Medium',
             publishedAt: new Date('2024-03-11T12:00:00Z'),
-            text: 'a bit longer',
         });
     });
 
@@ -154,9 +154,10 @@ describe('WorldNewsAdapter', () => {
 
         // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
-        expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch news:', {
+        expect(mockLogger.error).toHaveBeenCalledWith('API request failed:', {
             status: 500,
             statusText: 'Internal Server Error',
+            url: expect.stringContaining('https://api.worldnewsapi.com/top-news'),
         });
     });
 
@@ -173,9 +174,10 @@ describe('WorldNewsAdapter', () => {
 
         // Then - it should return an empty array and log the error
         expect(result).toEqual([]);
-        expect(mockLogger.error).toHaveBeenCalledWith('Failed to fetch news:', {
+        expect(mockLogger.error).toHaveBeenCalledWith('API request failed:', {
             status: 401,
             statusText: 'Unauthorized',
+            url: expect.stringContaining('https://api.worldnewsapi.com/top-news'),
         });
     });
 
@@ -257,10 +259,10 @@ describe('WorldNewsAdapter.transformResponse', () => {
         // Then
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
+            body: 'a bit longer',
             coverage: 3,
             headline: 'Medium',
             publishedAt: new Date('2024-01-02T00:00:00Z'),
-            text: 'a bit longer',
         });
     });
 
@@ -310,10 +312,10 @@ describe('WorldNewsAdapter.transformResponse', () => {
         // Sorted by text length: a (1), bb (2), ccc (3), dddd (4) => medianIndex = 1 (bb)
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
+            body: 'bb',
             coverage: 4,
             headline: 'BB',
             publishedAt: new Date('2024-01-02T00:00:00Z'),
-            text: 'bb',
         });
     });
 });
