@@ -1,4 +1,5 @@
 import { type LoggerPort } from '@jterrazz/logger';
+import { endOfDay, startOfDay } from 'date-fns';
 
 import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
@@ -36,11 +37,16 @@ export class GenerateArticlesUseCase {
             const tzDate = createCurrentTZDateForCountry(country.toString());
             const targetArticleCount = getTargetArticleCount(tzDate.getHours());
 
-            // Check existing articles for today
-            const existingArticleCount = await this.articleRepository.countManyForDay({
+            // Calculate day boundaries in the target timezone
+            const dayStart = startOfDay(tzDate);
+            const dayEnd = endOfDay(tzDate);
+
+            // Check existing articles for today using the cleaner repository method
+            const existingArticleCount = await this.articleRepository.countMany({
                 country,
-                date: tzDate,
+                endDate: dayEnd,
                 language,
+                startDate: dayStart,
             });
 
             // Calculate how many articles we need to generate

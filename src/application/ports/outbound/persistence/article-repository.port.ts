@@ -4,45 +4,46 @@ import { type Country } from '../../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../../domain/value-objects/language.vo.js';
 
 /**
- * Article repository port
+ * Article repository port - defines how articles can be persisted and retrieved
  */
 export interface ArticleRepositoryPort {
     /**
-     * Count articles for a specific day
+     * Count articles matching the given criteria
      */
-    countManyForDay(options: FindPublishedSummariesOptions): Promise<number>;
+    countMany(params: CountManyOptions): Promise<number>;
 
     /**
-     * Create multiple articles in a single transaction
-     * @param articles Array of articles to create
-     * @returns Created articles with their IDs
+     * Create multiple articles
      */
     createMany(articles: Article[]): Promise<SaveArticlesResult>;
 
     /**
-     * Find many articles
+     * Find articles matching the given criteria
      */
-    findMany(options: FindManyOptions): Promise<FindManyResult>;
+    findMany(params: FindManyOptions): Promise<Article[]>;
 
     /**
-     * Find published article summaries since a given date
+     * Find published article summaries for context
      */
     findPublishedSummaries(
-        options: FindPublishedSummariesOptions,
+        params: FindPublishedSummariesOptions,
     ): Promise<Array<{ headline: string; summary: string }>>;
+}
+
+export interface CountManyOptions {
+    category?: Category;
+    country?: Country;
+    endDate?: Date;
+    language?: Language;
+    startDate?: Date;
 }
 
 export interface FindManyOptions {
     category?: Category;
-    country: Country;
+    country?: Country;
     cursor?: Date;
     language?: Language;
     limit: number;
-}
-
-export interface FindManyResult {
-    items: Article[];
-    total: number;
 }
 
 export interface FindPublishedSummariesOptions {

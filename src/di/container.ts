@@ -21,8 +21,8 @@ import { GetArticlesUseCase } from '../application/use-cases/articles/get-articl
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.adapter.js';
-import { ArticleGenerationTask } from '../infrastructure/inbound/executor/tasks/article-generation.task.js';
-import { GetArticlesController } from '../infrastructure/inbound/server/articles/article.controller.js';
+import { ArticleGenerationTask } from '../infrastructure/inbound/executor/articles/article-generation.task.js';
+import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';

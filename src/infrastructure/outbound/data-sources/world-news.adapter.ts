@@ -22,18 +22,18 @@ export interface WorldNewsAdapterConfiguration {
     apiKey: string;
 }
 
-const WorldNewsArticleSchema = z.object({
+const worldNewsArticleSchema = z.object({
     publish_date: z.string(),
     text: z.string(),
     title: z.string(),
 });
 
-const WorldNewsResponseSchema = z.object({
+const worldNewsResponseSchema = z.object({
     country: z.string(),
     language: z.string(),
     top_news: z.array(
         z.object({
-            news: z.array(WorldNewsArticleSchema),
+            news: z.array(worldNewsArticleSchema),
         }),
     ),
 });
@@ -48,10 +48,7 @@ export class WorldNewsAdapter implements NewsPort {
     ) {}
 
     public async fetchTopNews(options?: FetchTopNewsOptions): Promise<NewsArticle[]> {
-        const {
-            country = new Country('us'),
-            language = new Language('en'),
-        } = options || {};
+        const { country = new Country('us'), language = new Language('en') } = options || {};
         return this.monitoring.monitorSegment('Api/WorldNews/FetchTopNews', async () => {
             try {
                 this.logger.info('Retrieving news articles:', {
@@ -91,7 +88,7 @@ export class WorldNewsAdapter implements NewsPort {
                 }
 
                 const data = await response.json();
-                const parsed = WorldNewsResponseSchema.parse(data);
+                const parsed = worldNewsResponseSchema.parse(data);
                 const articles = this.transformResponse(parsed);
 
                 this.logger.info('Successfully retrieved news articles:', {
@@ -126,7 +123,7 @@ export class WorldNewsAdapter implements NewsPort {
         this.lastRequestTime = Date.now();
     }
 
-    private transformResponse(response: z.infer<typeof WorldNewsResponseSchema>): NewsArticle[] {
+    private transformResponse(response: z.infer<typeof worldNewsResponseSchema>): NewsArticle[] {
         // For each section, select the article with the median text length
         return response.top_news
             .map((section) => {

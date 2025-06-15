@@ -6,22 +6,10 @@ import {
 } from '../../../../application/ports/outbound/ai/prompt.port.js';
 
 import { Authenticity } from '../../../../domain/value-objects/article/authenticity.vo.js';
-import {
-    Content,
-    contentSchema,
-} from '../../../../domain/value-objects/article/content.vo.js';
-import {
-    Headline,
-    headlineSchema,
-} from '../../../../domain/value-objects/article/headline.vo.js';
-import {
-    Summary,
-    summarySchema,
-} from '../../../../domain/value-objects/article/summary.vo.js';
-import {
-    Category,
-    categorySchema,
-} from '../../../../domain/value-objects/category.vo.js';
+import { Content, contentSchema } from '../../../../domain/value-objects/article/content.vo.js';
+import { Headline, headlineSchema } from '../../../../domain/value-objects/article/headline.vo.js';
+import { Summary, summarySchema } from '../../../../domain/value-objects/article/summary.vo.js';
+import { Category, categorySchema } from '../../../../domain/value-objects/category.vo.js';
 
 /**
  * Raw input schema for AI responses before transformation
@@ -199,9 +187,11 @@ Create an informative summary that will be used in future generations in the fie
 }
 
 export function mapNewsForPrompt(params: GenerateArticlesParams): NewsForPrompt[] {
-    return params.articles.news.map((item: { category: string; content: string; title: string }) => ({
-        category: item.category,
-        content: item.content,
-        title: item.title,
-    }));
+    return params.articles.news.map(
+        (item: { category: string; content: string; title: string }) => ({
+            category: item.category,
+            content: item.content,
+            title: item.title,
+        }),
+    );
 }

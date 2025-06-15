@@ -7,10 +7,10 @@ import {
     type ServerPort,
 } from '../../../application/ports/inbound/server.port.js';
 
-import { type GetArticlesController } from './articles/article.controller.js';
+import { type GetArticlesController } from './articles/get-articles.controller.js';
 import { createArticlesRouter } from './articles/articles.routes.js';
+import { createErrorHandlerMiddleware } from './common/error-handler.middleware.js';
 import { createHealthRouter } from './health/health.routes.js';
-import { createErrorHandlerMiddleware } from './middleware/error-handler.middleware.js';
 
 export class HonoServerAdapter implements ServerPort {
     private app: Hono;

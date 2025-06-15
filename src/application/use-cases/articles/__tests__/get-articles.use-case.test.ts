@@ -26,11 +26,9 @@ describe('GetArticlesUseCase', () => {
         useCase = new GetArticlesUseCase(mockArticleRepository);
         testArticles = mockArticles(TEST_ARTICLES_COUNT, new Country('us'), new Language('en'));
 
-        // Default mock response
-        mockArticleRepository.findMany.mockResolvedValue({
-            items: testArticles,
-            total: TEST_ARTICLES_COUNT,
-        });
+        // Default mock responses for separated methods
+        mockArticleRepository.findMany.mockResolvedValue(testArticles);
+        mockArticleRepository.countMany.mockResolvedValue(TEST_ARTICLES_COUNT);
     });
 
     describe('execute', () => {
@@ -45,13 +43,19 @@ describe('GetArticlesUseCase', () => {
             // When - calling the use case with default parameters
             const result = await useCase.execute(params);
 
-            // Then - it should return paginated articles
+            // Then - it should call both findMany and countMany
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith({
                 category: undefined,
                 country: new Country('us'),
                 cursor: undefined,
                 language: new Language('en'),
                 limit: DEFAULT_LIMIT,
+            });
+
+            expect(mockArticleRepository.countMany).toHaveBeenCalledWith({
+                category: undefined,
+                country: new Country('us'),
+                language: new Language('en'),
             });
 
             expect(result).toEqual({
@@ -92,8 +96,13 @@ describe('GetArticlesUseCase', () => {
             // When - executing the use case with the category filter
             await useCase.execute(params);
 
-            // Then - it should call the repository with the correct category
+            // Then - it should call both methods with the correct category
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    category: new Category('technology'),
+                }),
+            );
+            expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     category: new Category('technology'),
                 }),
@@ -111,8 +120,13 @@ describe('GetArticlesUseCase', () => {
             // When - executing the use case with the country filter
             await useCase.execute(params);
 
-            // Then - it should call the repository with the correct country
+            // Then - it should call both methods with the correct country
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    country: new Country('fr'),
+                }),
+            );
+            expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     country: new Country('fr'),
                 }),
@@ -130,8 +144,13 @@ describe('GetArticlesUseCase', () => {
             // When - executing the use case with the language filter
             await useCase.execute(params);
 
-            // Then - it should call the repository with the correct language
+            // Then - it should call both methods with the correct language
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    language: new Language('fr'),
+                }),
+            );
+            expect(mockArticleRepository.countMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     language: new Language('fr'),
                 }),
@@ -155,21 +174,26 @@ describe('GetArticlesUseCase', () => {
                 limit: DEFAULT_LIMIT,
             });
 
-            // Then - it should call the repository with the correct cursor
+            // Then - it should call findMany with the cursor (countMany shouldn't include cursor)
             expect(mockArticleRepository.findMany).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
                     cursor: cursorDate,
                 }),
             );
+            expect(mockArticleRepository.countMany).toHaveBeenNthCalledWith(
+                2,
+                expect.objectContaining({
+                    country: new Country('us'),
+                    language: new Language('en'),
+                    // cursor should NOT be included in countMany
+                }),
+            );
         });
 
         it('should return null nextCursor when no more pages', async () => {
             // Given - a repository response with fewer items than the page size
-            mockArticleRepository.findMany.mockResolvedValue({
-                items: testArticles.slice(0, 5),
-                total: 5,
-            });
+            mockArticleRepository.findMany.mockResolvedValue(testArticles.slice(0, 5));
 
             // When - executing the use case
             const result = await useCase.execute({

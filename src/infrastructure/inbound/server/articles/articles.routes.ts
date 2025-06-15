@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 
-import { type GetArticlesController } from './article.controller.js';
+import { type GetArticlesController } from './get-articles.controller.js';
 
 export const createArticlesRouter = (getArticlesController: GetArticlesController) => {
     const app = new Hono();

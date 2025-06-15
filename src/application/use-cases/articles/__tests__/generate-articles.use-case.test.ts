@@ -71,7 +71,7 @@ describe('GenerateArticlesUseCase', () => {
                 summary: summary,
             })),
         );
-        mockArticleRepository.countManyForDay.mockResolvedValue(0);
+        mockArticleRepository.countMany.mockResolvedValue(0);
         mockArticleGenerator.generateArticles.mockResolvedValue(testArticles);
 
         useCase = new GenerateArticlesUseCase(
@@ -105,7 +105,7 @@ describe('GenerateArticlesUseCase', () => {
                 // Given - a specific hour and existing article count for the US
                 const testDate = createDateAtHour(hour, 'America/New_York');
                 mockOfDate.set(testDate);
-                mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
+                mockArticleRepository.countMany.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
                 );
@@ -156,7 +156,7 @@ describe('GenerateArticlesUseCase', () => {
                 mockOfDate.set(testDate);
                 const frenchCountry = new Country('fr');
                 const frenchLanguage = new Language('fr');
-                mockArticleRepository.countManyForDay.mockResolvedValue(existingCount);
+                mockArticleRepository.countMany.mockResolvedValue(existingCount);
                 mockArticleGenerator.generateArticles.mockResolvedValue(
                     testArticles.slice(0, expectedToGenerate),
                 );
@@ -231,21 +231,22 @@ describe('GenerateArticlesUseCase', () => {
         });
 
         it('should handle and re-throw errors during execution', async () => {
-            // Given - the news service throws an error
-            const testDate = new TZDate(2020, 0, 1, 14, 0, 0, 0, 'America/New_York');
+            // Given - an error during news fetching
+            const testDate = createDateAtHour(7, 'America/New_York');
             mockOfDate.set(testDate);
-            const testError = new Error('Test error');
-            mockNewsService.fetchTopNews.mockRejectedValue(testError);
+            const error = new Error('Network error');
+            mockNewsService.fetchTopNews.mockRejectedValue(error);
 
-            // When/Then - executing the use case should throw the error and log it
-            await expect(useCase.execute(TEST_LANGUAGE, TEST_COUNTRY)).rejects.toThrow(testError);
+            // When/Then - executing the use case should throw the error
+            await expect(useCase.execute(TEST_LANGUAGE, TEST_COUNTRY)).rejects.toThrow(
+                'Network error',
+            );
 
-            // Then - it should log the error
             expect(mockLogger.error).toHaveBeenCalledWith(
                 'Failed to generate articles',
                 expect.objectContaining({
                     country: TEST_COUNTRY.toString(),
-                    error: testError,
+                    error,
                     language: TEST_LANGUAGE.toString(),
                 }),
             );

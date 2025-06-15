@@ -28,13 +28,21 @@ export class GetArticlesUseCase {
     async execute(params: GetArticlesParams): Promise<PaginatedResponse<Article>> {
         const { category, country, cursor, language, limit } = params;
 
-        const { items, total } = await this.articleRepository.findMany({
-            category,
-            country,
-            cursor,
-            language,
-            limit,
-        });
+        // Separate concerns: fetch items and count total independently
+        const [items, total] = await Promise.all([
+            this.articleRepository.findMany({
+                category,
+                country,
+                cursor,
+                language,
+                limit,
+            }),
+            this.articleRepository.countMany({
+                category,
+                country,
+                language,
+            }),
+        ]);
 
         const hasMore = items.length > limit;
         const results = hasMore ? items.slice(0, limit) : items;

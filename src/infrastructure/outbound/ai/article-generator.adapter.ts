@@ -1,14 +1,14 @@
 import { type LoggerPort } from '@jterrazz/logger';
 
-import {
-    type ArticleGeneratorPort,
-    type GenerateArticlesParams,
-} from '../../../application/ports/outbound/ai/article-generator.port.js';
+import { type ArticleGeneratorPort } from '../../../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../../../application/ports/outbound/ai/provider.port.js';
 
 import { Article } from '../../../domain/entities/article.entity.js';
 
-import { ArticlePromptGenerator } from './prompts/article-prompt.generator.js';
+import {
+    ArticlePromptGenerator,
+    type GenerateArticlesParams,
+} from './prompts/article-prompt.generator.js';
 
 export class AIArticleGenerator implements ArticleGeneratorPort {
     private readonly promptGenerator: ArticlePromptGenerator;
