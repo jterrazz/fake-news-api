@@ -12,6 +12,7 @@ import {
     type Job,
     type JobRunnerPort,
 } from '../../src/application/ports/inbound/job-runner.port.js';
+import { type ServerPort } from '../../src/application/ports/inbound/server.port.js';
 
 import { createContainer } from '../../src/di/container.js';
 
@@ -67,3 +68,7 @@ export async function setupIntegrationTest(
         prisma,
     };
 }
+
+export const createTestServer = (): ServerPort => {
+    // ... existing code ...
+};

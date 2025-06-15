@@ -5,10 +5,9 @@ import {
     type Language,
 } from '@prisma/client';
 
-import {
-    type GetArticlesParams,
-    type GetArticlesUseCase,
-} from '../../../../application/use-cases/articles/get-articles.use-case.js';
+import { type PaginatedResponse as UseCasePaginatedResponse } from '../../../../application/use-cases/articles/get-articles.use-case.js';
+
+import { type Article } from '../../../../domain/entities/article.entity.js';
 
 // Extend PrismaArticle to include our new field while keeping type safety
 type ArticleResponse = Omit<PrismaArticle, 'article'> & {
@@ -20,18 +19,24 @@ type ArticleResponse = Omit<PrismaArticle, 'article'> & {
     contentWithAnnotations: string;
 };
 
-type PaginatedResponse<T> = {
+type HttpPaginatedResponse<T> = {
     items: T[];
     nextCursor: null | string;
     total: number;
 };
 
-export class ArticleController {
-    constructor(private readonly getArticlesUseCase: GetArticlesUseCase) {}
-
-    async getArticles(params: GetArticlesParams): Promise<PaginatedResponse<ArticleResponse>> {
-        const result = await this.getArticlesUseCase.execute(params);
-
+/**
+ * Handles response formatting for GET /articles endpoint
+ * Transforms domain objects to HTTP response format
+ */
+export class GetArticlesResponsePresenter {
+    /**
+     * Transforms use case result to HTTP response format
+     *
+     * @param result - Domain result from use case
+     * @returns Formatted HTTP response
+     */
+    present(result: UseCasePaginatedResponse<Article>): HttpPaginatedResponse<ArticleResponse> {
         // Convert domain articles to response format
         const articles: ArticleResponse[] = result.items.map((article) => {
             const content = article.content.toString();
@@ -60,9 +65,14 @@ export class ArticleController {
             };
         });
 
+        // Handle cursor encoding (presentation concern)
+        const nextCursor = result.lastItemDate
+            ? Buffer.from(result.lastItemDate.getTime().toString()).toString('base64')
+            : null;
+
         return {
             items: articles,
-            nextCursor: result.nextCursor,
+            nextCursor,
             total: result.total,
         };
     }

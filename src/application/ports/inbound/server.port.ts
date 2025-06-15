@@ -1,7 +1,7 @@
 /**
- * Configuration for the HTTP server
+ * Configuration for the server
  */
-export interface HttpServerConfiguration {
+export interface ServerConfiguration {
     /**
      * The host to listen on
      */
@@ -14,9 +14,9 @@ export interface HttpServerConfiguration {
 }
 
 /**
- * HttpServer port - defines how the HTTP server can be started and stopped
+ * Server port - defines how the server can be started and stopped
  */
-export interface HttpServerPort {
+export interface ServerPort {
     /**
      * Make a test request to the server
      * @param path Must start with /
@@ -27,12 +27,12 @@ export interface HttpServerPort {
     ): Promise<Response>;
 
     /**
-     * Start the HTTP server with the given configuration
+     * Start the server with the given configuration
      */
-    start(config: HttpServerConfiguration): Promise<void>;
+    start(config: ServerConfiguration): Promise<void>;
 
     /**
-     * Stop the HTTP server gracefully
+     * Stop the server gracefully
      */
     stop(): Promise<void>;
 }

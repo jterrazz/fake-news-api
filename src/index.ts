@@ -5,7 +5,7 @@ const start = async () => {
     const logger = container.get('Logger');
     const config = container.get('Configuration');
     const newRelic = container.get('NewRelic');
-    const httpServer = container.get('HttpServer');
+    const server = container.get('HttpServer');
     const jobRunner = container.get('JobRunner');
 
     try {
@@ -15,7 +15,7 @@ const start = async () => {
 
         await newRelic.initialize();
         await jobRunner.initialize();
-        await httpServer.start({
+        await server.start({
             host,
             port,
         });

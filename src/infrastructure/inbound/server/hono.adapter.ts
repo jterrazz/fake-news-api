@@ -3,16 +3,16 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { Hono } from 'hono';
 
 import {
-    type HttpServerConfiguration,
-    type HttpServerPort,
-} from '../../../application/ports/inbound/http-server.port.js';
+    type ServerConfiguration,
+    type ServerPort,
+} from '../../../application/ports/inbound/server.port.js';
 
-import type { ArticleController } from './controllers/article.controller.js';
-import { errorHandlerMiddleware } from './middleware/error-handler.middleware.js';
-import { createArticlesRouter } from './routes/articles.js';
-import { createHealthRouter } from './routes/health.js';
+import { type ArticleController } from './articles/article.controller.js';
+import { createArticlesRouter } from './articles/articles.routes.js';
+import { createHealthRouter } from './health/health.routes.js';
+import { createErrorHandlerMiddleware } from './middleware/error-handler.middleware.js';
 
-export class HonoServerAdapter implements HttpServerPort {
+export class HonoServerAdapter implements ServerPort {
     private app: Hono;
     private server: null | ReturnType<typeof serve> = null;
 
@@ -37,7 +37,7 @@ export class HonoServerAdapter implements HttpServerPort {
         return this.app.request(path, init);
     }
 
-    public async start(config: HttpServerConfiguration): Promise<void> {
+    public async start(config: ServerConfiguration): Promise<void> {
         return new Promise((resolve) => {
             this.server = serve(this.app, (info) => {
                 this.logger.info(`Server is listening on ${config.host}:${info.port}`);
@@ -60,7 +60,6 @@ export class HonoServerAdapter implements HttpServerPort {
     }
 
     private setupGlobalMiddleware(): void {
-        // Apply global error handling for all routes
-        this.app.onError(errorHandlerMiddleware);
+        this.app.onError(createErrorHandlerMiddleware(this.logger));
     }
 }

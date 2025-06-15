@@ -37,6 +37,7 @@ describe('GetArticlesUseCase', () => {
         it('should return paginated articles with default parameters', async () => {
             // Given - a set of articles in the repository
             const params = {
+                country: new Country('us'),
                 language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             };
@@ -55,7 +56,7 @@ describe('GetArticlesUseCase', () => {
 
             expect(result).toEqual({
                 items: testArticles.slice(0, DEFAULT_LIMIT),
-                nextCursor: expect.any(String),
+                lastItemDate: expect.any(Date),
                 total: TEST_ARTICLES_COUNT,
             });
         });
@@ -64,6 +65,7 @@ describe('GetArticlesUseCase', () => {
             // Given - a custom limit parameter
             const limit = 5;
             const params = {
+                country: new Country('us'),
                 language: new Language('en'),
                 limit,
             };
@@ -82,6 +84,7 @@ describe('GetArticlesUseCase', () => {
             // Given - a category filter parameter
             const params = {
                 category: new Category('technology'),
+                country: new Country('us'),
                 language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             };
@@ -119,6 +122,7 @@ describe('GetArticlesUseCase', () => {
         it('should handle language filter', async () => {
             // Given - a language filter parameter
             const params = {
+                country: new Country('us'),
                 language: new Language('fr'),
                 limit: DEFAULT_LIMIT,
             };
@@ -138,12 +142,14 @@ describe('GetArticlesUseCase', () => {
             // Given - a first page of results and a cursor date
             const cursorDate = new Date('2024-01-01T10:00:00Z');
             const firstPage = await useCase.execute({
+                country: new Country('us'),
                 language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             });
 
             // When - requesting the next page using the cursor
             await useCase.execute({
+                country: new Country('us'),
                 cursor: cursorDate,
                 language: new Language('en'),
                 limit: DEFAULT_LIMIT,
@@ -167,12 +173,13 @@ describe('GetArticlesUseCase', () => {
 
             // When - executing the use case
             const result = await useCase.execute({
+                country: new Country('us'),
                 language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             });
 
-            // Then - it should return null for nextCursor
-            expect(result.nextCursor).toBeNull();
+            // Then - it should return null for lastItemDate
+            expect(result.lastItemDate).toBeNull();
         });
     });
 });

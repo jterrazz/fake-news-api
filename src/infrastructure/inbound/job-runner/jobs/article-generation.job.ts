@@ -6,13 +6,17 @@ import { type GenerateArticlesUseCase } from '../../../../application/use-cases/
 import { Country } from '../../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../../domain/value-objects/language.vo.js';
 
-export class ArticleGenerationJob {
+export class ArticleGenerationJob implements JobPort {
+    public readonly executeOnStartup = true;
+    public readonly name = 'article-generation';
+    public readonly schedule = '5 * * * *'; // Every hour at 5 minutes past
+
     constructor(
         private readonly generateArticlesUseCase: GenerateArticlesUseCase,
         private readonly logger: LoggerPort,
     ) {}
 
-    async process(_job: JobPort): Promise<void> {
+    public async execute(): Promise<void> {
         this.logger.info('Starting article generation job');
 
         const languages = [
