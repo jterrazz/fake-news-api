@@ -11,7 +11,7 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 
 import type { HttpServerPort } from '../application/ports/inbound/http-server.port.js';
 import type { JobRunnerPort } from '../application/ports/inbound/job-runner.port.js';
-import { type Job } from '../application/ports/inbound/job-runner.port.js';
+import { type JobPort } from '../application/ports/inbound/job-runner.port.js';
 import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
 import type { NewsPort } from '../application/ports/outbound/data-sources/news.port.js';
@@ -22,14 +22,13 @@ import { GetArticlesUseCase } from '../application/use-cases/articles/get-articl
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
 import { ArticleController } from '../infrastructure/inbound/http-server/controllers/article.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/http-server/hono.adapter.js';
-import { createArticleGenerationJob } from '../infrastructure/inbound/job-runner/jobs/article-generation.job.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/job-runner/node-cron.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/data-sources/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/data-sources/world-news.adapter.js';
-import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma/prisma.adapter.js';
-import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma/repositories/article.adapter.js';
+import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
+import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
 
 /**
  * Outbound adapters
@@ -144,7 +143,7 @@ const articleControllerFactory = Injectable(
 const jobsFactory = Injectable(
     'Jobs',
     ['GenerateArticles', 'NewRelic'] as const,
-    (generateArticles: GenerateArticlesUseCase, monitoring: MonitoringPort): Job[] => {
+    (generateArticles: GenerateArticlesUseCase, monitoring: MonitoringPort): JobPort[] => {
         return [
             createArticleGenerationJob({
                 generateArticles,
@@ -195,7 +194,7 @@ const httpServerFactory = Injectable(
 const jobRunnerFactory = Injectable(
     'JobRunner',
     ['Logger', 'Jobs'] as const,
-    (logger: LoggerPort, jobs: Job[]): JobRunnerPort => {
+    (logger: LoggerPort, jobs: JobPort[]): JobRunnerPort => {
         logger.info('Initializing NodeCron job runner');
         const jobRunner = new NodeCronAdapter(logger, jobs);
         return jobRunner;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jterrazz/test';
 import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
-import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
+import { mockArticles } from '../../../../domain/entities/__mocks__/mock-of-articles.js';
 import { type Article } from '../../../../domain/entities/article.entity.js';
 import {
     Category,
@@ -33,7 +33,7 @@ describe('GetArticlesUseCase', () => {
     beforeEach(() => {
         mockArticleRepository = mock<ArticleRepositoryPort>();
         useCase = new GetArticlesUseCase(mockArticleRepository);
-        testArticles = buildTestArticles(
+        testArticles = mockArticles(
             TEST_ARTICLES_COUNT,
             new Country('us'),
             new Language('en'),

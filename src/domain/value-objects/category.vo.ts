@@ -15,7 +15,7 @@ export const categorySchema = z.enum([
 export type CategoryEnum = z.infer<typeof categorySchema>;
 
 export class Category {
-    private readonly value: CategoryEnum;
+    public readonly value: CategoryEnum;
 
     constructor(category: string) {
         const normalizedCategory = category.toLowerCase();
@@ -28,7 +28,7 @@ export class Category {
         }
     }
 
-    public toString(): string {
+    public toString(): CategoryEnum {
         return this.value;
     }
 }

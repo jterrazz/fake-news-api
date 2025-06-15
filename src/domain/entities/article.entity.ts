@@ -8,18 +8,14 @@ import { Category } from '../value-objects/category.vo.js';
 import { Country } from '../value-objects/country.vo.js';
 import { Language } from '../value-objects/language.vo.js';
 
-/**
- * Represents a news article entity.
- * @description Core article entity containing all article data and metadata.
- */
 export const articleSchema = z.object({
     authenticity: z.instanceof(Authenticity),
     category: z.instanceof(Category),
     content: z.instanceof(Content),
     country: z.instanceof(Country),
-    createdAt: z.date().default(() => new Date()),
+    createdAt: z.date(),
     headline: z.instanceof(Headline),
-    id: z.string().uuid(),
+    id: z.uuid(),
     language: z.instanceof(Language),
     publishedAt: z.date(),
     summary: z.instanceof(Summary),
@@ -39,7 +35,7 @@ export class Article {
     public readonly publishedAt: Date;
     public readonly summary: Summary;
 
-    public constructor(data: z.input<typeof articleSchema>) {
+    public constructor(data: ArticleProps) {
         const result = articleSchema.safeParse(data);
 
         if (!result.success) {

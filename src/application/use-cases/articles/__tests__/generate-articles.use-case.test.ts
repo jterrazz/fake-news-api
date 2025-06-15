@@ -3,7 +3,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { afterEach, beforeEach, describe, expect, it, mockOfDate, vi } from '@jterrazz/test';
 import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
-import { buildTestArticles } from '../../../../domain/entities/__mocks__/article.builder.js';
+import { mockArticles } from '../../../../domain/entities/__mocks__/mock-of-articles.js';
 import { type Article } from '../../../../domain/entities/article.entity.js';
 import { Country } from '../../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../../domain/value-objects/language.vo.js';
@@ -58,7 +58,7 @@ describe('GenerateArticlesUseCase', () => {
         mockNewsService = mock<NewsPort>();
 
         testNews = createTestNews(TEST_ARTICLE_COUNT);
-        testArticles = buildTestArticles(TEST_ARTICLE_COUNT, TEST_COUNTRY, TEST_LANGUAGE);
+        testArticles = mockArticles(TEST_ARTICLE_COUNT, TEST_COUNTRY, TEST_LANGUAGE);
         testPublishedSummaries = Array.from(
             { length: TEST_ARTICLE_COUNT },
             (_, i) => `Old Article ${i + 1} from 2024-01-${String(i + 1).padStart(2, '0')}`,

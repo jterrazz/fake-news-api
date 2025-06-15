@@ -5,7 +5,7 @@ export const contentSchema = z
     .min(30, 'Article content must be at least 30 characters long');
 
 export class Content {
-    private readonly value: string;
+    public readonly value: string;
 
     constructor(content: string) {
         const result = contentSchema.safeParse(content);

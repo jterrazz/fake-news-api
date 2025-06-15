@@ -1,7 +1,7 @@
 import { type LoggerPort } from '@jterrazz/logger';
 import { type Prisma, PrismaClient } from '@prisma/client';
 
-import { type DatabasePort } from '../../../../application/ports/outbound/persistence/database.port.js';
+import { type DatabasePort } from '../../../application/ports/outbound/persistence/database.port.js';
 
 export class PrismaAdapter implements DatabasePort {
     private client: PrismaClient;

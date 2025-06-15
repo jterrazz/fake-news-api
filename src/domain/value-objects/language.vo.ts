@@ -1,11 +1,11 @@
 import { z } from 'zod/v4';
 
-export const languageSchema = z.enum(['en', 'fr', 'de', 'it', 'es']);
+export const languageSchema = z.enum(['en', 'fr']);
 
 export type LanguageEnum = z.infer<typeof languageSchema>;
 
 export class Language {
-    private readonly value: LanguageEnum;
+    public readonly value: LanguageEnum;
 
     constructor(language: string) {
         const normalizedLanguage = language.toLowerCase();
@@ -20,7 +20,7 @@ export class Language {
         this.value = result.data;
     }
 
-    public toString(): string {
+    public toString(): LanguageEnum {
         return this.value;
     }
 }

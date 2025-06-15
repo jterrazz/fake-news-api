@@ -5,7 +5,7 @@ export const headlineSchema = z
     .min(1, 'Article headline must be at least 1 characters long');
 
 export class Headline {
-    private readonly value: string;
+    public readonly value: string;
 
     constructor(headline: string) {
         const result = headlineSchema.safeParse(headline);

@@ -1,11 +1,11 @@
 import { z } from 'zod/v4';
 
-export const countrySchema = z.enum(['fr', 'de', 'it', 'es', 'uk', 'us']);
+export const countrySchema = z.enum(['fr', 'us']);
 
 export type CountryEnum = z.infer<typeof countrySchema>;
 
 export class Country {
-    private readonly value: CountryEnum;
+    public readonly value: CountryEnum;
 
     constructor(country: string) {
         const normalizedCountry = country.toLowerCase();
@@ -20,7 +20,7 @@ export class Country {
         this.value = result.data;
     }
 
-    public toString(): string {
+    public toString(): CountryEnum {
         return this.value;
     }
 }

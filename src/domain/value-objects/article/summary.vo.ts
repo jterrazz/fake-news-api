@@ -5,7 +5,7 @@ export const summarySchema = z
     .min(30, 'Article summary must be at least 30 characters long');
 
 export class Summary {
-    private readonly value: string;
+    public readonly value: string;
 
     constructor(summary: string) {
         const result = summarySchema.safeParse(summary);

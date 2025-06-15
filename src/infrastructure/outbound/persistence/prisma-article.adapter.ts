@@ -3,15 +3,15 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 import type {
     ArticleRepositoryPort,
-    CountArticlesForDayParams as CountManyForDayParams,
     FindManyParams,
+    FindPublishedSummariesOptions,
     FindPublishedSummariesParams,
-} from '../../../../../application/ports/outbound/persistence/article-repository.port.js';
+} from '../../../application/ports/outbound/persistence/article-repository.port.js';
 
-import type { Article } from '../../../../../domain/entities/article.entity.js';
+import type { Article } from '../../../domain/entities/article.entity.js';
 
-import { ArticleMapper } from '../mappers/article.mapper.js';
-import type { PrismaAdapter } from '../prisma.adapter.js';
+import type { PrismaAdapter } from './prisma.adapter.js';
+import { ArticleMapper } from './prisma-article.mapper.js';
 
 // Map of country codes to their timezone identifiers
 const COUNTRY_TIMEZONES: Record<string, string> = {
@@ -26,7 +26,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         this.mapper = new ArticleMapper();
     }
 
-    async countManyForDay(params: CountManyForDayParams): Promise<number> {
+    async countManyForDay(params: FindPublishedSummariesOptions): Promise<number> {
         const countryCode = params.country.toString().toLowerCase();
         const timezone = COUNTRY_TIMEZONES[countryCode];
 

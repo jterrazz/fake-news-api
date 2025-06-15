@@ -1,6 +1,6 @@
 import { type LoggerPort } from '@jterrazz/logger';
-import type { Job } from 'bullmq';
 
+import { type JobPort } from '../../../../application/ports/inbound/job-runner.port.js';
 import { type GenerateArticlesUseCase } from '../../../../application/use-cases/articles/generate-articles.use-case.js';
 
 import { Country } from '../../../../domain/value-objects/country.vo.js';
@@ -12,12 +12,12 @@ export class ArticleGenerationJob {
         private readonly logger: LoggerPort,
     ) {}
 
-    async process(_job: Job): Promise<void> {
+    async process(_job: JobPort): Promise<void> {
         this.logger.info('Starting article generation job');
 
         const languages = [
-            { country: new Country('us'), language: new Language('en') },
-            { country: new Country('fr'), language: new Language('fr') },
+            { country: new Country('fr'), language: new Language('en') },
+            { country: new Country('us'), language: new Language('fr') },
         ];
 
         for (const { country, language } of languages) {

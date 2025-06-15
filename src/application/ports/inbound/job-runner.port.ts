@@ -1,7 +1,7 @@
 /**
  * Represents a job that can be scheduled and executed
  */
-export interface Job {
+export interface JobPort {
     /**
      * The function to execute when the job runs
      */

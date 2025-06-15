@@ -2,7 +2,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import cron from 'node-cron';
 
 import {
-    type Job,
+    type JobPort,
     type JobRunnerPort,
 } from '../../../application/ports/inbound/job-runner.port.js';
 
@@ -11,7 +11,7 @@ export class NodeCronAdapter implements JobRunnerPort {
 
     constructor(
         private readonly logger: LoggerPort,
-        public readonly jobs: Job[],
+        public readonly jobs: JobPort[],
     ) {}
 
     public async initialize(): Promise<void> {
