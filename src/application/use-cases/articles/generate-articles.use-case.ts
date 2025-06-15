@@ -95,7 +95,7 @@ export class GenerateArticlesUseCase {
 
             // Get recent headlines for context (last 30 days)
             const since = subtractDays(tzDate, 30);
-            const publishedSummaries = await this.articleRepository.findPublishedSummaries({
+            const publishedSummaries = await this.articleRepository.findHeadlinesAndSummaries({
                 country,
                 language,
                 since,

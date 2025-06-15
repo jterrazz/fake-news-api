@@ -15,19 +15,19 @@ export interface ArticleRepositoryPort {
     /**
      * Create multiple articles
      */
-    createMany(articles: Article[]): Promise<SaveArticlesResult>;
+    createMany(articles: Article[]): Promise<void>;
+
+    /**
+     * Find headlines and summaries matching the given criteria
+     */
+    findHeadlinesAndSummaries(
+        params: FindHeadlinesAndSummariesOptions,
+    ): Promise<Array<{ headline: string; summary: string }>>;
 
     /**
      * Find articles matching the given criteria
      */
     findMany(params: FindManyOptions): Promise<Article[]>;
-
-    /**
-     * Find published article summaries for context
-     */
-    findPublishedSummaries(
-        params: FindPublishedSummariesOptions,
-    ): Promise<Array<{ headline: string; summary: string }>>;
 }
 
 export interface CountManyOptions {
@@ -38,21 +38,16 @@ export interface CountManyOptions {
     startDate?: Date;
 }
 
+export interface FindHeadlinesAndSummariesOptions {
+    country: Country;
+    language: Language;
+    since?: Date;
+}
+
 export interface FindManyOptions {
     category?: Category;
     country?: Country;
     cursor?: Date;
     language?: Language;
     limit: number;
-}
-
-export interface FindPublishedSummariesOptions {
-    country: Country;
-    date?: Date;
-    language: Language;
-    since?: Date;
-}
-
-export interface SaveArticlesResult {
-    articlesCount: number;
 }

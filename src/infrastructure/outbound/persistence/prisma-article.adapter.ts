@@ -1,9 +1,8 @@
 import type {
     ArticleRepositoryPort,
     CountManyOptions,
+    FindHeadlinesAndSummariesOptions,
     FindManyOptions,
-    FindPublishedSummariesOptions,
-    SaveArticlesResult,
 } from '../../../application/ports/outbound/persistence/article-repository.port.js';
 
 import type { Article } from '../../../domain/entities/article.entity.js';
@@ -35,7 +34,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         return this.prisma.getPrismaClient().article.count({ where });
     }
 
-    async createMany(articles: Article[]): Promise<SaveArticlesResult> {
+    async createMany(articles: Article[]): Promise<void> {
         const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
 
         await this.prisma.getPrismaClient().$transaction(
@@ -45,10 +44,36 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
                 }),
             ),
         );
+    }
 
-        return {
-            articlesCount: articles.length,
+    async findHeadlinesAndSummaries(
+        params: FindHeadlinesAndSummariesOptions,
+    ): Promise<Array<{ headline: string; summary: string }>> {
+        const where = {
+            country: this.mapper.mapCountryToPrisma(params.country),
+            language: this.mapper.mapLanguageToPrisma(params.language),
+            ...(params.since && {
+                createdAt: {
+                    gte: params.since,
+                },
+            }),
         };
+
+        const articles = await this.prisma.getPrismaClient().article.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+            select: {
+                headline: true,
+                summary: true,
+            },
+            where,
+        });
+
+        return articles.map((article) => ({
+            headline: article.headline,
+            summary: article.summary,
+        }));
     }
 
     async findMany(params: FindManyOptions): Promise<Article[]> {
@@ -72,33 +97,5 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         });
 
         return items.map((item) => this.mapper.toDomain(item));
-    }
-
-    async findPublishedSummaries(
-        params: FindPublishedSummariesOptions,
-    ): Promise<Array<{ headline: string; summary: string }>> {
-        const articles = await this.prisma.getPrismaClient().article.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
-            select: {
-                headline: true,
-                summary: true,
-            },
-            where: {
-                country: this.mapper.mapCountryToPrisma(params.country),
-                ...(params.since && {
-                    createdAt: {
-                        gte: params.since,
-                    },
-                }),
-                language: this.mapper.mapLanguageToPrisma(params.language),
-            },
-        });
-
-        return articles.map((article) => ({
-            headline: article.headline,
-            summary: article.summary,
-        }));
     }
 }

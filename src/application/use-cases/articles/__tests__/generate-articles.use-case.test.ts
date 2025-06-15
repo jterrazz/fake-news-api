@@ -65,7 +65,7 @@ describe('GenerateArticlesUseCase', () => {
         );
 
         mockNewsService.fetchTopNews.mockResolvedValue(testNews);
-        mockArticleRepository.findPublishedSummaries.mockResolvedValue(
+        mockArticleRepository.findHeadlinesAndSummaries.mockResolvedValue(
             testPublishedSummaries.map((summary) => ({
                 headline: summary,
                 summary: summary,
