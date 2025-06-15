@@ -25,9 +25,11 @@ export class ArticleGenerationTask implements TaskPort {
                 { country: new Country('us'), language: new Language('en') },
             ];
 
-            for (const { country, language } of languages) {
-                await this.generateArticles.execute(language, country);
-            }
+            await Promise.all(
+                languages.map(async ({ country, language }) =>
+                    this.generateArticles.execute(language, country),
+                ),
+            );
 
             this.logger.info('Article generation task completed successfully');
         } catch (error) {

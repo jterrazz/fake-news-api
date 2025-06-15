@@ -1,5 +1,5 @@
 import { type LoggerPort } from '@jterrazz/logger';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
 import { z } from 'zod/v4';
@@ -44,19 +44,52 @@ export class CachedNewsAdapter implements NewsProviderPort {
         private readonly newsSource: NewsProviderPort,
         private readonly logger: LoggerPort,
         private readonly cacheDirectory: string,
-    ) {}
+    ) {
+        const cacheDir = getCacheDir(this.cacheDirectory);
+        this.logger.info('Initializing CachedNewsAdapter', {
+            cacheDir,
+            cacheDirectory: this.cacheDirectory,
+            ttl: CACHE_TTL,
+        });
+    }
+
+    /**
+     * Clear all cached data for debugging purposes
+     */
+    public clearAllCache(): void {
+        try {
+            const cacheDir = getCacheDir(this.cacheDirectory);
+            if (existsSync(cacheDir)) {
+                rmSync(cacheDir, { force: true, recursive: true });
+                this.logger.info('All cache data cleared', { cacheDir });
+            }
+        } catch (error) {
+            this.logger.error('Failed to clear cache directory', { error });
+        }
+    }
 
     public async fetchNews(options: NewsOptions): Promise<NewsArticle[]> {
         const language = options.language?.toString() ?? DEFAULT_LANGUAGE;
 
+        this.logger.info('Checking cache for news data', { language });
+
         const cachedData = this.readCache(language);
         if (cachedData) {
-            this.logger.info('Using cached news data', { language });
+            this.logger.info('Cache hit - using cached news data', {
+                articleCount: cachedData.data.length,
+                cacheAge: Date.now() - cachedData.timestamp,
+                language,
+            });
             return cachedData.data;
         }
 
-        this.logger.info('Fetching fresh news data', { language });
+        this.logger.info('Cache miss - fetching fresh news data', { language });
         const articles = await this.newsSource.fetchNews(options);
+
+        this.logger.info('Writing fresh data to cache', {
+            articleCount: articles.length,
+            language,
+        });
         this.writeCache(articles, language);
 
         return articles;
@@ -82,17 +115,43 @@ export class CachedNewsAdapter implements NewsProviderPort {
             }
 
             const cacheContent = readFileSync(cachePath, CACHE_FILE_ENCODING);
+
+            // Check if file is empty or contains invalid JSON
+            if (!cacheContent.trim()) {
+                this.logger.warn('Cache file is empty, removing it', { cachePath, language });
+                this.removeCache(cachePath);
+                return null;
+            }
+
             const parsedCache = JSON.parse(cacheContent);
             const cache = cacheDataSchema.parse(parsedCache);
 
             if (this.isCacheExpired(cache.timestamp)) {
+                this.logger.info('Cache expired, removing it', { cachePath, language });
+                this.removeCache(cachePath);
                 return null;
             }
 
             return cache;
         } catch (error) {
-            this.logger.error('Failed to read news cache', { error, language });
+            const cachePath = getCachePath(this.cacheDirectory, language);
+            this.logger.error('Failed to read news cache, removing corrupted cache', {
+                cachePath,
+                error,
+                language,
+            });
+            this.removeCache(cachePath);
             return null;
+        }
+    }
+
+    private removeCache(cachePath: string): void {
+        try {
+            if (existsSync(cachePath)) {
+                unlinkSync(cachePath);
+            }
+        } catch (error) {
+            this.logger.error('Failed to remove corrupted cache file', { cachePath, error });
         }
     }
 
@@ -107,6 +166,13 @@ export class CachedNewsAdapter implements NewsProviderPort {
             };
 
             writeFileSync(cachePath, JSON.stringify(cacheData, null, JSON_INDENT));
+
+            this.logger.info('Successfully wrote cache file', {
+                articleCount: data.length,
+                cachePath,
+                cacheSize: JSON.stringify(cacheData).length,
+                language,
+            });
         } catch (error) {
             this.logger.error('Failed to write news cache', { error, language });
         }

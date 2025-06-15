@@ -118,7 +118,8 @@ describe('CachedNewsAdapter', () => {
 
                 // Then - it should fetch fresh data and log the cache read error
                 expect(result).toEqual([mockArticle]);
-                expect(mockLogger.error).toHaveBeenCalledWith('Failed to read news cache', {
+                expect(mockLogger.error).toHaveBeenCalledWith('Failed to read news cache, removing corrupted cache', {
+                    cachePath: expect.stringContaining(`${cacheDirectory}/articles/en.json`),
                     error: expect.any(Error),
                     language: 'en',
                 });
