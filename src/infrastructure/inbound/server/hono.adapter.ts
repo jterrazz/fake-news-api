@@ -7,8 +7,8 @@ import {
     type ServerPort,
 } from '../../../application/ports/inbound/server.port.js';
 
-import { type GetArticlesController } from './articles/get-articles.controller.js';
 import { createArticlesRouter } from './articles/articles.routes.js';
+import { type GetArticlesController } from './articles/get-articles.controller.js';
 import { createErrorHandlerMiddleware } from './common/error-handler.middleware.js';
 import { createHealthRouter } from './health/health.routes.js';
 

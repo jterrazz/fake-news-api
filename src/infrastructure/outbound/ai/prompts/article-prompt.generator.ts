@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 
+import { type ArticleGenerationParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
 import {
     type AIPrompt,
     type AIPromptGenerator,
@@ -60,32 +61,11 @@ const generatedArticleArraySchema = z.array(
 const NEWS_KEY = '"RealWorldNews"';
 const HISTORY_KEY = '"ArticlesAlreadyPublishedInTheGame"';
 
-export interface ExistingArticleSummary {
-    category: Category;
-    headline: string;
-    summary: string;
-}
-
-export interface GenerateArticlesParams {
-    articles: {
-        news: Array<{ category: string; content: string; title: string }>;
-        publicationHistory: Array<{ headline: string; summary: string }>;
-    };
-    count: number;
-    language: { toString(): string };
-}
-
-export interface NewsForPrompt {
-    category: string;
-    content: string;
-    title: string;
-}
-
 /**
  * Article content generator class
  */
 export class ArticlePromptGenerator
-    implements AIPromptGenerator<GenerateArticlesParams, GeneratedArticle[]>
+    implements AIPromptGenerator<ArticleGenerationParams, GeneratedArticle[]>
 {
     /**
      * Generates a prompt for the AI
@@ -96,7 +76,7 @@ export class ArticlePromptGenerator
         articles: { news, publicationHistory },
         count,
         language,
-    }: GenerateArticlesParams): AIPrompt<GeneratedArticle[]> {
+    }: ArticleGenerationParams): AIPrompt<GeneratedArticle[]> {
         const languageLabel = language.toString();
 
         const systemPrompt = getArticleSystemPrompt(languageLabel);
@@ -184,14 +164,4 @@ Create an informative summary that will be used in future generations in the fie
 
 ## Output Format:
 - Directly give me a JSON (like a JSON.stringify output) following the schema: ${JSON.stringify(generatedSchemaDescription, null, 2)}`;
-}
-
-export function mapNewsForPrompt(params: GenerateArticlesParams): NewsForPrompt[] {
-    return params.articles.news.map(
-        (item: { category: string; content: string; title: string }) => ({
-            category: item.category,
-            content: item.content,
-            title: item.title,
-        }),
-    );
 }

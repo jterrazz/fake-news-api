@@ -2,29 +2,25 @@ import { type Article } from '../../../../domain/entities/article.entity.js';
 import { type Country } from '../../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../../domain/value-objects/language.vo.js';
 
-export interface ArticleGenerationContext {
+export interface ArticleGenerationParams {
+    articles: {
+        news: Array<{ content: string; title: string }>;
+        publicationHistory: Array<{ headline: string; summary: string }>;
+    };
+    count: number;
     country: Country;
     language: Language;
 }
 
-export interface ArticleGenerationOptions {
-    existingArticleSummaries: string[];
-    news: NewsForGeneration[];
-}
-
-export interface ArticleGenerationResult {
-    articlesCount: number;
-}
-
+/**
+ * Port for generating articles using AI
+ */
 export interface ArticleGeneratorPort {
-    generateArticles(
-        context: ArticleGenerationContext,
-        options: ArticleGenerationOptions,
-    ): Promise<Article[]>;
+    generateArticles(params: ArticleGenerationParams): Promise<Article[]>;
 }
 
 /**
- * Port for generating articles using AI
+ * News article for generation
  */
 export interface NewsForGeneration {
     publishedAt: Date;

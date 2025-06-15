@@ -1,14 +1,11 @@
 import { type LoggerPort } from '@jterrazz/logger';
 
-import { type ArticleGeneratorPort } from '../../../application/ports/outbound/ai/article-generator.port.js';
+import { type ArticleGenerationParams,type ArticleGeneratorPort } from '../../../application/ports/outbound/ai/article-generator.port.js';
 import { type AIProviderPort } from '../../../application/ports/outbound/ai/provider.port.js';
 
 import { Article } from '../../../domain/entities/article.entity.js';
 
-import {
-    ArticlePromptGenerator,
-    type GenerateArticlesParams,
-} from './prompts/article-prompt.generator.js';
+import { ArticlePromptGenerator } from './prompts/article-prompt.generator.js';
 
 export class AIArticleGenerator implements ArticleGeneratorPort {
     private readonly promptGenerator: ArticlePromptGenerator;
@@ -20,7 +17,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
         this.promptGenerator = new ArticlePromptGenerator();
     }
 
-    public async generateArticles(params: GenerateArticlesParams): Promise<Article[]> {
+    public async generateArticles(params: ArticleGenerationParams): Promise<Article[]> {
         try {
             this.logger.info('Generating articles with AI', {
                 count: params.count,
