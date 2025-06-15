@@ -26,6 +26,15 @@ export type IntegrationTestContext = {
     prisma: PrismaClient;
 };
 
+/**
+ * Cleans up all data from the database
+ * @param prisma PrismaClient instance
+ */
+export async function cleanupDatabase(prisma: PrismaClient): Promise<void> {
+    // Note: Order matters due to foreign key constraints
+    await prisma.article.deleteMany();
+}
+
 export async function cleanupIntegrationTest(context: IntegrationTestContext): Promise<void> {
     await context.gateways.executor.stop();
     await context.gateways.httpServer.stop();

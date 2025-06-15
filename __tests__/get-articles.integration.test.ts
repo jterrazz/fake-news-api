@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jterrazz/test';
 
-import { cleanDatabase } from './database/clean.js';
 import { ArticleFactory, ArticleTestScenarios } from './fixtures/article.factory.js';
 import {
+    cleanupDatabase,
     cleanupIntegrationTest,
     type IntegrationTestContext,
     setupIntegrationTest,
@@ -17,7 +17,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
     beforeEach(async () => {
         const { prisma } = testContext;
-        await cleanDatabase(prisma);
+        await cleanupDatabase(prisma);
     });
 
     afterAll(async () => {

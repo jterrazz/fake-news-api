@@ -11,11 +11,11 @@ import {
 
 import { createTZDateForCountry as createTZDateAtCountry } from '../src/shared/date/timezone.js';
 
-import { cleanDatabase } from './database/clean.js';
 import { ArticleFactory } from './fixtures/article.factory.js';
 import { worldNewsResolver } from './resolvers/api.worldnewsapi.com/top-news.resolver.js';
 import { openRouterGenerateArticlesResolver } from './resolvers/openrouter.ai/open-router.resolver.js';
 import {
+    cleanupDatabase,
     cleanupIntegrationTest,
     type IntegrationTestContext,
     setupIntegrationTest,
@@ -33,7 +33,7 @@ describe('Task - Generate Articles - Integration Tests', () => {
 
     beforeEach(async () => {
         // Clean up articles before each test
-        await cleanDatabase(testContext.prisma);
+        await cleanupDatabase(testContext.prisma);
     });
 
     afterEach(async () => {
