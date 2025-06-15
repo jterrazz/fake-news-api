@@ -3,18 +3,9 @@ import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
 import { mockArticles } from '../../../../domain/entities/__mocks__/mock-of-articles.js';
 import { type Article } from '../../../../domain/entities/article.entity.js';
-import {
-    Category,
-    type CategoryEnum,
-} from '../../../../domain/value-objects/category.vo.js';
-import {
-    Country,
-    type CountryEnum,
-} from '../../../../domain/value-objects/country.vo.js';
-import {
-    Language,
-    type LanguageEnum,
-} from '../../../../domain/value-objects/language.vo.js';
+import { Category } from '../../../../domain/value-objects/category.vo.js';
+import { Country } from '../../../../domain/value-objects/country.vo.js';
+import { Language } from '../../../../domain/value-objects/language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../../ports/outbound/persistence/article-repository.port.js';
 
@@ -23,7 +14,7 @@ import { GetArticlesUseCase } from '../get-articles.use-case.js';
 describe('GetArticlesUseCase', () => {
     // Test fixtures
     const DEFAULT_LIMIT = 10;
-    const TEST_ARTICLES_COUNT = 15;
+    const TEST_ARTICLES_COUNT = 20;
 
     // Mocks setup
     let mockArticleRepository: DeepMockProxy<ArticleRepositoryPort>;
@@ -33,11 +24,7 @@ describe('GetArticlesUseCase', () => {
     beforeEach(() => {
         mockArticleRepository = mock<ArticleRepositoryPort>();
         useCase = new GetArticlesUseCase(mockArticleRepository);
-        testArticles = mockArticles(
-            TEST_ARTICLES_COUNT,
-            new Country('us'),
-            new Language('en'),
-        );
+        testArticles = mockArticles(TEST_ARTICLES_COUNT, new Country('us'), new Language('en'));
 
         // Default mock response
         mockArticleRepository.findMany.mockResolvedValue({
@@ -50,7 +37,7 @@ describe('GetArticlesUseCase', () => {
         it('should return paginated articles with default parameters', async () => {
             // Given - a set of articles in the repository
             const params = {
-                language: 'en' as LanguageEnum,
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             };
 
@@ -77,7 +64,7 @@ describe('GetArticlesUseCase', () => {
             // Given - a custom limit parameter
             const limit = 5;
             const params = {
-                language: 'en' as LanguageEnum,
+                language: new Language('en'),
                 limit,
             };
 
@@ -94,8 +81,8 @@ describe('GetArticlesUseCase', () => {
         it('should handle category filter', async () => {
             // Given - a category filter parameter
             const params = {
-                category: 'technology' as CategoryEnum,
-                language: 'en' as LanguageEnum,
+                category: new Category('technology'),
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             };
 
@@ -105,7 +92,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct category
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    category: new Category(params.category),
+                    category: new Category('technology'),
                 }),
             );
         });
@@ -113,8 +100,8 @@ describe('GetArticlesUseCase', () => {
         it('should handle country filter', async () => {
             // Given - a country filter parameter
             const params = {
-                country: 'fr' as CountryEnum,
-                language: 'en' as LanguageEnum,
+                country: new Country('fr'),
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             };
 
@@ -124,7 +111,7 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct country
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    country: new Country(params.country),
+                    country: new Country('fr'),
                 }),
             );
         });
@@ -132,7 +119,7 @@ describe('GetArticlesUseCase', () => {
         it('should handle language filter', async () => {
             // Given - a language filter parameter
             const params = {
-                language: 'fr' as LanguageEnum,
+                language: new Language('fr'),
                 limit: DEFAULT_LIMIT,
             };
 
@@ -142,22 +129,23 @@ describe('GetArticlesUseCase', () => {
             // Then - it should call the repository with the correct language
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    language: new Language(params.language),
+                    language: new Language('fr'),
                 }),
             );
         });
 
         it('should handle cursor-based pagination', async () => {
-            // Given - a first page of results
+            // Given - a first page of results and a cursor date
+            const cursorDate = new Date('2024-01-01T10:00:00Z');
             const firstPage = await useCase.execute({
-                language: 'en' as LanguageEnum,
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             });
 
             // When - requesting the next page using the cursor
             await useCase.execute({
-                cursor: firstPage.nextCursor!,
-                language: 'en' as LanguageEnum,
+                cursor: cursorDate,
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             });
 
@@ -165,7 +153,7 @@ describe('GetArticlesUseCase', () => {
             expect(mockArticleRepository.findMany).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
-                    cursor: expect.any(Date),
+                    cursor: cursorDate,
                 }),
             );
         });
@@ -179,47 +167,12 @@ describe('GetArticlesUseCase', () => {
 
             // When - executing the use case
             const result = await useCase.execute({
-                language: 'en' as LanguageEnum,
+                language: new Language('en'),
                 limit: DEFAULT_LIMIT,
             });
 
             // Then - it should return null for nextCursor
             expect(result.nextCursor).toBeNull();
-        });
-
-        it('should throw error for invalid cursor', async () => {
-            // Given - an invalid cursor parameter
-            const params = {
-                cursor: 'invalid-cursor',
-                language: 'en' as LanguageEnum,
-                limit: DEFAULT_LIMIT,
-            };
-
-            // When/Then - executing the use case should throw an error
-            await expect(useCase.execute(params)).rejects.toThrow('Invalid cursor');
-        });
-
-        it('should throw error for invalid limit', async () => {
-            // Given - a limit parameter that exceeds the maximum allowed
-            const params = {
-                language: 'en' as LanguageEnum,
-                limit: 1000, // Exceeds MAX_PAGE_SIZE
-            };
-
-            // When/Then - executing the use case should throw an error
-            await expect(useCase.execute(params)).rejects.toThrow('Invalid pagination parameters');
-        });
-
-        it('should throw error for invalid category', async () => {
-            // Given - an invalid category parameter
-            const params = {
-                category: 'invalid' as CategoryEnum,
-                language: 'en' as LanguageEnum,
-                limit: DEFAULT_LIMIT,
-            };
-
-            // When/Then - executing the use case should throw an error
-            await expect(useCase.execute(params)).rejects.toThrow('Invalid pagination parameters');
         });
     });
 });

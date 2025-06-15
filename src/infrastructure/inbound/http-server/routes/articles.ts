@@ -1,45 +1,32 @@
 import { Hono } from 'hono';
-
-import { InvalidCursorError } from '../../../../application/errors/invalid-cursor.error.js';
-import { getArticlesParamsSchema } from '../../../../application/use-cases/articles/get-articles.use-case.js';
+import { HTTPException } from 'hono/http-exception';
 
 import type { ArticleController } from '../controllers/article.controller.js';
+import { getArticlesParamsSchema } from '../schemas/get-articles.schema.js';
 
 export const createArticlesRouter = (articleController: ArticleController) => {
     const app = new Hono();
 
     app.get('/', async (c) => {
-        try {
-            const query = c.req.query();
+        const query = c.req.query();
 
-            // Parse and validate query parameters using the schema
-            const validatedParams = getArticlesParamsSchema.safeParse({
-                category: query.category,
-                country: query.country?.toLowerCase(),
-                cursor: query.cursor,
-                language: query.language?.toLowerCase(),
-                limit: query.limit ? Number(query.limit) : undefined,
+        const validatedParams = getArticlesParamsSchema.safeParse({
+            category: query.category,
+            country: query.country,
+            cursor: query.cursor,
+            language: query.language,
+            limit: query.limit,
+        });
+
+        if (!validatedParams.success) {
+            throw new HTTPException(400, {
+                cause: { details: validatedParams.error.issues },
+                message: 'Invalid request parameters',
             });
-
-            if (!validatedParams.success) {
-                return c.json(
-                    { details: validatedParams.error.issues, error: 'Invalid request parameters' },
-                    400,
-                );
-            }
-
-            const response = await articleController.getArticles(validatedParams.data);
-            return c.json(response);
-        } catch (error) {
-            if (error instanceof InvalidCursorError) {
-                return c.json({ error: error.message }, 422);
-            }
-            console.error('Unexpected error in articles route:', error);
-            return c.json(
-                { error: error instanceof Error ? error.message : 'Failed to fetch articles' },
-                500,
-            );
         }
+
+        const response = await articleController.getArticles(validatedParams.data);
+        return c.json(response);
     });
 
     return app;

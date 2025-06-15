@@ -10,7 +10,7 @@
     "build": "prisma generate && ts-compile",
     "start": ". scripts/env.sh && prisma migrate deploy && node --enable-source-maps -r newrelic dist/index.js",
     "dev": ". scripts/env.sh && prisma migrate deploy && NODE_ENV=development ts-watch",
-    "test": "LOG_LEVEL=silent vitest",
+    "test": "LOG_LEVEL=silent vitest --run",
     "lint": "code-standards"
   },
   "devDependencies": {

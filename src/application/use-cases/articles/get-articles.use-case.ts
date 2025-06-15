@@ -1,32 +1,20 @@
-import { z } from 'zod/v4';
-
 import { type Article } from '../../../domain/entities/article.entity.js';
-import {
-    Category,
-    categorySchema,
-} from '../../../domain/value-objects/category.vo.js';
-import { Country, countrySchema } from '../../../domain/value-objects/country.vo.js';
-import {
-    Language,
-    languageSchema,
-} from '../../../domain/value-objects/language.vo.js';
+import { type Category } from '../../../domain/value-objects/category.vo.js';
+import { Country } from '../../../domain/value-objects/country.vo.js';
+import { type Language } from '../../../domain/value-objects/language.vo.js';
 
 import { type ArticleRepositoryPort } from '../../ports/outbound/persistence/article-repository.port.js';
 
-import { InvalidCursorError } from '../../errors/invalid-cursor.error.js';
-
-const DEFAULT_PAGE_SIZE = 10;
-const MAX_PAGE_SIZE = 100;
-
-export const getArticlesParamsSchema = z.object({
-    category: categorySchema.optional(),
-    country: countrySchema.optional(),
-    cursor: z.string().optional(),
-    language: languageSchema.optional(),
-    limit: z.coerce.number().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
-});
-
-export type GetArticlesParams = z.infer<typeof getArticlesParamsSchema>;
+/**
+ * Input parameters for the GetArticles use case using domain value objects
+ */
+export interface GetArticlesParams {
+    category?: Category;
+    country?: Country;
+    cursor?: Date;
+    language?: Language;
+    limit: number;
+}
 
 export type PaginatedResponse<T> = {
     items: T[];
@@ -38,30 +26,13 @@ export class GetArticlesUseCase {
     constructor(private readonly articleRepository: ArticleRepositoryPort) {}
 
     async execute(params: GetArticlesParams): Promise<PaginatedResponse<Article>> {
-        const validatedParams = getArticlesParamsSchema.safeParse(params);
-
-        if (!validatedParams.success) {
-            throw new Error(`Invalid pagination parameters: ${validatedParams.error.message}`);
-        }
-
-        const { category, country, cursor, language, limit } = validatedParams.data;
-
-        // Decode cursor if provided
-        let cursorDate: Date | undefined;
-        if (cursor) {
-            const decodedString = Buffer.from(cursor, 'base64').toString();
-            const timestamp = Number(decodedString);
-
-            if (isNaN(timestamp)) throw new InvalidCursorError('Invalid cursor timestamp');
-
-            cursorDate = new Date(timestamp);
-        }
+        const { category, country, cursor, language, limit } = params;
 
         const { items, total } = await this.articleRepository.findMany({
-            category: category ? new Category(category) : undefined,
-            country: country ? new Country(country) : new Country('us'), // Default to US if not specified
-            cursor: cursorDate,
-            language: language ? new Language(language) : undefined,
+            category,
+            country: country || new Country('us'), // Default to US if not specified
+            cursor,
+            language,
             limit,
         });
 

@@ -8,6 +8,7 @@ import {
 } from '../../../application/ports/inbound/http-server.port.js';
 
 import type { ArticleController } from './controllers/article.controller.js';
+import { errorHandlerMiddleware } from './middleware/error-handler.middleware.js';
 import { createArticlesRouter } from './routes/articles.js';
 import { createHealthRouter } from './routes/health.js';
 
@@ -20,6 +21,7 @@ export class HonoServerAdapter implements HttpServerPort {
         private readonly articleController: ArticleController,
     ) {
         this.app = new Hono();
+        this.setupGlobalMiddleware();
         this.registerRoutes();
     }
 
@@ -55,5 +57,10 @@ export class HonoServerAdapter implements HttpServerPort {
     private registerRoutes(): void {
         this.app.route('/', createHealthRouter());
         this.app.route('/articles', createArticlesRouter(this.articleController));
+    }
+
+    private setupGlobalMiddleware(): void {
+        // Apply global error handling for all routes
+        this.app.onError(errorHandlerMiddleware);
     }
 }
