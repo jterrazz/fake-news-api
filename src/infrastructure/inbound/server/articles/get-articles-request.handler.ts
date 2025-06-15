@@ -5,7 +5,7 @@ import { Category, categorySchema } from '../../../../domain/value-objects/categ
 import { Country, countrySchema } from '../../../../domain/value-objects/country.vo.js';
 import { Language, languageSchema } from '../../../../domain/value-objects/language.vo.js';
 
-const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
 /**
