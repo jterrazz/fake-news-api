@@ -47,7 +47,7 @@ export class GetArticlesUseCase {
         const results = hasMore ? items.slice(0, limit) : items;
 
         const lastItemDate =
-            hasMore && results.length > 0 ? results[results.length - 1].createdAt : null;
+            hasMore && results.length > 0 ? results[results.length - 1].publishedAt : null;
 
         return {
             items: results,

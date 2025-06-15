@@ -57,7 +57,6 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
                 return new Article({
                     ...article,
                     country: params.country,
-                    createdAt: uniqueDate,
                     id: crypto.randomUUID(),
                     language: params.language,
                     publishedAt: uniqueDate,

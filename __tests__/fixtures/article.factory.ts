@@ -25,7 +25,6 @@ export class ArticleFactory {
         body: Body;
         category: Category;
         country: Country;
-        createdAt: Date;
         headline: Headline;
         id: string;
         language: Language;
@@ -39,7 +38,6 @@ export class ArticleFactory {
             body: new Body('Default test article body with detailed information about the topic.'),
             category: new Category('technology'),
             country: new Country('us'),
-            createdAt: new Date('2024-03-01T12:00:00.000Z'),
             headline: new Headline('Default Test Article'),
             id: crypto.randomUUID(),
             language: new Language('en'),
@@ -68,19 +66,11 @@ export class ArticleFactory {
             factory.data = { ...this.data };
             factory.data.id = crypto.randomUUID();
             factory.data.headline = new Headline(`${this.data.headline.value} ${index + 1}`);
-            factory.data.createdAt = new Date(this.data.createdAt.getTime() - index * 1000 * 60);
+            factory.data.publishedAt = new Date(
+                this.data.publishedAt.getTime() - index * 1000 * 60,
+            );
             return factory.build();
         });
-    }
-
-    createdDaysAgo(days: number): ArticleFactory {
-        this.data.createdAt = subDays(new Date(), days);
-        return this;
-    }
-
-    createdDaysFromNow(days: number): ArticleFactory {
-        this.data.createdAt = addDays(new Date(), days);
-        return this;
     }
 
     async createInDatabase(prisma: PrismaClient): Promise<Article> {
@@ -90,7 +80,7 @@ export class ArticleFactory {
                 article: article.body.value,
                 category: article.category.toString().toUpperCase() as PrismaCategory,
                 country: article.country.toString() as PrismaCountry,
-                createdAt: article.createdAt,
+                createdAt: article.publishedAt,
                 fakeReason: article.authenticity.reason,
                 headline: article.headline.value,
                 id: article.id,
@@ -113,12 +103,21 @@ export class ArticleFactory {
                     .withHeadline(article.headline.value)
                     .withBody(article.body.value)
                     .withSummary(article.summary.value)
-                    .withCreatedAt(article.createdAt)
                     .withPublishedAt(article.publishedAt)
                     .createInDatabase(prisma),
             ),
         );
         return articles;
+    }
+
+    publishedDaysAgo(days: number): ArticleFactory {
+        this.data.publishedAt = subDays(new Date(), days);
+        return this;
+    }
+
+    publishedDaysFromNow(days: number): ArticleFactory {
+        this.data.publishedAt = addDays(new Date(), days);
+        return this;
     }
 
     withBody(body: string): ArticleFactory {
@@ -133,11 +132,6 @@ export class ArticleFactory {
 
     withCountry(country: string): ArticleFactory {
         this.data.country = new Country(country);
-        return this;
-    }
-
-    withCreatedAt(date: Date): ArticleFactory {
-        this.data.createdAt = date;
         return this;
     }
 
@@ -182,7 +176,7 @@ export class ArticleTestScenarios {
                 .withLanguage('fr')
                 .withCategory('technology')
                 .withHeadline('Nouvelles Tech FR 1')
-                .withCreatedAt(testDate)
+                .withPublishedAt(testDate)
                 .asReal()
                 .createInDatabase(prisma),
 
@@ -191,7 +185,7 @@ export class ArticleTestScenarios {
                 .withLanguage('fr')
                 .withCategory('politics')
                 .withHeadline('Nouvelles Politiques FR 1')
-                .withCreatedAt(testDate)
+                .withPublishedAt(testDate)
                 .asFake('Contenu politique généré par IA')
                 .createInDatabase(prisma),
 
@@ -200,7 +194,7 @@ export class ArticleTestScenarios {
                 .withLanguage('fr')
                 .withCategory('technology')
                 .withHeadline('Nouvelles Tech FR 2')
-                .withCreatedAt(testDate)
+                .withPublishedAt(testDate)
                 .asReal()
                 .createInDatabase(prisma),
 
@@ -209,7 +203,7 @@ export class ArticleTestScenarios {
                 .withLanguage('fr')
                 .withCategory('business')
                 .withHeadline('Nouvelles Affaires FR 1')
-                .withCreatedAt(testDate)
+                .withPublishedAt(testDate)
                 .asFake('Informations commerciales trompeuses')
                 .createInDatabase(prisma),
         ]);
@@ -228,7 +222,7 @@ export class ArticleTestScenarios {
                 .withCountry('us')
                 .withLanguage('en')
                 .withHeadline('US Tech Innovation')
-                .withCreatedAt(new Date('2024-03-01T12:00:00.000Z'))
+                .withPublishedAt(new Date('2024-03-01T12:00:00.000Z'))
                 .asFake('AI-generated content')
                 .createInDatabase(prisma),
 
@@ -237,7 +231,7 @@ export class ArticleTestScenarios {
                 .withCountry('us')
                 .withLanguage('en')
                 .withHeadline('US Political Development')
-                .withCreatedAt(new Date('2024-03-01T11:00:00.000Z'))
+                .withPublishedAt(new Date('2024-03-01T11:00:00.000Z'))
                 .asReal()
                 .createInDatabase(prisma),
 
@@ -246,7 +240,7 @@ export class ArticleTestScenarios {
                 .withCountry('us')
                 .withLanguage('en')
                 .withHeadline('US Tech Update')
-                .withCreatedAt(new Date('2024-03-01T10:00:00.000Z'))
+                .withPublishedAt(new Date('2024-03-01T10:00:00.000Z'))
                 .asFake('Misleading information')
                 .createInDatabase(prisma),
         ]);
@@ -257,7 +251,7 @@ export class ArticleTestScenarios {
                 .withCountry('fr')
                 .withLanguage('fr')
                 .withHeadline('Politique Française')
-                .withCreatedAt(new Date('2024-03-01T12:00:00.000Z'))
+                .withPublishedAt(new Date('2024-03-01T12:00:00.000Z'))
                 .asFake('Contenu généré par IA')
                 .createInDatabase(prisma),
 
@@ -266,7 +260,7 @@ export class ArticleTestScenarios {
                 .withCountry('fr')
                 .withLanguage('fr')
                 .withHeadline('Innovation Technologique')
-                .withCreatedAt(new Date('2024-03-01T11:00:00.000Z'))
+                .withPublishedAt(new Date('2024-03-01T11:00:00.000Z'))
                 .asReal()
                 .createInDatabase(prisma),
         ]);
@@ -289,7 +283,7 @@ export class ArticleTestScenarios {
             .withCategory('technology')
             .withCountry('us')
             .withLanguage('en')
-            .withCreatedAt(new Date('2024-03-01T12:00:00.000Z'))
+            .withPublishedAt(new Date('2024-03-01T12:00:00.000Z'))
             .createManyInDatabase(prisma, 25);
     }
 }

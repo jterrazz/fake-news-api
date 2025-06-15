@@ -13,7 +13,6 @@ export const articleSchema = z.object({
     body: z.instanceof(Body),
     category: z.instanceof(Category),
     country: z.instanceof(Country),
-    createdAt: z.date(),
     headline: z.instanceof(Headline),
     id: z.uuid(),
     language: z.instanceof(Language),
@@ -28,7 +27,6 @@ export class Article {
     public readonly body: Body;
     public readonly category: Category;
     public readonly country: Country;
-    public readonly createdAt: Date;
     public readonly headline: Headline;
     public readonly id: string;
     public readonly language: Language;
@@ -46,7 +44,6 @@ export class Article {
         this.category = validatedData.category;
         this.body = validatedData.body;
         this.country = validatedData.country;
-        this.createdAt = validatedData.createdAt;
         this.authenticity = validatedData.authenticity;
         this.headline = validatedData.headline;
         this.id = validatedData.id;

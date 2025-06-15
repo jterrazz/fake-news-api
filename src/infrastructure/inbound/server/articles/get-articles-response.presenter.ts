@@ -4,45 +4,50 @@ import { type PaginatedResponse as UseCasePaginatedResponse } from '../../../../
 
 import { type Article } from '../../../../domain/entities/article.entity.js';
 
-/**
- * Complete article response including deprecated fields
- */
-type ArticleResponse = ArticleResponseDeprecated & ArticleResponseMain;
-
-/**
- * Deprecated article response properties
- */
-type ArticleResponseDeprecated = {
-    /** @deprecated Use contentRaw for plain text or contentWithAnnotations for rich content */
-    article: string;
+type ArticleMetadata = {
+    category: Category;
+    country: Country;
+    language: Language;
 };
 
+type ArticleResponse = ArticleResponseDeprecated & ArticleResponseNew;
+
 /**
- * Main article response properties
+ * Deprecated article response properties - maintained for backward compatibility
  */
-type ArticleResponseMain = {
-    /** Article category */
+type ArticleResponseDeprecated = {
+    article: string;
     category: Category;
-    /** Raw content without metadata annotations */
     contentRaw: string;
-    /** Content with fake news annotations and metadata */
     contentWithAnnotations: string;
-    /** Article country */
     country: Country;
-    /** Creation timestamp */
     createdAt: Date;
-    /** Reason why the article is fake (if applicable) */
     fakeReason: null | string;
-    /** Article headline */
     headline: string;
-    /** Unique identifier */
-    id: string;
-    /** Whether the article is fake */
     isFake: boolean;
-    /** Article language */
     language: Language;
-    /** Article summary */
     summary: string;
+};
+
+type ArticleResponseNew = {
+    id: string;
+    metadata: ArticleMetadata;
+    publishedAt: string;
+    variants: ArticleVariants;
+};
+
+type ArticleVariant = {
+    body: string;
+    headline: string;
+};
+
+type ArticleVariants = {
+    fake: FakeArticleVariant[];
+    original: ArticleVariant[];
+};
+
+type FakeArticleVariant = ArticleVariant & {
+    reason: string;
 };
 
 type HttpPaginatedResponse<T> = {
@@ -53,22 +58,14 @@ type HttpPaginatedResponse<T> = {
 
 /**
  * Handles response formatting for GET /articles endpoint
- * Transforms domain objects to HTTP response format
+ * Transforms domain objects to HTTP response format with variants structure
  */
 export class GetArticlesResponsePresenter {
-    /**
-     * Transforms use case result to HTTP response format
-     *
-     * @param result - Domain result from use case
-     * @returns Formatted HTTP response
-     */
     present(result: UseCasePaginatedResponse<Article>): HttpPaginatedResponse<ArticleResponse> {
-        // Convert domain articles to response format
         const articles: ArticleResponse[] = result.items.map((article) =>
             this.mapArticleToResponse(article),
         );
 
-        // Handle cursor encoding (presentation concern)
         const nextCursor = result.lastItemDate
             ? Buffer.from(result.lastItemDate.getTime().toString()).toString('base64')
             : null;
@@ -80,52 +77,71 @@ export class GetArticlesResponsePresenter {
         };
     }
 
-    /**
-     * Maps a domain article to the HTTP response format
-     */
     private mapArticleToResponse(article: Article): ArticleResponse {
         const content = article.body.toString();
         const { contentRaw, contentWithAnnotations } = this.processContent(content);
 
-        // Main properties
-        const mainResponse: ArticleResponseMain = {
+        const newResponse: ArticleResponseNew = {
+            id: article.id,
+            metadata: {
+                category: article.category.toString() as Category,
+                country: article.country.toString() as Country,
+                language: article.language.toString() as Language,
+            },
+            publishedAt: article.publishedAt.toISOString(),
+            variants: article.isFake()
+                ? {
+                      fake: [
+                          {
+                              body: contentWithAnnotations,
+                              headline: article.headline.toString(),
+                              reason: article.authenticity.reason!,
+                          },
+                      ],
+                      original: [],
+                  }
+                : {
+                      fake: [],
+                      original: [
+                          {
+                              body: contentRaw,
+                              headline: article.headline.toString(),
+                          },
+                      ],
+                  },
+        };
+
+        const deprecatedResponse: ArticleResponseDeprecated = {
+            article: contentRaw,
             category: article.category.toString() as Category,
             contentRaw,
             contentWithAnnotations,
             country: article.country.toString() as Country,
-            createdAt: article.createdAt,
+            createdAt: article.publishedAt,
             fakeReason: article.authenticity.reason,
             headline: article.headline.toString(),
-            id: article.id,
             isFake: article.isFake(),
             language: article.language.toString() as Language,
             summary: article.summary.toString(),
         };
 
-        // Deprecated properties
-        const deprecatedResponse: ArticleResponseDeprecated = {
-            article: contentRaw, // Backward compatibility
-        };
-
         return {
-            ...mainResponse,
+            ...newResponse,
             ...deprecatedResponse,
         };
     }
 
-    /**
-     * Processes content to create raw and annotated versions
-     */
     private processContent(content: string): {
         contentRaw: string;
         contentWithAnnotations: string;
     } {
-        // Remove metadata annotations for raw content
-        let contentRaw = content.replace(/%%\[(.*?)\]\(.*?\)/g, '$1');
+        // Pattern: %%[(word)]( description)%% -> extract "word description" for contentRaw
+        // The first group captures everything inside [], the second captures everything inside ()
+        let contentRaw = content.replace(/%%\[\((.*?)\)\]\(\s*([^)]*)\)%%/g, '$1 $2');
         let contentWithAnnotations = content;
 
-        // Remove any '%%' immediately following a metadata annotation throughout the string
-        contentRaw = contentRaw.replace(/\)%%/g, ')');
+        // Clean up any remaining %% artifacts
+        contentRaw = contentRaw.replace(/%%/g, '');
         contentWithAnnotations = contentWithAnnotations.replace(/\)%%/g, ')');
 
         return {

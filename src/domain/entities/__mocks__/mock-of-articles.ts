@@ -23,7 +23,6 @@ function createMockArticle(index: number, country: Country, language: Language):
         body: generateMockArticleBody(index),
         category: getMockArticleCategory(index),
         country,
-        createdAt: new Date(),
         headline: createMockHeadline(index),
         id: crypto.randomUUID(),
         language,
