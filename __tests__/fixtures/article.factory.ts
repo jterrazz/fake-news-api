@@ -185,6 +185,53 @@ export class ArticleTestScenarios {
     }
 
     /**
+     * Creates 4 French articles to meet morning target quota
+     * Uses fr-fr language combination as defined in ArticleGenerationTask
+     */
+    static async createFrenchMorningTarget(prisma: PrismaClient): Promise<Article[]> {
+        // Use the current date (which will be the mocked date in tests)
+        const testDate = new Date();
+
+        return await Promise.all([
+            new ArticleFactory()
+                .withCountry('fr')
+                .withLanguage('fr')
+                .withCategory('technology')
+                .withHeadline('Nouvelles Tech FR 1')
+                .withCreatedAt(testDate)
+                .asReal()
+                .createInDatabase(prisma),
+
+            new ArticleFactory()
+                .withCountry('fr')
+                .withLanguage('fr')
+                .withCategory('politics')
+                .withHeadline('Nouvelles Politiques FR 1')
+                .withCreatedAt(testDate)
+                .asFake('Contenu politique généré par IA')
+                .createInDatabase(prisma),
+
+            new ArticleFactory()
+                .withCountry('fr')
+                .withLanguage('fr')
+                .withCategory('technology')
+                .withHeadline('Nouvelles Tech FR 2')
+                .withCreatedAt(testDate)
+                .asReal()
+                .createInDatabase(prisma),
+
+            new ArticleFactory()
+                .withCountry('fr')
+                .withLanguage('fr')
+                .withCategory('business')
+                .withHeadline('Nouvelles Affaires FR 1')
+                .withCreatedAt(testDate)
+                .asFake('Informations commerciales trompeuses')
+                .createInDatabase(prisma),
+        ]);
+    }
+
+    /**
      * Creates a mix of articles for comprehensive testing
      */
     static async createMixedArticles(prisma: PrismaClient): Promise<{

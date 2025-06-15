@@ -6,8 +6,6 @@ import {
 } from '../../../src/shared/date/timezone.js';
 
 const TEST_API_KEY = 'test-world-news-key';
-const TEST_COUNTRY = 'us';
-const TEST_LANGUAGE = 'en';
 const TEST_DATE = '2020-01-01';
 
 interface MockTopNewsResponse {
@@ -24,7 +22,7 @@ interface MockTopNewsResponse {
 
 /**
  * Mock handler for the World News API top news endpoint.
- * Returns test article data for a specific date in the correct timezone.
+ * Returns test article data for different country-language combinations used by the article generation task.
  */
 export const worldNewsResolver = http.get(
     'https://api.worldnewsapi.com/top-news',
@@ -37,12 +35,12 @@ export const worldNewsResolver = http.get(
             sourceCountry: url.searchParams.get('source-country'),
         };
 
-        // Validate required query parameters
+        // Validate required parameters
         if (
             params.apiKey !== TEST_API_KEY ||
-            params.sourceCountry !== TEST_COUNTRY ||
-            params.language !== TEST_LANGUAGE ||
-            params.date !== TEST_DATE
+            params.date !== TEST_DATE ||
+            !params.sourceCountry ||
+            !params.language
         ) {
             return new HttpResponse(null, {
                 status: 400,
@@ -52,21 +50,22 @@ export const worldNewsResolver = http.get(
 
         // Format the publish date in the correct timezone for the source country
         const publishDate = formatTZDateForCountry(
-            createTZDateForCountry(new Date(`${TEST_DATE}T12:00:00Z`), TEST_COUNTRY),
-            TEST_COUNTRY,
+            createTZDateForCountry(new Date(`${TEST_DATE}T12:00:00Z`), params.sourceCountry!),
+            params.sourceCountry!,
             "yyyy-MM-dd'T'HH:mm:ssXXX",
         );
 
+        // Return articles with coverage > 2 to pass the use case's filter
         const response: MockTopNewsResponse = {
-            country: params.sourceCountry,
-            language: params.language,
-            top_news: new Array(10).fill({
-                news: new Array(10).fill({
+            country: params.sourceCountry!,
+            language: params.language!,
+            top_news: new Array(5).fill(null).map((_, index) => ({
+                news: new Array(5).fill(null).map((_, newsIndex) => ({
                     publish_date: publishDate,
-                    text: 'Test article text',
-                    title: 'Test Article',
-                }),
-            }),
+                    text: `Test article text ${index}-${newsIndex} for ${params.sourceCountry!} in ${params.language!}`,
+                    title: `Test Article ${index}-${newsIndex} (${params.sourceCountry!.toUpperCase()}/${params.language!.toUpperCase()})`,
+                })),
+            })),
         };
 
         return HttpResponse.json(response);

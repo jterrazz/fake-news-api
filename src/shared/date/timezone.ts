@@ -67,7 +67,7 @@ export type CountryTimezone = keyof typeof COUNTRY_TIMEZONE_MAP;
  */
 export function createCurrentTZDateForCountry(country: string): TZDate {
     const timezone = getTimezoneForCountry(country);
-    return new TZDate(Date.now(), timezone);
+    return new TZDate(new Date(), timezone);
 }
 
 /**

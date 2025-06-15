@@ -21,8 +21,8 @@ export class ArticleGenerationTask implements TaskPort {
 
         try {
             const languages = [
-                { country: new Country('fr'), language: new Language('en') },
-                { country: new Country('us'), language: new Language('fr') },
+                { country: new Country('fr'), language: new Language('fr') },
+                { country: new Country('us'), language: new Language('en') },
             ];
 
             for (const { country, language } of languages) {
