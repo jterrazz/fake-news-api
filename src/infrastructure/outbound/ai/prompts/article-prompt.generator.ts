@@ -1,10 +1,6 @@
 import { z } from 'zod/v4';
 
 import { type ArticleGenerationParams } from '../../../../application/ports/outbound/ai/article-generator.port.js';
-import {
-    type AIPrompt,
-    type AIPromptGenerator,
-} from '../../../../application/ports/outbound/ai/prompt.port.js';
 
 import { Authenticity } from '../../../../domain/value-objects/article/authenticity.vo.js';
 import { Body, bodySchema } from '../../../../domain/value-objects/article/body.vo.js';
@@ -64,9 +60,7 @@ const HISTORY_KEY = '"ArticlesAlreadyPublishedInTheGame"';
 /**
  * Article content generator class
  */
-export class ArticlePromptGenerator
-    implements AIPromptGenerator<ArticleGenerationParams, GeneratedArticle[]>
-{
+export class ArticlePromptGenerator {
     /**
      * Generates a prompt for the AI
      * @param params The parameters for the prompt
@@ -76,7 +70,11 @@ export class ArticlePromptGenerator
         articles: { news, publicationHistory },
         count,
         language,
-    }: ArticleGenerationParams): AIPrompt<GeneratedArticle[]> {
+    }: ArticleGenerationParams): {
+        responseSchema: z.ZodType<GeneratedArticle[]>;
+        systemPrompt: string;
+        userPrompt: string;
+    } {
         const languageLabel = language.toString();
 
         const systemPrompt = getArticleSystemPrompt(languageLabel);
@@ -91,11 +89,9 @@ Here is the list of articles already published in the game:
 ${HISTORY_KEY}:
 ${JSON.stringify(publicationHistory, null, 2)}`;
         return {
-            messages: [
-                { cache: true, content: systemPrompt, role: 'system' },
-                { content: dynamicPrompt, role: 'user' },
-            ],
             responseSchema: generatedArticleArraySchema,
+            systemPrompt,
+            userPrompt: dynamicPrompt,
         };
     }
 }

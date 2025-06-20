@@ -1,10 +1,16 @@
+import {
+    AIResponseParser,
+    BasicAgentAdapter,
+    type ModelPort,
+    SystemPromptAdapter,
+    UserPromptAdapter,
+} from '@jterrazz/intelligence';
 import { type LoggerPort } from '@jterrazz/logger';
 
 import {
     type ArticleGenerationParams,
     type ArticleGeneratorPort,
 } from '../../../application/ports/outbound/ai/article-generator.port.js';
-import { type AIProviderPort } from '../../../application/ports/outbound/ai/provider.port.js';
 
 import { Article } from '../../../domain/entities/article.entity.js';
 
@@ -14,7 +20,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
     private readonly promptGenerator: ArticlePromptGenerator;
 
     constructor(
-        private readonly aiProvider: AIProviderPort,
+        private readonly model: ModelPort,
         private readonly logger: LoggerPort,
     ) {
         this.promptGenerator = new ArticlePromptGenerator();
@@ -28,20 +34,34 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
                 language: params.language.toString(),
             });
 
-            const prompt = this.promptGenerator.generatePrompt(params);
+            const { responseSchema, systemPrompt, userPrompt } =
+                this.promptGenerator.generatePrompt(params);
+
+            const agent = new BasicAgentAdapter('ArticleGenerator', {
+                logger: this.logger,
+                model: this.model,
+                systemPrompt: new SystemPromptAdapter(systemPrompt),
+            });
 
             // Get raw articles from AI
-            let rawArticles = await this.aiProvider.generateContent(prompt);
+            const rawArticles = await agent.run(new UserPromptAdapter(userPrompt));
+
+            if (!rawArticles) {
+                throw new Error('No articles generated');
+            }
+
+            const parser = new AIResponseParser(responseSchema);
+            let parsedArticles = parser.parse(rawArticles);
 
             // Ensure we have exactly the requested number of articles
-            if (rawArticles.length > params.count) {
-                rawArticles = rawArticles.slice(0, params.count);
-            } else if (rawArticles.length < params.count) {
+            if (parsedArticles.length > params.count) {
+                parsedArticles = parsedArticles.slice(0, params.count);
+            } else if (parsedArticles.length < params.count) {
                 this.logger.warn('AI generated fewer articles than requested', {
                     country: params.country.toString(),
                     expected: params.count,
                     language: params.language.toString(),
-                    received: rawArticles.length,
+                    received: parsedArticles.length,
                 });
             }
 
@@ -49,7 +69,7 @@ export class AIArticleGenerator implements ArticleGeneratorPort {
             const baseDate = new Date();
 
             // Add metadata to each article
-            const articles = rawArticles.map((article, index) => {
+            const articles = parsedArticles.map((article, index) => {
                 const uniqueDate = new Date(baseDate);
                 // Add index * 1 second to ensure unique timestamps
                 uniqueDate.setSeconds(uniqueDate.getSeconds() - index);

@@ -1,3 +1,4 @@
+import { type ModelPort, OpenRouterAdapter } from '@jterrazz/intelligence';
 import { type LoggerPort, PinoLoggerAdapter } from '@jterrazz/logger';
 import {
     type MonitoringPort,
@@ -13,7 +14,6 @@ import type { ExecutorPort } from '../application/ports/inbound/executor.port.js
 import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
 import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
-import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
 import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
@@ -25,7 +25,6 @@ import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.ad
 import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
-import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/providers/cached-news.adapter.js';
@@ -79,21 +78,26 @@ const newsFactory = Injectable(
     },
 );
 
-const aiProviderFactory = Injectable(
-    'AIProvider',
-    ['Configuration', 'Logger', 'NewRelic'] as const,
-    (config: ConfigurationPort, logger: LoggerPort, monitoring: MonitoringPort) => {
-        return new OpenRouterAdapter(logger, monitoring, {
+const modelFactory = Injectable(
+    'Model',
+    ['Configuration'] as const,
+    (config: ConfigurationPort): ModelPort =>
+        new OpenRouterAdapter({
             apiKey: config.getOutboundConfiguration().openRouter.apiKey,
-            budget: config.getOutboundConfiguration().openRouter.budget,
-        });
-    },
+            metadata: {
+                application: 'jterrazz-agents',
+                website: 'https://jterrazz.com',
+            },
+            modelName: config.getOutboundConfiguration().openRouter.budget
+                ? 'google/gemini-2.5-pro'
+                : 'google/gemini-2.5-flash',
+        }),
 );
 
 const articleGeneratorFactory = Injectable(
     'ArticleGenerator',
-    ['AIProvider', 'Logger'] as const,
-    (aiProvider: AIProviderPort, logger: LoggerPort) => new AIArticleGenerator(aiProvider, logger),
+    ['Model', 'Logger'] as const,
+    (model: ModelPort, logger: LoggerPort) => new AIArticleGenerator(model, logger),
 );
 
 /**
@@ -212,7 +216,7 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(newRelicFactory)
         .provides(databaseFactory)
         .provides(newsFactory)
-        .provides(aiProviderFactory)
+        .provides(modelFactory)
         .provides(articleGeneratorFactory)
         // Repositories
         .provides(articleRepositoryFactory)
