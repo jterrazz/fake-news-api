@@ -35,8 +35,48 @@ enum Category {
   OTHER
 }
 
+model Story {
+  id       String   @id @default(uuid())
+  title    String
+  category Category
+
+  // Geographic and temporal context
+  countries Json
+  dateline  DateTime
+
+  // Sources
+  sourceReferences Json
+
+  // Relations
+  perspectives Perspective[]
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([dateline])
+  @@index([createdAt])
+}
+
+model Perspective {
+  id             String @id @default(uuid())
+  holisticDigest String
+  tags           Json
+
+  // Relations
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  storyId String
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storyId])
+}
+
 model Article {
-  id         String    @id @default(uuid())
+  id         String   @id @default(uuid())
   headline   String
   article    String
   summary    String
@@ -45,7 +85,7 @@ model Article {
   fakeReason String?
   country    Country
   language   Language
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime @default(now())
 
   @@index([language, country])
   @@index([createdAt])

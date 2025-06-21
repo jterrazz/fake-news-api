@@ -9,7 +9,7 @@ inbound:
 
 outbound:
   openRouter:
-    budget: paid
+    budget: high
   worldNews:
     useCache: false
   newRelic:

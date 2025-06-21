@@ -7,6 +7,6 @@ inbound:
 
 outbound:
   openRouter:
-    budget: free
+    budget: low
   worldNews:
     useCache: true

@@ -26,7 +26,7 @@ const configurationSchema = z.object({
         }),
         openRouter: z.object({
             apiKey: z.string().min(1),
-            budget: z.enum(['free', 'paid']),
+            budget: z.enum(['low', 'medium', 'high']),
         }),
         prisma: z.object({
             databaseUrl: z.string().min(1),

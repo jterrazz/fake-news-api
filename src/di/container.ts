@@ -88,9 +88,10 @@ const modelFactory = Injectable(
                 application: 'jterrazz-agents',
                 website: 'https://jterrazz.com',
             },
-            modelName: config.getOutboundConfiguration().openRouter.budget
-                ? 'google/gemini-2.5-pro'
-                : 'google/gemini-2.5-flash',
+            modelName:
+                config.getOutboundConfiguration().openRouter.budget === 'low'
+                    ? 'google/gemini-2.5-flash'
+                    : 'google/gemini-2.5-pro',
         }),
 );
 

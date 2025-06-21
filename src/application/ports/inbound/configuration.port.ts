@@ -40,7 +40,7 @@ export interface OutboundConfigurationPort {
     };
     openRouter: {
         apiKey: string;
-        budget: 'free' | 'paid';
+        budget: 'high' | 'low' | 'medium';
     };
     prisma: {
         databaseUrl: string;
