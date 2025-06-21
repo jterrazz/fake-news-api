@@ -1,6 +1,6 @@
 import { z } from 'zod/v4';
 
-export const countrySchema = z.enum(['fr', 'us']);
+export const countrySchema = z.enum(['fr', 'us', 'global']);
 
 export type CountryEnum = z.infer<typeof countrySchema>;
 
@@ -18,6 +18,10 @@ export class Country {
         }
 
         this.value = result.data;
+    }
+
+    public isGlobal(): boolean {
+        return this.value === 'global';
     }
 
     public toString(): CountryEnum {
