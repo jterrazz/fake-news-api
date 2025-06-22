@@ -2,6 +2,8 @@ import { Category } from '../../value-objects/category.vo.js';
 import { Country } from '../../value-objects/country.vo.js';
 import { Story } from '../story.entity.js';
 
+import { mockPerspectives } from './mock-of-perspectives.js';
+
 /**
  * Creates an array of mock stories for testing purposes
  */
@@ -13,12 +15,14 @@ export function mockStories(count: number): Story[] {
  * Creates a single mock story with the given parameters
  */
 function createMockStory(index: number): Story {
+    const storyId = crypto.randomUUID();
     return new Story({
         category: getMockStoryCategory(index),
         countries: getMockCountries(index),
         createdAt: new Date(),
         dateline: new Date(Date.now() - index * 24 * 60 * 60 * 1000), // Each story is a day older
-        id: crypto.randomUUID(),
+        id: storyId,
+        perspectives: mockPerspectives(Math.max(1, (index % 3) + 1), storyId), // 1 to 3 perspectives per story
         sourceReferences: generateMockSourceReferences(index),
         title: `Mock Story ${index + 1}: ${getMockStoryTitle(index)}`,
         updatedAt: new Date(),
@@ -45,7 +49,7 @@ function getMockCountries(index: number): Country[] {
         ['global'], // More global stories for variety
     ];
     const countryCodes = countryGroups[index % countryGroups.length];
-    return countryCodes.map(code => new Country(code));
+    return countryCodes.map((code) => new Country(code));
 }
 
 /**
@@ -72,4 +76,4 @@ function getMockStoryTitle(index: number): string {
         'Security Measures Enhanced',
     ];
     return titles[index % titles.length];
-} 
+}

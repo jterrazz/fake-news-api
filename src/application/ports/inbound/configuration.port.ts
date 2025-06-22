@@ -61,8 +61,17 @@ export interface OutboundConfigurationPort {
 }
 
 /**
+ * Story digest task configuration
+ */
+export interface StoryDigestTaskConfig {
+    country: string;
+    language: string;
+}
+
+/**
  * Tasks configuration
  */
 export interface TasksConfigurationPort {
     articleGeneration: ArticleGenerationTaskConfig[];
+    storyDigest: StoryDigestTaskConfig[];
 }

@@ -12,6 +12,11 @@ inbound:
         language: fr
       - country: us
         language: en
+    storyDigest:
+      - country: fr
+        language: fr
+      - country: us
+        language: en
 
 outbound:
   openRouter:

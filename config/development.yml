@@ -8,6 +8,9 @@ inbound:
     articleGeneration:
       - country: fr
         language: fr
+    storyDigest:
+      - country: fr
+        language: fr
 
 outbound:
   openRouter:

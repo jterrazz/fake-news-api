@@ -18,15 +18,7 @@ export class HolisticDigest {
         this.value = result.data;
     }
 
-    public getCharacterCount(): number {
-        return this.value.length;
-    }
-
-    public getWordCount(): number {
-        return this.value.split(/\s+/).length;
-    }
-
     public toString(): string {
         return this.value;
     }
-} 
+}

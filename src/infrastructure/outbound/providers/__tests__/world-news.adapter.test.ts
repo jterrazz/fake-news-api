@@ -108,13 +108,30 @@ describe('WorldNewsAdapter', () => {
         // When - fetching news from the adapter
         const result = await adapter.fetchNews();
 
-        // Then - it should return only the median-length article
+        // Then - it should return a story with all articles
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            body: 'a bit longer',
-            coverage: 3,
-            headline: 'Medium',
-            publishedAt: new Date('2024-03-11T12:00:00Z'),
+            articles: [
+                {
+                    body: 'short',
+                    headline: 'Short',
+                    id: expect.any(String),
+                    publishedAt: new Date('2024-03-10T12:00:00Z'),
+                },
+                {
+                    body: 'a bit longer',
+                    headline: 'Medium',
+                    id: expect.any(String),
+                    publishedAt: new Date('2024-03-11T12:00:00Z'),
+                },
+                {
+                    body: 'this is the longest article text',
+                    headline: 'Long',
+                    id: expect.any(String),
+                    publishedAt: new Date('2024-03-12T12:00:00Z'),
+                },
+            ],
+            publishedAt: new Date('2024-03-10T12:00:00Z'), // First article's date
         });
     });
 
@@ -219,7 +236,7 @@ describe('WorldNewsAdapter', () => {
 });
 
 describe('WorldNewsAdapter.transformResponse', () => {
-    it('should select the article with the median text length from each section', () => {
+    it('should return a story with all articles from each section', () => {
         // Given
         const adapter = new WorldNewsAdapter(
             { apiKey: 'irrelevant' },
@@ -259,14 +276,31 @@ describe('WorldNewsAdapter.transformResponse', () => {
         // Then
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            body: 'a bit longer',
-            coverage: 3,
-            headline: 'Medium',
-            publishedAt: new Date('2024-01-02T00:00:00Z'),
+            articles: [
+                {
+                    body: 'short',
+                    headline: 'Short',
+                    id: expect.any(String),
+                    publishedAt: new Date('2024-01-01T00:00:00Z'),
+                },
+                {
+                    body: 'a bit longer',
+                    headline: 'Medium',
+                    id: expect.any(String),
+                    publishedAt: new Date('2024-01-02T00:00:00Z'),
+                },
+                {
+                    body: 'this is the longest article text',
+                    headline: 'Long',
+                    id: expect.any(String),
+                    publishedAt: new Date('2024-01-03T00:00:00Z'),
+                },
+            ],
+            publishedAt: new Date('2024-01-01T00:00:00Z'), // First article's date
         });
     });
 
-    it('should select the lower median if even number of articles', () => {
+    it('should handle multiple sections correctly', () => {
         // Given
         const adapter = new WorldNewsAdapter(
             { apiKey: 'irrelevant' },
@@ -281,23 +315,22 @@ describe('WorldNewsAdapter.transformResponse', () => {
                     news: [
                         {
                             publish_date: '2024-01-01T00:00:00Z',
-                            text: 'a',
-                            title: 'A',
+                            text: 'first story article 1',
+                            title: 'Story 1 - Article 1',
                         },
                         {
                             publish_date: '2024-01-02T00:00:00Z',
-                            text: 'bb',
-                            title: 'BB',
+                            text: 'first story article 2',
+                            title: 'Story 1 - Article 2',
                         },
+                    ],
+                },
+                {
+                    news: [
                         {
                             publish_date: '2024-01-03T00:00:00Z',
-                            text: 'ccc',
-                            title: 'CCC',
-                        },
-                        {
-                            publish_date: '2024-01-04T00:00:00Z',
-                            text: 'dddd',
-                            title: 'DDDD',
+                            text: 'second story article 1',
+                            title: 'Story 2 - Article 1',
                         },
                     ],
                 },
@@ -309,13 +342,8 @@ describe('WorldNewsAdapter.transformResponse', () => {
         const result = adapter.transformResponse(response);
 
         // Then
-        // Sorted by text length: a (1), bb (2), ccc (3), dddd (4) => medianIndex = 1 (bb)
-        expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-            body: 'bb',
-            coverage: 4,
-            headline: 'BB',
-            publishedAt: new Date('2024-01-02T00:00:00Z'),
-        });
+        expect(result).toHaveLength(2);
+        expect(result[0].articles).toHaveLength(2);
+        expect(result[1].articles).toHaveLength(1);
     });
 });

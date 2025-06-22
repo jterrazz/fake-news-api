@@ -19,12 +19,23 @@ const configurationSchema = z.object({
             prettyPrint: z.boolean(),
         }),
         tasks: z.object({
-            articleGeneration: z.array(
-                z.object({
-                    country: z.string().min(1, 'Country cannot be empty'),
-                    language: z.string().min(1, 'Language cannot be empty'),
-                })
-            ).min(1, 'At least one article generation task is required'),
+            articleGeneration: z
+                .array(
+                    z.object({
+                        country: z.string().min(1, 'Country cannot be empty'),
+                        language: z.string().min(1, 'Language cannot be empty'),
+                    }),
+                )
+                .min(1, 'At least one article generation task is required'),
+            storyDigest: z
+                .array(
+                    z.object({
+                        country: z.string().min(1, 'Country cannot be empty'),
+                        language: z.string().min(1, 'Language cannot be empty'),
+                    }),
+                )
+                .optional()
+                .default([]),
         }),
     }),
     outbound: z.object({

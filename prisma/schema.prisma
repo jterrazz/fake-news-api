@@ -77,7 +77,7 @@ model Perspective {
   // Relations
   story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
   storyId String
-  
+
   tags PerspectiveTag?
 
   // Metadata
@@ -88,7 +88,7 @@ model Perspective {
 }
 
 model PerspectiveTag {
-  id            String        @id @default(uuid())
+  id            String         @id @default(uuid())
   stance        Stance?
   discourseType DiscourseType?
 

@@ -1,6 +1,6 @@
 import { z } from 'zod/v4';
 
-export const StanceSchema = z.enum([
+export const stanceSchema = z.enum([
     'supportive',
     'critical',
     'neutral',
@@ -17,31 +17,26 @@ export const StanceSchema = z.enum([
 - optimistic: hopeful about outcomes
 - skeptical: doubtful/questioning`);
 
-// Discourse level - where this perspective sits in public discourse
-export const DiscourseTypeSchema = z.enum(['mainstream', 'alternative', 'underreported', 'dubious'])
+export const discourseTypeSchema = z.enum(['mainstream', 'alternative', 'underreported', 'dubious'])
     .describe(`Where this perspective sits in public discourse:
 - mainstream: widely accepted views, traditional media
 - alternative: outside mainstream but within reasonable debate
 - underreported: perspectives not adequately covered by media
 - dubious: questionable claims, of doubtful validity`);
 
-// Complete perspective tags schema
 export const perspectiveTagsSchema = z
     .object({
-        // Where this perspective sits in public discourse
-        discourse_type: DiscourseTypeSchema.optional(),
-
-        // Simple stance toward the specific story
-        stance: StanceSchema.optional(),
+        discourse_type: discourseTypeSchema.optional(),
+        stance: stanceSchema.optional(),
     })
     .refine((tags) => Object.values(tags).some((value) => value !== undefined), {
         message: 'At least one tag must be provided',
     })
     .describe("Tags that categorize a perspective's stance and position in public discourse");
 
-export type DiscourseType = z.infer<typeof DiscourseTypeSchema>;
+export type DiscourseType = z.infer<typeof discourseTypeSchema>;
 export type PerspectiveTagsData = z.infer<typeof perspectiveTagsSchema>;
-export type Stance = z.infer<typeof StanceSchema>;
+export type Stance = z.infer<typeof stanceSchema>;
 
 export class PerspectiveTags {
     public readonly tags: PerspectiveTagsData;
