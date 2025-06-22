@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -35,6 +29,23 @@ enum Category {
   OTHER
 }
 
+enum Stance {
+  supportive
+  critical
+  neutral
+  mixed
+  concerned
+  optimistic
+  skeptical
+}
+
+enum DiscourseType {
+  mainstream
+  alternative
+  underreported
+  dubious
+}
+
 model Story {
   id       String   @id @default(uuid())
   title    String
@@ -62,17 +73,31 @@ model Story {
 model Perspective {
   id             String @id @default(uuid())
   holisticDigest String
-  tags           Json
 
   // Relations
   story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
   storyId String
+  
+  tags PerspectiveTag?
 
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([storyId])
+}
+
+model PerspectiveTag {
+  id            String        @id @default(uuid())
+  stance        Stance?
+  discourseType DiscourseType?
+
+  // Relations
+  perspective   Perspective @relation(fields: [perspectiveId], references: [id], onDelete: Cascade)
+  perspectiveId String      @unique
+
+  @@index([stance])
+  @@index([discourseType])
 }
 
 model Article {
