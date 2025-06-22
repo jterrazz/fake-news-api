@@ -16,7 +16,7 @@ describe('Node Config Adapter', () => {
                 prettyPrint: false,
             },
             tasks: {
-                articleGeneration: [
+                storyDigest: [
                     {
                         country: 'fr',
                         language: 'fr',
@@ -53,6 +53,23 @@ describe('Node Config Adapter', () => {
         // Then - it should return the correct inbound and outbound configuration
         expect(configAdapter.getInboundConfiguration()).toEqual(validConfig.inbound);
         expect(configAdapter.getOutboundConfiguration()).toEqual(validConfig.outbound);
+    });
+
+    test('should load configuration with default empty storyDigest when not provided', () => {
+        // Given - a valid configuration without storyDigest tasks
+        const configWithoutTasks = {
+            ...validConfig,
+            inbound: {
+                ...validConfig.inbound,
+                tasks: {
+                    storyDigest: undefined,
+                },
+            },
+        };
+        // When - creating a NodeConfigAdapter instance
+        const configAdapter = new NodeConfigAdapter(configWithoutTasks);
+        // Then - it should return configuration with empty storyDigest array
+        expect(configAdapter.getInboundConfiguration().tasks.storyDigest).toEqual([]);
     });
 
     test('should fail with invalid environment', () => {
@@ -141,14 +158,19 @@ describe('Node Config Adapter', () => {
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
-    test('should fail with empty article generation tasks', () => {
-        // Given - a configuration with empty article generation tasks
+    test('should fail with invalid story digest task configuration', () => {
+        // Given - a configuration with invalid task configuration
         const invalidConfig = {
             ...validConfig,
             inbound: {
                 ...validConfig.inbound,
                 tasks: {
-                    articleGeneration: [],
+                    storyDigest: [
+                        {
+                            country: '', // Invalid empty country
+                            language: 'fr',
+                        },
+                    ],
                 },
             },
         };
@@ -156,17 +178,37 @@ describe('Node Config Adapter', () => {
         expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
     });
 
-    test('should fail with invalid task configuration', () => {
-        // Given - a configuration with invalid task configuration
+    test('should fail with invalid country in story digest task', () => {
+        // Given - a configuration with invalid country
         const invalidConfig = {
             ...validConfig,
             inbound: {
                 ...validConfig.inbound,
                 tasks: {
-                    articleGeneration: [
+                    storyDigest: [
                         {
-                            country: '', // Invalid empty country
-                            language: 'fr',
+                            country: 'invalid-country',
+                            language: 'en',
+                        },
+                    ],
+                },
+            },
+        };
+        // When/Then - creating a NodeConfigAdapter should throw a ZodError
+        expect(() => new NodeConfigAdapter(invalidConfig)).toThrow(ZodError);
+    });
+
+    test('should fail with invalid language in story digest task', () => {
+        // Given - a configuration with invalid language
+        const invalidConfig = {
+            ...validConfig,
+            inbound: {
+                ...validConfig.inbound,
+                tasks: {
+                    storyDigest: [
+                        {
+                            country: 'us',
+                            language: 'invalid-language',
                         },
                     ],
                 },

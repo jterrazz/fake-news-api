@@ -8,7 +8,7 @@ import { Category } from '../../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../../domain/value-objects/language.vo.js';
 
-import { type StoryDigestAgent } from '../../../ports/outbound/agents/story-digest.agent.js';
+import { type StoryDigestAgentPort } from '../../../ports/outbound/agents/story-digest.agent.js';
 import { type StoryRepositoryPort } from '../../../ports/outbound/persistence/story-repository.port.js';
 import {
     type NewsProviderPort,
@@ -24,7 +24,7 @@ describe('DigestStoriesUseCase', () => {
     const TEST_STORIES_COUNT = 3;
 
     // Test fixtures
-    let mockStoryDigestAgent: DeepMockProxy<StoryDigestAgent>;
+    let mockStoryDigestAgent: DeepMockProxy<StoryDigestAgentPort>;
     let mockLogger: DeepMockProxy<LoggerPort>;
     let mockNewsProvider: DeepMockProxy<NewsProviderPort>;
     let mockStoryRepository: DeepMockProxy<StoryRepositoryPort>;
@@ -33,7 +33,7 @@ describe('DigestStoriesUseCase', () => {
     let testNewsStories: NewsStory[];
 
     beforeEach(() => {
-        mockStoryDigestAgent = mock<StoryDigestAgent>();
+        mockStoryDigestAgent = mock<StoryDigestAgentPort>();
         mockLogger = mockOf<LoggerPort>();
         mockNewsProvider = mock<NewsProviderPort>();
         mockStoryRepository = mock<StoryRepositoryPort>();
@@ -218,16 +218,18 @@ describe('DigestStoriesUseCase', () => {
             expect(mockStoryRepository.create).not.toHaveBeenCalled();
         });
 
-        test('should throw error when story repository fails', async () => {
-            // Given - repository throws error
+        test('should continue processing when story repository fails', async () => {
+            // Given - repository throws error for all stories
             const repositoryError = new Error('Repository save failed');
             mockStoryRepository.create.mockRejectedValue(repositoryError);
 
             // When - executing the use case
-            // Then - it should throw the error
-            await expect(useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY)).rejects.toThrow(
-                'Repository save failed',
-            );
+            const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
+
+            // Then - it should continue processing and return empty array
+            expect(mockStoryDigestAgent.run).toHaveBeenCalledTimes(TEST_STORIES_COUNT);
+            expect(mockStoryRepository.create).toHaveBeenCalledTimes(TEST_STORIES_COUNT);
+            expect(result).toEqual([]);
         });
     });
 });

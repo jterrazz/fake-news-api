@@ -4,7 +4,7 @@ import { type Story } from '../../../domain/entities/story.entity.js';
 import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
 
-import { type StoryDigestAgent } from '../../ports/outbound/agents/story-digest.agent.js';
+import { type StoryDigestAgentPort } from '../../ports/outbound/agents/story-digest.agent.js';
 import { type StoryRepositoryPort } from '../../ports/outbound/persistence/story-repository.port.js';
 import { type NewsProviderPort } from '../../ports/outbound/providers/news.port.js';
 
@@ -13,7 +13,7 @@ import { type NewsProviderPort } from '../../ports/outbound/providers/news.port.
  */
 export class DigestStoriesUseCase {
     constructor(
-        private readonly storyDigestAgent: StoryDigestAgent,
+        private readonly storyDigestAgent: StoryDigestAgentPort,
         private readonly logger: LoggerPort,
         private readonly newsProvider: NewsProviderPort,
         private readonly storyRepository: StoryRepositoryPort,

@@ -7,11 +7,6 @@ inbound:
     level: info
     prettyPrint: false
   tasks:
-    articleGeneration:
-      - country: fr
-        language: fr
-      - country: us
-        language: en
     storyDigest:
       - country: fr
         language: fr

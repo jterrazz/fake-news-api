@@ -5,9 +5,6 @@ inbound:
     level: debug
     prettyPrint: true
   tasks:
-    articleGeneration:
-      - country: fr
-        language: fr
     storyDigest:
       - country: fr
         language: fr

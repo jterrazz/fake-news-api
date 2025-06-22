@@ -7,6 +7,9 @@ import {
     type OutboundConfigurationPort,
 } from '../../../application/ports/inbound/configuration.port.js';
 
+import { countrySchema } from '../../../domain/value-objects/country.vo.js';
+import { languageSchema } from '../../../domain/value-objects/language.vo.js';
+
 const configurationSchema = z.object({
     inbound: z.object({
         env: z.enum(['development', 'production', 'test']),
@@ -19,19 +22,11 @@ const configurationSchema = z.object({
             prettyPrint: z.boolean(),
         }),
         tasks: z.object({
-            articleGeneration: z
-                .array(
-                    z.object({
-                        country: z.string().min(1, 'Country cannot be empty'),
-                        language: z.string().min(1, 'Language cannot be empty'),
-                    }),
-                )
-                .min(1, 'At least one article generation task is required'),
             storyDigest: z
                 .array(
                     z.object({
-                        country: z.string().min(1, 'Country cannot be empty'),
-                        language: z.string().min(1, 'Language cannot be empty'),
+                        country: countrySchema,
+                        language: languageSchema,
                     }),
                 )
                 .optional()

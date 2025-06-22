@@ -13,23 +13,19 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 import type { ExecutorPort } from '../application/ports/inbound/executor.port.js';
 import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
-import type { StoryDigestAgentPort } from '../application/ports/outbound/agents/story-digest.agent.js';
-import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
+import { type StoryDigestAgentPort } from '../application/ports/outbound/agents/story-digest.agent.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import { type StoryRepositoryPort } from '../application/ports/outbound/persistence/story-repository.port.js';
 import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
-import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 import { DigestStoriesUseCase } from '../application/use-cases/stories/digest-stories.use-case.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
-import { ArticleGenerationTask } from '../infrastructure/inbound/executor/articles/article-generation.task.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.adapter.js';
 import { StoryDigestTask } from '../infrastructure/inbound/executor/stories/story-digest.task.js';
 import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { StoryDigestAgentAdapter } from '../infrastructure/outbound/agents/story-digest.agent.js';
-import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
 import { PrismaStoryRepository } from '../infrastructure/outbound/persistence/prisma-story.adapter.js';
@@ -101,12 +97,6 @@ const modelFactory = Injectable(
         }),
 );
 
-const articleGeneratorFactory = Injectable(
-    'ArticleGenerator',
-    ['Model', 'Logger'] as const,
-    (model: ModelPort, logger: LoggerPort) => new AIArticleGenerator(model, logger),
-);
-
 const storyDigestAgentFactory = Injectable(
     'StoryDigestAgent',
     ['Model', 'Logger'] as const,
@@ -139,17 +129,6 @@ const storyRepositoryFactory = Injectable(
 /**
  * Use case factories
  */
-const generateArticlesUseCaseFactory = Injectable(
-    'GenerateArticles',
-    ['ArticleRepository', 'Logger', 'News', 'ArticleGenerator'] as const,
-    (
-        articleRepository: ArticleRepositoryPort,
-        logger: LoggerPort,
-        newsService: NewsProviderPort,
-        articleGenerator: ArticleGeneratorPort,
-    ) => new GenerateArticlesUseCase(articleGenerator, articleRepository, logger, newsService),
-);
-
 const getArticlesUseCaseFactory = Injectable(
     'GetArticles',
     ['ArticleRepository'] as const,
@@ -181,18 +160,13 @@ const getArticlesControllerFactory = Injectable(
  */
 const tasksFactory = Injectable(
     'Tasks',
-    ['GenerateArticles', 'DigestStories', 'Configuration', 'Logger'] as const,
+    ['DigestStories', 'Configuration', 'Logger'] as const,
     (
-        generateArticles: GenerateArticlesUseCase,
         digestStories: DigestStoriesUseCase,
         configuration: ConfigurationPort,
         logger: LoggerPort,
     ): TaskPort[] => {
         const tasks: TaskPort[] = [];
-
-        // Article generation task
-        const articleTaskConfigs = configuration.getInboundConfiguration().tasks.articleGeneration;
-        tasks.push(new ArticleGenerationTask(generateArticles, articleTaskConfigs, logger));
 
         // Story digest task
         const storyDigestConfigs = configuration.getInboundConfiguration().tasks.storyDigest;
@@ -266,13 +240,11 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(databaseFactory)
         .provides(newsFactory)
         .provides(modelFactory)
-        .provides(articleGeneratorFactory)
         .provides(storyDigestAgentFactory)
         // Repositories
         .provides(articleRepositoryFactory)
         .provides(storyRepositoryFactory)
         // Use cases
-        .provides(generateArticlesUseCaseFactory)
         .provides(getArticlesUseCaseFactory)
         .provides(digestStoriesUseCaseFactory)
         // Controllers and tasks

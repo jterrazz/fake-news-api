@@ -1,15 +1,10 @@
 import { type LoggerLevel } from '@jterrazz/logger';
 
-/**
- * Article generation task configuration
- */
-export interface ArticleGenerationTaskConfig {
-    country: string;
-    language: string;
-}
+import { type CountryEnum } from '../../../domain/value-objects/country.vo.js';
+import { type LanguageEnum } from '../../../domain/value-objects/language.vo.js';
 
 /**
- * Configuration port - defines how the application can be configured
+ * Configuration port providing access to application settings
  */
 export interface ConfigurationPort {
     /**
@@ -24,7 +19,7 @@ export interface ConfigurationPort {
 }
 
 /**
- * Inbound configuration
+ * Inbound configuration (defined by the user)
  */
 export interface InboundConfigurationPort {
     env: 'development' | 'production' | 'test';
@@ -36,11 +31,13 @@ export interface InboundConfigurationPort {
         level: LoggerLevel;
         prettyPrint: boolean;
     };
-    tasks: TasksConfigurationPort;
+    tasks: {
+        storyDigest: StoryDigestTaskConfig[];
+    };
 }
 
 /**
- * Outbound configuration
+ * Outbound configuration (defined by external services)
  */
 export interface OutboundConfigurationPort {
     newRelic: {
@@ -64,14 +61,13 @@ export interface OutboundConfigurationPort {
  * Story digest task configuration
  */
 export interface StoryDigestTaskConfig {
-    country: string;
-    language: string;
+    country: CountryEnum;
+    language: LanguageEnum;
 }
 
 /**
  * Tasks configuration
  */
 export interface TasksConfigurationPort {
-    articleGeneration: ArticleGenerationTaskConfig[];
     storyDigest: StoryDigestTaskConfig[];
 }
