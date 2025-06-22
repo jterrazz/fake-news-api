@@ -1,6 +1,7 @@
 import {
     BasicAgentAdapter,
     type ModelPort,
+    PROMPT_LIBRARY,
     SystemPromptAdapter,
     UserPromptAdapter,
 } from '@jterrazz/intelligence';
@@ -12,7 +13,7 @@ import { type StoryDigestAgentPort } from '../../../application/ports/outbound/a
 import { type NewsStory } from '../../../application/ports/outbound/providers/news.port.js';
 
 import { Perspective } from '../../../domain/entities/perspective.entity.js';
-import { Story } from '../../../domain/entities/story.entity.js';
+import { Story, titleSchema } from '../../../domain/entities/story.entity.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { categorySchema } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
@@ -41,19 +42,22 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                     }),
                 }),
             )
+            .min(1, 'At least one perspective is required.')
+            .max(4, 'No more than four perspectives should be created.')
             .describe(
-                'An array of applicable perspectives on this story, never use the same perspective type twice. Only use the perspective types that are applicable to the story.',
+                'An array of 1 to 4 entries, where each entry is strictly defined by an observed discourse type (e.g., mainstream, alternative, under-reported, dubious). Each entry must contain the summarized information from the articles that falls into that specific discourse category. Do not create entries for discourse types not present in the articles. Each discourse type must be used at most once.',
             ),
-        title: z.string().max(250).describe('A title to know the intent of the story.'),
+        title: titleSchema,
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
-        [
-            'You are a professional journalist tasked with analyzing multiple news articles about the same story.',
-            'Your goal is to create a coherent story digest that combines perspectives from all provided articles.',
-            'Be objective and factual in your analysis.',
-            'The created content MUST be in english.',
-        ].join('\n'),
+        'You are a master investigative journalist and media analyst. Your core mission is to classify information from news articles into predefined discourse types. Your analysis must be objective and based solely on the provided text.',
+        PROMPT_LIBRARY.PERSONAS.JOURNALIST,
+        PROMPT_LIBRARY.FOUNDATIONS.CONTEXTUAL_ONLY,
+        PROMPT_LIBRARY.LANGUAGES.ENGLISH_NATIVE,
+        'CRITICAL: Output MUST be in English.',
+        PROMPT_LIBRARY.TONES.NEUTRAL,
+        PROMPT_LIBRARY.VERBOSITY.DETAILED,
     );
 
     private readonly agent: BasicAgentAdapter<z.infer<typeof StoryDigestAgentAdapter.SCHEMA>>;
@@ -67,15 +71,15 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
             model: this.model,
             schema: StoryDigestAgentAdapter.SCHEMA,
             systemPrompt: StoryDigestAgentAdapter.SYSTEM_PROMPT,
-            verbose: true,
         });
     }
 
     static readonly USER_PROMPT = (newsStory: NewsStory) =>
         new UserPromptAdapter(
-            'Analyze the following news articles and create a story digest.',
-            'Focus on extracting the key story, identifying different perspectives, and categorizing the stance and discourse type.',
-            'ONLY WRITE 2 PERSPECTIVES.',
+            'Your goal is to create a structured brief for a writer by sorting information from news articles into its correct discourse category. This allows the writer to understand how the story is being presented across different types of media.',
+            'First, identify the dominant, mainstream perspective present in the articles. Then, identify if there are any significant alternative, under-reported, or dubious perspectives. Each perspective you create MUST correspond to one unique discourse type, and you must not create duplicate entries for the same discourse type. Your final output must contain between 1 and 4 distinct discourse types in total.',
+            'Remember: this is not a polished article. It is a raw, detailed information dump for a professional writer. Prioritize factual completeness and accuracy for each discourse category over narrative style. Each category must be unique.',
+            'Analyze the following news articles selected from multiple sources.',
             'News articles to analyze:',
             JSON.stringify(
                 newsStory.articles.map((article) => ({

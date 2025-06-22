@@ -5,18 +5,35 @@ import { Country } from '../value-objects/country.vo.js';
 
 import { Perspective } from './perspective.entity.js';
 
+export const titleSchema = z
+    .string()
+    .min(100, 'Story title cannot be less than 100 characters')
+    .max(400, 'Story title cannot exceed 400 characters')
+    .describe(
+        "A detailed and descriptive title that summarizes the central narrative of the story, including its main viewpoints or conflicts. This title should be comprehensive enough to give a writer a clear understanding of the story's scope and nuances.",
+    );
+
 export const storySchema = z.object({
-    category: z.instanceof(Category),
-    countries: z.array(z.instanceof(Country)).min(1, 'At least one country is required'),
-    createdAt: z.date(),
-    dateline: z.date(),
-    id: z.uuid(),
-    perspectives: z.array(z.instanceof(Perspective)).min(1, 'At least one perspective is required'),
+    category: z.instanceof(Category).describe('The primary category classification of the story.'),
+    countries: z
+        .array(z.instanceof(Country))
+        .min(1, 'At least one country is required')
+        .describe('A list of countries where the story is relevant.'),
+    createdAt: z.date().describe('The timestamp when the story was first created in the system.'),
+    dateline: z
+        .date()
+        .describe('The publication date of the story, typically based on the source articles.'),
+    id: z.uuid().describe('The unique identifier for the story.'),
+    perspectives: z
+        .array(z.instanceof(Perspective))
+        .min(1, 'At least one perspective is required')
+        .describe('A list of different viewpoints or angles on the story.'),
     sourceReferences: z
         .array(z.string())
-        .min(1, 'At least one external source reference is required'),
-    title: z.string().min(1, 'Story title cannot be empty'),
-    updatedAt: z.date(),
+        .min(1, 'At least one external source reference is required')
+        .describe('A list of IDs from the original source articles used to create the story.'),
+    title: titleSchema,
+    updatedAt: z.date().describe('The timestamp when the story was last updated.'),
 });
 
 export type StoryProps = z.input<typeof storySchema>;
@@ -46,12 +63,21 @@ export class Story {
         this.id = validatedData.id;
         this.title = validatedData.title;
         this.category = validatedData.category;
-        this.countries = validatedData.countries;
         this.perspectives = validatedData.perspectives;
         this.dateline = validatedData.dateline;
         this.sourceReferences = validatedData.sourceReferences;
         this.createdAt = validatedData.createdAt;
         this.updatedAt = validatedData.updatedAt;
+
+        // Normalize countries: if 'global' is present, it should be the only country.
+        if (
+            validatedData.countries.some((country) => country.isGlobal()) &&
+            validatedData.countries.length > 1
+        ) {
+            this.countries = [new Country('global')];
+        } else {
+            this.countries = validatedData.countries;
+        }
     }
 
     public getCountryCodes(): string[] {

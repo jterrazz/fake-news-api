@@ -12,7 +12,9 @@ export const categorySchema = z
         'technology',
         'world',
     ])
-    .describe('"other" must be used if a category from the list is not applicable');
+    .describe(
+        "Classifies the news story into a predefined category. If the story doesn't fit any of the specific categories, 'other' must be used as a fallback.",
+    );
 
 export type CategoryEnum = z.infer<typeof categorySchema>;
 
