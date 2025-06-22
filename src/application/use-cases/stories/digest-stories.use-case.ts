@@ -50,7 +50,7 @@ export class DigestStoriesUseCase {
             });
 
             // Filter and validate news stories
-            const validNewsStories = newsStories.filter((story) => story.articles.length >= 2);
+            let validNewsStories = newsStories.filter((story) => story.articles.length >= 2);
 
             if (validNewsStories.length === 0) {
                 this.logger.warn('No valid news stories after filtering', {
@@ -63,6 +63,8 @@ export class DigestStoriesUseCase {
 
             // Process each news story individually through the AI agent
             const digestedStories: Story[] = [];
+
+            validNewsStories = validNewsStories.slice(0, 1);
 
             for (const newsStory of validNewsStories) {
                 try {

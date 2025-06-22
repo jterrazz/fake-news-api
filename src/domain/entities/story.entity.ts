@@ -12,7 +12,9 @@ export const storySchema = z.object({
     dateline: z.date(),
     id: z.uuid(),
     perspectives: z.array(z.instanceof(Perspective)).min(1, 'At least one perspective is required'),
-    sourceReferences: z.array(z.uuid()).min(1, 'At least one source reference is required'),
+    sourceReferences: z
+        .array(z.string())
+        .min(1, 'At least one external source reference is required'),
     title: z.string().min(1, 'Story title cannot be empty'),
     updatedAt: z.date(),
 });

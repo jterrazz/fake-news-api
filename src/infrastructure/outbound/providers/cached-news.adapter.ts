@@ -28,7 +28,6 @@ const newsArticleSchema = z.object({
     body: z.string(),
     headline: z.string(),
     id: z.string(),
-    publishedAt: z.iso.datetime().transform((date) => new Date(date)),
 });
 
 const newsStorySchema = z.object({

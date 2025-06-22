@@ -34,7 +34,6 @@ describe('CachedNewsAdapter', () => {
                 body: 'Test summary',
                 headline: 'Test title',
                 id: 'test-article-1',
-                publishedAt: new Date('2024-03-08T00:00:00.000Z'),
             },
         ],
         publishedAt: new Date('2024-03-08T00:00:00.000Z'),

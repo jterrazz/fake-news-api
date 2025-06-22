@@ -29,24 +29,22 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
     static readonly NAME = 'StoryDigestAgent';
 
     static readonly SCHEMA = z.object({
-        category: categorySchema.describe('Category that best fits this story'),
-        countries: z.array(countrySchema).describe('Array of relevant countries for this story'),
+        category: categorySchema,
+        countries: z.array(countrySchema),
         perspectives: z
             .array(
                 z.object({
-                    holisticDigest: holisticDigestSchema.describe(
-                        'Comprehensive summary of this perspective',
-                    ),
+                    holisticDigest: holisticDigestSchema,
                     tags: z.object({
-                        discourse_type: discourseTypeSchema.describe(
-                            'Type of discourse or media coverage',
-                        ),
-                        stance: stanceSchema.describe('Stance toward the specific story'),
+                        discourse_type: discourseTypeSchema,
+                        stance: stanceSchema,
                     }),
                 }),
             )
-            .describe('Array of different perspectives on this story'),
-        title: z.string().max(100).describe('Brief, clear title'),
+            .describe(
+                'An array of applicable perspectives on this story, never use the same perspective type twice. Only use the perspective types that are applicable to the story.',
+            ),
+        title: z.string().max(250).describe('A title to know the intent of the story.'),
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
@@ -54,6 +52,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
             'You are a professional journalist tasked with analyzing multiple news articles about the same story.',
             'Your goal is to create a coherent story digest that combines perspectives from all provided articles.',
             'Be objective and factual in your analysis.',
+            'The created content MUST be in english.',
         ].join('\n'),
     );
 
@@ -68,6 +67,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
             model: this.model,
             schema: StoryDigestAgentAdapter.SCHEMA,
             systemPrompt: StoryDigestAgentAdapter.SYSTEM_PROMPT,
+            verbose: true,
         });
     }
 
@@ -75,9 +75,16 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
         new UserPromptAdapter(
             'Analyze the following news articles and create a story digest.',
             'Focus on extracting the key story, identifying different perspectives, and categorizing the stance and discourse type.',
-            '',
+            'ONLY WRITE 2 PERSPECTIVES.',
             'News articles to analyze:',
-            JSON.stringify(newsStory.articles, null, 2),
+            JSON.stringify(
+                newsStory.articles.map((article) => ({
+                    body: article.body,
+                    headline: article.headline,
+                })),
+                null,
+                2,
+            ),
         );
 
     async run(params: { newsStory: NewsStory }): Promise<null | Story> {
@@ -126,7 +133,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 category,
                 countries,
                 createdAt: now,
-                dateline: params.newsStory.articles[0].publishedAt,
+                dateline: params.newsStory.publishedAt,
                 id: storyId,
                 perspectives,
                 sourceReferences: params.newsStory.articles.map((article) => article.id),

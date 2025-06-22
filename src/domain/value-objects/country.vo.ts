@@ -1,6 +1,10 @@
 import { z } from 'zod/v4';
 
-export const countrySchema = z.enum(['fr', 'us', 'global']);
+export const countrySchema = z
+    .enum(['fr', 'us', 'global'])
+    .describe(
+        '"global" must be used without any other country, else specific applicable countries must be provided',
+    );
 
 export type CountryEnum = z.infer<typeof countrySchema>;
 

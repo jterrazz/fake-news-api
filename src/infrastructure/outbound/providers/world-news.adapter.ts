@@ -168,12 +168,16 @@ export class WorldNewsAdapter implements NewsProviderPort {
         const articles: NewsArticle[] = section.news.map((article) => ({
             body: article.text,
             headline: article.title,
-            id: crypto.randomUUID(),
-            publishedAt: new Date(article.publish_date),
+            id: `worldnewsapi:${crypto.randomUUID()}`,
         }));
 
-        // Use the date from the first article as the story date
-        const storyDate = articles[0]?.publishedAt || new Date();
+        // Calculate the average date from all articles
+        const articleDates = section.news.map((article) =>
+            new Date(article.publish_date).getTime(),
+        );
+        const averageTimestamp =
+            articleDates.reduce((sum, timestamp) => sum + timestamp, 0) / articleDates.length;
+        const storyDate = new Date(averageTimestamp);
 
         return {
             articles,

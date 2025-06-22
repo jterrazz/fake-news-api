@@ -1,16 +1,18 @@
 import { z } from 'zod/v4';
 
-export const categorySchema = z.enum([
-    'business',
-    'entertainment',
-    'health',
-    'other',
-    'politics',
-    'science',
-    'sports',
-    'technology',
-    'world',
-]);
+export const categorySchema = z
+    .enum([
+        'business',
+        'entertainment',
+        'health',
+        'other',
+        'politics',
+        'science',
+        'sports',
+        'technology',
+        'world',
+    ])
+    .describe('"other" must be used if a category from the list is not applicable');
 
 export type CategoryEnum = z.infer<typeof categorySchema>;
 

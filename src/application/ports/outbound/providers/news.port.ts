@@ -8,7 +8,6 @@ export interface NewsArticle {
     body: string;
     headline: string;
     id: string;
-    publishedAt: Date;
 }
 
 /**

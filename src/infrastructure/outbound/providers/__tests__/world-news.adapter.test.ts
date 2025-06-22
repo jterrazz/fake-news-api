@@ -115,23 +115,20 @@ describe('WorldNewsAdapter', () => {
                 {
                     body: 'short',
                     headline: 'Short',
-                    id: expect.any(String),
-                    publishedAt: new Date('2024-03-10T12:00:00Z'),
+                    id: expect.stringMatching(/^worldnewsapi:/),
                 },
                 {
                     body: 'a bit longer',
                     headline: 'Medium',
-                    id: expect.any(String),
-                    publishedAt: new Date('2024-03-11T12:00:00Z'),
+                    id: expect.stringMatching(/^worldnewsapi:/),
                 },
                 {
                     body: 'this is the longest article text',
                     headline: 'Long',
-                    id: expect.any(String),
-                    publishedAt: new Date('2024-03-12T12:00:00Z'),
+                    id: expect.stringMatching(/^worldnewsapi:/),
                 },
             ],
-            publishedAt: new Date('2024-03-10T12:00:00Z'), // First article's date
+            publishedAt: new Date('2024-03-11T12:00:00Z'), // Average of article dates
         });
     });
 
@@ -280,23 +277,20 @@ describe('WorldNewsAdapter.transformResponse', () => {
                 {
                     body: 'short',
                     headline: 'Short',
-                    id: expect.any(String),
-                    publishedAt: new Date('2024-01-01T00:00:00Z'),
+                    id: expect.stringMatching(/^worldnewsapi:/),
                 },
                 {
                     body: 'a bit longer',
                     headline: 'Medium',
-                    id: expect.any(String),
-                    publishedAt: new Date('2024-01-02T00:00:00Z'),
+                    id: expect.stringMatching(/^worldnewsapi:/),
                 },
                 {
                     body: 'this is the longest article text',
                     headline: 'Long',
-                    id: expect.any(String),
-                    publishedAt: new Date('2024-01-03T00:00:00Z'),
+                    id: expect.stringMatching(/^worldnewsapi:/),
                 },
             ],
-            publishedAt: new Date('2024-01-01T00:00:00Z'), // First article's date
+            publishedAt: new Date('2024-01-02T00:00:00Z'), // Average of article dates
         });
     });
 
