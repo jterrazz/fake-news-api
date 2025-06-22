@@ -35,16 +35,17 @@ function generateMockHolisticDigest(index: number): HolisticDigest {
         'business',
         'academic',
     ];
-    
+
     const perspectiveType = perspectiveTypes[index % perspectiveTypes.length];
-    
-    const digestContent = `This is a comprehensive ${perspectiveType} perspective on the story. ` +
+
+    const digestContent =
+        `This is a comprehensive ${perspectiveType} perspective on the story. ` +
         `The narrative includes detailed analysis from this specific viewpoint, incorporating ` +
         `all relevant facts, context, and interpretation that would be typical of ${perspectiveType} ` +
         `sources. This holistic digest contains structured information that an AI can use to ` +
         `understand the complete picture from this particular angle, including key stakeholders, ` +
         `implications, and the broader context of the development.`;
-    
+
     return new HolisticDigest(digestContent);
 }
 
@@ -54,49 +55,35 @@ function generateMockHolisticDigest(index: number): HolisticDigest {
 function generateMockPerspectiveTags(index: number): PerspectiveTags {
     const tagSets = [
         {
-            expertise_level: 'expert',
-            media_type: 'official',
-            political_leaning: 'center',
-            stakeholder: 'government',
-            tone: 'formal'
+            discourse_type: 'mainstream' as const,
+            stance: 'supportive' as const,
         },
         {
-            expertise_level: 'professional',
-            media_type: 'mainstream',
-            political_leaning: 'center_left',
-            stakeholder: 'opposition',
-            tone: 'critical'
+            discourse_type: 'alternative' as const,
+            stance: 'critical' as const,
         },
         {
-            expertise_level: 'expert',
-            media_type: 'specialized',
-            political_leaning: 'center_right',
-            stakeholder: 'business',
-            tone: 'analytical'
+            discourse_type: 'mainstream' as const,
+            stance: 'optimistic' as const,
         },
         {
-            expertise_level: 'citizen',
-            media_type: 'alternative',
-            political_leaning: 'left',
-            stakeholder: 'civil_society',
-            tone: 'activist'
+            discourse_type: 'underreported' as const,
+            stance: 'concerned' as const,
         },
         {
-            expertise_level: 'professional',
-            media_type: 'conservative',
-            political_leaning: 'right',
-            stakeholder: 'business',
-            tone: 'supportive'
+            discourse_type: 'alternative' as const,
+            stance: 'mixed' as const,
         },
         {
-            expertise_level: 'expert',
-            media_type: 'academic',
-            political_leaning: 'neutral',
-            stakeholder: 'academia',
-            tone: 'objective'
+            discourse_type: 'dubious' as const,
+            stance: 'skeptical' as const,
+        },
+        {
+            discourse_type: 'mainstream' as const,
+            stance: 'neutral' as const,
         },
     ];
-    
+
     const tags = tagSets[index % tagSets.length];
     return new PerspectiveTags(tags);
-} 
+}
