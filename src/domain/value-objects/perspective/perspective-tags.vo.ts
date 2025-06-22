@@ -1,30 +1,43 @@
 import { z } from 'zod/v4';
 
 export const StanceSchema = z.enum([
-    'supportive', // Supports what's happening in the story
-    'critical', // Critical of what's happening
-    'neutral', // Balanced/no clear position
-    'mixed', // Both positive and negative aspects
-    'concerned', // Worried about implications
-    'optimistic', // Hopeful about outcomes
-    'skeptical', // Doubtful/questioning
-]);
+    'supportive',
+    'critical',
+    'neutral',
+    'mixed',
+    'concerned',
+    'optimistic',
+    'skeptical',
+]).describe(`The perspective's stance toward the specific story:
+- supportive: supports what's happening
+- critical: critical of what's happening  
+- neutral: balanced/no clear position
+- mixed: both positive and negative aspects
+- concerned: worried about implications
+- optimistic: hopeful about outcomes
+- skeptical: doubtful/questioning`);
 
-export const DiscourseTypeSchema = z.enum([
-    'mainstream', // Widely accepted views, traditional media
-    'alternative', // Outside mainstream but within reasonable debate
-    'underreported', // Perspectives not adequately covered by media
-    'dubious', // Questionable claims, of doubtful validity
-]);
+// Discourse level - where this perspective sits in public discourse
+export const DiscourseTypeSchema = z.enum(['mainstream', 'alternative', 'underreported', 'dubious'])
+    .describe(`Where this perspective sits in public discourse:
+- mainstream: widely accepted views, traditional media
+- alternative: outside mainstream but within reasonable debate
+- underreported: perspectives not adequately covered by media
+- dubious: questionable claims, of doubtful validity`);
 
+// Complete perspective tags schema
 export const perspectiveTagsSchema = z
     .object({
+        // Where this perspective sits in public discourse
         discourse_type: DiscourseTypeSchema.optional(),
+
+        // Simple stance toward the specific story
         stance: StanceSchema.optional(),
     })
     .refine((tags) => Object.values(tags).some((value) => value !== undefined), {
         message: 'At least one tag must be provided',
-    });
+    })
+    .describe("Tags that categorize a perspective's stance and position in public discourse");
 
 export type DiscourseType = z.infer<typeof DiscourseTypeSchema>;
 export type PerspectiveTagsData = z.infer<typeof perspectiveTagsSchema>;
