@@ -6,6 +6,12 @@ inbound:
   logger:
     level: info
     prettyPrint: false
+  tasks:
+    articleGeneration:
+      - country: fr
+        language: fr
+      - country: us
+        language: en
 
 outbound:
   openRouter:

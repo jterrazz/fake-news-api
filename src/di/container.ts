@@ -148,9 +148,14 @@ const getArticlesControllerFactory = Injectable(
  */
 const tasksFactory = Injectable(
     'Tasks',
-    ['GenerateArticles', 'Logger'] as const,
-    (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): TaskPort[] => {
-        return [new ArticleGenerationTask(generateArticles, logger)];
+    ['GenerateArticles', 'Configuration', 'Logger'] as const,
+    (
+        generateArticles: GenerateArticlesUseCase,
+        configuration: ConfigurationPort,
+        logger: LoggerPort,
+    ): TaskPort[] => {
+        const taskConfigs = configuration.getInboundConfiguration().tasks.articleGeneration;
+        return [new ArticleGenerationTask(generateArticles, taskConfigs, logger)];
     },
 );
 

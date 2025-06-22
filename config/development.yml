@@ -4,6 +4,10 @@ inbound:
   logger:
     level: debug
     prettyPrint: true
+  tasks:
+    articleGeneration:
+      - country: fr
+        language: fr
 
 outbound:
   openRouter:

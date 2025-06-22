@@ -1,6 +1,14 @@
 import { type LoggerLevel } from '@jterrazz/logger';
 
 /**
+ * Article generation task configuration
+ */
+export interface ArticleGenerationTaskConfig {
+    country: string;
+    language: string;
+}
+
+/**
  * Configuration port - defines how the application can be configured
  */
 export interface ConfigurationPort {
@@ -28,6 +36,7 @@ export interface InboundConfigurationPort {
         level: LoggerLevel;
         prettyPrint: boolean;
     };
+    tasks: TasksConfigurationPort;
 }
 
 /**
@@ -49,4 +58,11 @@ export interface OutboundConfigurationPort {
         apiKey: string;
         useCache: boolean;
     };
+}
+
+/**
+ * Tasks configuration
+ */
+export interface TasksConfigurationPort {
+    articleGeneration: ArticleGenerationTaskConfig[];
 }
