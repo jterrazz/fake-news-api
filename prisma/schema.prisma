@@ -53,8 +53,8 @@ model Story {
   category Category
 
   // Geographic and temporal context
-  countries Json
-  dateline  DateTime
+  country  Country
+  dateline DateTime
 
   // Sources
   sourceReferences Json
@@ -67,6 +67,7 @@ model Story {
   updatedAt DateTime @updatedAt
 
   @@index([category])
+  @@index([country])
   @@index([dateline])
   @@index([createdAt])
 }

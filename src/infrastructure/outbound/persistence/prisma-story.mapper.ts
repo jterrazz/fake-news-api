@@ -1,5 +1,6 @@
 import {
     type Category as PrismaCategory,
+    type Country as PrismaCountry,
     type DiscourseType as PrismaDiscourseType,
     type Perspective as PrismaPerspective,
     type PerspectiveTag as PrismaPerspectiveTag,
@@ -26,15 +27,12 @@ export class StoryMapper {
         return category.toString().toUpperCase() as PrismaCategory;
     }
 
-    mapCountriesFromPrisma(countries: unknown): Country[] {
-        if (!Array.isArray(countries)) {
-            throw new Error('Countries must be an array');
-        }
-        return countries.map((countryCode) => new Country(String(countryCode)));
+    mapCountryFromPrisma(country: PrismaCountry): Country {
+        return new Country(country);
     }
 
-    mapCountriesToPrisma(countries: Country[]): string[] {
-        return countries.map((country) => country.toString());
+    mapCountryToPrisma(country: Country): PrismaCountry {
+        return country.toString() as PrismaCountry;
     }
 
     mapDiscourseTypeToPrisma(discourseType?: string): null | PrismaDiscourseType {
@@ -82,7 +80,7 @@ export class StoryMapper {
 
         return new Story({
             category: new Category(prismaStory.category.toLowerCase()),
-            countries: this.mapCountriesFromPrisma(prismaStory.countries),
+            country: this.mapCountryFromPrisma(prismaStory.country),
             createdAt: prismaStory.createdAt,
             dateline: prismaStory.dateline,
             id: prismaStory.id,
@@ -98,7 +96,7 @@ export class StoryMapper {
     toPrisma(story: Story): Prisma.StoryCreateInput {
         return {
             category: this.mapCategoryToPrisma(story.category),
-            countries: this.mapCountriesToPrisma(story.countries),
+            country: this.mapCountryToPrisma(story.country),
             dateline: story.dateline,
             id: story.id,
             sourceReferences: story.sourceReferences,

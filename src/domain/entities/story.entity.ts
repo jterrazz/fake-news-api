@@ -13,10 +13,7 @@ export const synopsisSchema = z
 
 export const storySchema = z.object({
     category: z.instanceof(Category).describe('The primary category classification of the story.'),
-    countries: z
-        .array(z.instanceof(Country))
-        .min(1, 'At least one country is required')
-        .describe('A list of countries where the story is relevant.'),
+    country: z.instanceof(Country).describe('The country where the story is relevant.'),
     createdAt: z.date().describe('The timestamp when the story was first created in the system.'),
     dateline: z
         .date()
@@ -41,7 +38,7 @@ export type StoryProps = z.input<typeof storySchema>;
  */
 export class Story {
     public readonly category: Category;
-    public readonly countries: Country[];
+    public readonly country: Country;
     public readonly createdAt: Date;
     public readonly dateline: Date;
     public readonly id: string;
@@ -66,20 +63,11 @@ export class Story {
         this.sourceReferences = validatedData.sourceReferences;
         this.createdAt = validatedData.createdAt;
         this.updatedAt = validatedData.updatedAt;
-
-        // Normalize countries: if 'global' is present, it should be the only country.
-        if (
-            validatedData.countries.some((country) => country.isGlobal()) &&
-            validatedData.countries.length > 1
-        ) {
-            this.countries = [new Country('global')];
-        } else {
-            this.countries = validatedData.countries;
-        }
+        this.country = validatedData.country;
     }
 
     public getCountryCodes(): string[] {
-        return this.countries.map((country) => country.toString());
+        return [this.country.toString()];
     }
 
     public getPerspectiveCount(): number {

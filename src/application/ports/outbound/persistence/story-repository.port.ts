@@ -1,4 +1,5 @@
 import { type Story } from '../../../../domain/entities/story.entity.js';
+import { type Country } from '../../../../domain/value-objects/country.vo.js';
 
 /**
  * Repository port for story persistence operations
@@ -25,4 +26,10 @@ export interface StoryRepositoryPort {
         offset?: number;
         startDate?: Date;
     }): Promise<Story[]>;
+
+    /**
+     * Get all existing source references (article IDs) to support deduplication
+     * Limited to 2000 most recent entries, optionally filtered by country
+     */
+    getAllSourceReferences(country?: Country): Promise<string[]>;
 }

@@ -8,13 +8,13 @@ import { mockPerspectives } from './mock-of-perspectives.js';
 export function getMockStories(count: number = 3): Story[] {
     return Array.from({ length: count }, (_, index) => {
         const category = new Category(index % 2 === 0 ? 'politics' : 'technology');
-        const countries = [new Country('us'), new Country('fr')];
+        const country = index % 2 === 0 ? new Country('us') : new Country('fr');
         const storyId = crypto.randomUUID();
         const perspectives = mockPerspectives(2, storyId);
 
         const story = new Story({
             category,
-            countries,
+            country,
             createdAt: new Date(Date.now() - index * 1000 * 60 * 60 * 24),
             dateline: new Date(Date.now() - index * 1000 * 60 * 60 * 24),
             id: storyId,
@@ -33,14 +33,14 @@ export function getMockStories(count: number = 3): Story[] {
 
 export function getMockStory(options?: {
     category?: Category;
-    countries?: Country[];
+    country?: Country;
     id?: string;
     perspectives?: Perspective[];
 }): Story {
     const storyId = options?.id || crypto.randomUUID();
     return new Story({
         category: options?.category || new Category('politics'),
-        countries: options?.countries || [new Country('us')],
+        country: options?.country || new Country('us'),
         createdAt: new Date(),
         dateline: new Date(),
         id: storyId,

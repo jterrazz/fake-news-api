@@ -66,6 +66,7 @@ describe('DigestStoriesUseCase', () => {
         mockNewsProvider.fetchNews.mockResolvedValue(testNewsStories);
         mockStoryDigestAgent.run.mockImplementation(async () => mockDigestResults[0]);
         mockStoryRepository.create.mockImplementation(async (story) => story);
+        mockStoryRepository.getAllSourceReferences.mockResolvedValue([]);
     });
 
     /**
@@ -121,7 +122,7 @@ describe('DigestStoriesUseCase', () => {
                 expect.arrayContaining([
                     expect.objectContaining({
                         category: expect.any(Category),
-                        countries: expect.any(Array),
+                        country: expect.any(Country),
                     }),
                 ]),
             );
@@ -230,9 +231,8 @@ describe('DigestStoriesUseCase', () => {
         });
 
         test('should continue processing when story repository fails', async () => {
-            // Given - repository throws error for all stories
-            const repositoryError = new Error('Repository save failed');
-            mockStoryRepository.create.mockRejectedValue(repositoryError);
+            // Given - story repository throws error on create
+            mockStoryRepository.create.mockRejectedValue(new Error('Repository failed'));
 
             // When - executing the use case
             const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
@@ -241,6 +241,73 @@ describe('DigestStoriesUseCase', () => {
             expect(mockStoryDigestAgent.run).toHaveBeenCalledTimes(TEST_STORIES_COUNT);
             expect(mockStoryRepository.create).toHaveBeenCalledTimes(TEST_STORIES_COUNT);
             expect(result).toEqual([]);
+        });
+
+        test('should filter out stories with already processed articles', async () => {
+            // Given - some articles have already been processed
+            const existingSourceReferences = ['existing-article-1', 'existing-article-2'];
+            mockStoryRepository.getAllSourceReferences.mockResolvedValue(existingSourceReferences);
+
+            // Create news stories where some contain already processed articles
+            const newsWithDuplicates: NewsStory[] = [
+                {
+                    articles: [
+                        { body: 'New article 1', headline: 'New Headline 1', id: 'new-article-1' },
+                        { body: 'New article 2', headline: 'New Headline 2', id: 'new-article-2' },
+                    ],
+                    publishedAt: new Date('2024-01-01T10:00:00Z'),
+                },
+                {
+                    articles: [
+                        {
+                            body: 'Duplicate article',
+                            headline: 'Duplicate Headline',
+                            id: 'existing-article-1',
+                        }, // Already processed
+                        {
+                            body: 'Another article',
+                            headline: 'Another Headline',
+                            id: 'another-article',
+                        },
+                    ],
+                    publishedAt: new Date('2024-01-01T11:00:00Z'),
+                },
+                {
+                    articles: [
+                        {
+                            body: 'Fresh article 1',
+                            headline: 'Fresh Headline 1',
+                            id: 'fresh-article-1',
+                        },
+                        {
+                            body: 'Fresh article 2',
+                            headline: 'Fresh Headline 2',
+                            id: 'fresh-article-2',
+                        },
+                    ],
+                    publishedAt: new Date('2024-01-01T12:00:00Z'),
+                },
+            ];
+
+            mockNewsProvider.fetchNews.mockResolvedValue(newsWithDuplicates);
+
+            // When - executing the use case
+            const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
+
+            // Then - it should filter out the story with already processed articles
+            expect(mockStoryRepository.getAllSourceReferences).toHaveBeenCalledTimes(1);
+            expect(mockStoryRepository.getAllSourceReferences).toHaveBeenCalledWith(
+                DEFAULT_COUNTRY,
+            );
+            expect(mockStoryDigestAgent.run).toHaveBeenCalledTimes(2); // Only 2 new stories processed
+            expect(mockStoryRepository.create).toHaveBeenCalledTimes(2);
+            expect(result).toHaveLength(2);
+
+            // Verify that the duplicate story was not processed
+            const processedStories = mockStoryDigestAgent.run.mock.calls.map(
+                (call) => call[0]?.newsStory,
+            );
+            expect(processedStories).not.toContainEqual(newsWithDuplicates[1]); // The duplicate story
         });
     });
 });

@@ -32,6 +32,15 @@ export class DigestStoriesUseCase {
                 language: language.toString(),
             });
 
+            // Get existing source references for deduplication
+            const existingSourceReferences =
+                await this.storyRepository.getAllSourceReferences(country);
+            this.logger.info('Retrieved existing source references for deduplication', {
+                count: existingSourceReferences.length,
+                country: country.toString(),
+                language: language.toString(),
+            });
+
             // Fetch news from external providers
             const newsStories = await this.newsProvider.fetchNews({
                 country,
@@ -52,14 +61,38 @@ export class DigestStoriesUseCase {
                 language: language.toString(),
             });
 
+            // Filter out stories with articles that have already been processed
+            const newNewsStories = newsStories.filter((story) => {
+                const hasProcessedArticle = story.articles.some((article) =>
+                    existingSourceReferences.includes(article.id),
+                );
+                return !hasProcessedArticle;
+            });
+
+            this.logger.info('Filtered out already processed stories', {
+                country: country.toString(),
+                filteredOut: newsStories.length - newNewsStories.length,
+                language: language.toString(),
+                newCount: newNewsStories.length,
+                originalCount: newsStories.length,
+            });
+
+            if (newNewsStories.length === 0) {
+                this.logger.info('No new stories to process after deduplication', {
+                    country: country.toString(),
+                    language: language.toString(),
+                });
+                return [];
+            }
+
             // Filter and validate news stories
-            const validNewsStories = newsStories.filter((story) => story.articles.length >= 2);
+            const validNewsStories = newNewsStories.filter((story) => story.articles.length >= 2);
 
             if (validNewsStories.length === 0) {
                 this.logger.warn('No valid news stories after filtering', {
                     country: country.toString(),
                     language: language.toString(),
-                    originalCount: newsStories.length,
+                    originalCount: newNewsStories.length,
                 });
                 return [];
             }
@@ -104,7 +137,7 @@ export class DigestStoriesUseCase {
                     // Create the complete story with use case-managed fields
                     const story = new StoryEntity({
                         category: digestResult.category,
-                        countries: [country], // Use the country from the use case context
+                        country: country, // Use the country from the use case context
                         createdAt: now,
                         dateline: newsStory.publishedAt, // Use the news story's published date
                         id: storyId,

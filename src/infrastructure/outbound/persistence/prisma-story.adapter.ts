@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { type StoryRepositoryPort } from '../../../application/ports/outbound/persistence/story-repository.port.js';
 
 import { type Story } from '../../../domain/entities/story.entity.js';
+import { type Country } from '../../../domain/value-objects/country.vo.js';
 
 import { type PrismaAdapter } from './prisma.adapter.js';
 import { StoryMapper } from './prisma-story.mapper.js';
@@ -92,11 +93,9 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
             where.category = criteria.category.toUpperCase();
         }
 
-        // Country filter - search in JSON array
+        // Country filter
         if (criteria.country) {
-            where.countries = {
-                array_contains: criteria.country,
-            };
+            where.country = criteria.country;
         }
 
         // Date range filter
@@ -127,5 +126,25 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
         });
 
         return stories.map((story) => this.mapper.toDomain(story));
+    }
+
+    async getAllSourceReferences(country: Country): Promise<string[]> {
+        const stories = await this.prisma.getPrismaClient().story.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+            select: {
+                sourceReferences: true,
+            },
+            take: 2000,
+            where: {
+                country: this.mapper.mapCountryToPrisma(country),
+            },
+        });
+
+        // Extract all source references from all stories
+        const sourceReferences = stories.flatMap((story) => story.sourceReferences as string[]);
+
+        return sourceReferences;
     }
 }
