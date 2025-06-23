@@ -6,18 +6,17 @@ import {
     UserPromptAdapter,
 } from '@jterrazz/intelligence';
 import { type LoggerPort } from '@jterrazz/logger';
-import { randomUUID } from 'crypto';
 import { z } from 'zod/v4';
 
-import { type StoryDigestAgentPort } from '../../../application/ports/outbound/agents/story-digest.agent.js';
+import {
+    type StoryDigestAgentPort,
+    type StoryDigestResult,
+} from '../../../application/ports/outbound/agents/story-digest.agent.js';
 import { type NewsStory } from '../../../application/ports/outbound/providers/news.port.js';
 
-import { Perspective } from '../../../domain/entities/perspective.entity.js';
-import { Story, synopsisSchema } from '../../../domain/entities/story.entity.js';
+import { synopsisSchema } from '../../../domain/entities/story.entity.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { categorySchema } from '../../../domain/value-objects/category.vo.js';
-import { Country } from '../../../domain/value-objects/country.vo.js';
-import { countrySchema } from '../../../domain/value-objects/country.vo.js';
 import { HolisticDigest } from '../../../domain/value-objects/perspective/holistic-digest.vo.js';
 import { holisticDigestSchema } from '../../../domain/value-objects/perspective/holistic-digest.vo.js';
 import {
@@ -31,7 +30,6 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
 
     static readonly SCHEMA = z.object({
         category: categorySchema,
-        countries: z.array(countrySchema),
         perspectives: z
             .array(
                 z.object({
@@ -43,7 +41,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 }),
             )
             .min(1, 'At least one perspective is required.')
-            .max(4, 'No more than four perspectives should be created.'),
+            .max(2, 'No more than two perspectives should be created.'),
         synopsis: synopsisSchema,
     });
 
@@ -73,15 +71,33 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
 
     static readonly USER_PROMPT = (newsStory: NewsStory) =>
         new UserPromptAdapter(
-            'Your goal is to create a structured brief for a writer by sorting information from news articles into its correct discourse category. This allows the writer to understand how the story is being presented across different types of media.',
-            'First, identify the dominant, mainstream perspective present in the articles. Then, identify if there are any significant alternative, under-reported, or dubious perspectives. Each perspective you create MUST correspond to one unique discourse type, and you must not create duplicate entries for the same discourse type. No need for a lot of perspectives, just what you think is useful.',
-            'Remember: this is not a polished article. It is a raw, detailed information dump for a professional writer. Prioritize factual completeness and accuracy for each discourse category over narrative style. Each category must be unique.',
-            'Analyze the following news articles selected from multiple sources.',
-            'CRITIAL: Max 1 of each discourse type.',
-            'Synopsis is a concise, information-dense summary capturing essential facts, key actors, and core narrative in ~50 words. In this template: "Tesla CEO Musk acquires Twitter ($44B, Oct 2022), fires executives, adds $8 verification fee, restores suspended accounts, triggers advertiser exodus (GM, Pfizer), 75% staff cuts, sparks free speech vs. safety debate."',
+            // Main objective
+            'If my prompt is not clear, feel free to try your best based on the context.',
+            'Your goal is to create a structured brief for a writer by analyzing news articles. You must identify the underlying sides and narratives of the story and categorize the different perspectives into distinct discourse types.',
+            'You NEVER judge the quality of the perspectives, you only categorize them, in order to help the writer understand equally the different sides of the story.',
 
-            'CRITIAL: A discourse type represents a unique perspective.',
-            'News articles to analyze:',
+            // Core task description
+            'Analyze the news articles and identify distinct perspectives based on discourse types:',
+            '• MAINSTREAM: The primary, widely accepted narrative presented by major, most consensual media outlets.',
+            '• ALTERNATIVE: A counter-narrative that is still seen in the public medias.',
+            '• UNDERREPORTED and DUBIOUS: DO NOT USE those for now.',
+            // '• UNDERREPORTED: A perspective largely absent from mainstream coverage, which the provided articles might reference as coming from external sources (e.g., specialized reports, foreign analysis).',
+            // '• DUBIOUS: A perspective based on questionable or unsubstantiated claims, like flat earth theories.',
+
+            // Critical Rules
+            'CRITICAL RULES:',
+            '• Your analysis MUST be based strictly on the provided context. Do not introduce your own information.',
+            "• The 'underreported' category can ONLY be used if the articles explicitly cite a viewpoint from a non-media source. If all views originate from the newspapers themselves, do NOT use this category.",
+            '• Each perspective MUST correspond to ONE unique discourse type. NO DUPLICATES perspectives.',
+            '• MAX 2 perspectives total. Only create perspectives that are clearly present in the articles.',
+
+            // Synopsis Requirements
+            'SYNOPSIS REQUIREMENTS:',
+            '• Create a concise, information-dense summary capturing essential facts, key actors, and the core narrative in ~50 words.',
+            '• Prioritize factual completeness over narrative style.',
+
+            // Data input
+            'Newspapers articles to analyze:',
             JSON.stringify(
                 newsStory.articles.map((article) => ({
                     body: article.body,
@@ -92,11 +108,21 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
             ),
         );
 
-    async run(params: { newsStory: NewsStory }): Promise<null | Story> {
+    async run(params: { newsStory: NewsStory }): Promise<null | StoryDigestResult> {
         try {
             this.logger.info(
                 `[${StoryDigestAgentAdapter.NAME}] Digesting story with ${params.newsStory.articles.length} articles`,
             );
+
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
+            console.log(StoryDigestAgentAdapter.USER_PROMPT(params.newsStory).generate());
 
             const result = await this.agent.run(
                 StoryDigestAgentAdapter.USER_PROMPT(params.newsStory),
@@ -112,55 +138,33 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 `[${StoryDigestAgentAdapter.NAME}] Successfully parsed AI response with ${result.perspectives.length} perspectives`,
                 {
                     category: result.category,
-                    countries: result.countries,
                     perspectiveTypes: result.perspectives.map((p) => p.tags.discourse_type),
                 },
             );
 
-            // Create the Story entity from AI response
-            const storyId = randomUUID();
-            const now = new Date();
-
             // Create value objects from AI response
             const category = new Category(result.category);
-            const countries = result.countries.map((countryCode) => new Country(countryCode));
 
-            // Create perspectives from AI response
-            const perspectives = result.perspectives.map((perspectiveData) => {
-                const holisticDigest = new HolisticDigest(perspectiveData.holisticDigest);
-                const tags = new PerspectiveTags({
+            // Create perspective data from AI response (without creating full Perspective entities)
+            const perspectives = result.perspectives.map((perspectiveData) => ({
+                holisticDigest: new HolisticDigest(perspectiveData.holisticDigest),
+                tags: new PerspectiveTags({
                     discourse_type: perspectiveData.tags.discourse_type,
                     stance: perspectiveData.tags.stance,
-                });
+                }),
+            }));
 
-                return new Perspective({
-                    createdAt: now,
-                    holisticDigest,
-                    id: randomUUID(),
-                    storyId,
-                    tags,
-                    updatedAt: now,
-                });
-            });
-
-            // Create the story with perspectives
-            const story = new Story({
+            const digestResult: StoryDigestResult = {
                 category,
-                countries,
-                createdAt: now,
-                dateline: params.newsStory.publishedAt,
-                id: storyId,
                 perspectives,
-                sourceReferences: params.newsStory.articles.map((article) => article.id),
                 synopsis: result.synopsis,
-                updatedAt: now,
-            });
+            };
 
             this.logger.info(
-                `[${StoryDigestAgentAdapter.NAME}] Successfully digested story: ${story.synopsis.substring(0, 100)}... with ${story.getPerspectiveCount()} perspectives`,
+                `[${StoryDigestAgentAdapter.NAME}] Successfully digested story: ${digestResult.synopsis.substring(0, 100)}... with ${digestResult.perspectives.length} perspectives`,
             );
 
-            return story;
+            return digestResult;
         } catch (error) {
             this.logger.error(`[${StoryDigestAgentAdapter.NAME}] Failed to digest story`, {
                 articleCount: params.newsStory.articles.length,

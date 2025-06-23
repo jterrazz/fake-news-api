@@ -8,7 +8,10 @@ import { Category } from '../../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../../domain/value-objects/language.vo.js';
 
-import { type StoryDigestAgentPort } from '../../../ports/outbound/agents/story-digest.agent.js';
+import {
+    type StoryDigestAgentPort,
+    type StoryDigestResult,
+} from '../../../ports/outbound/agents/story-digest.agent.js';
 import { type StoryRepositoryPort } from '../../../ports/outbound/persistence/story-repository.port.js';
 import {
     type NewsProviderPort,
@@ -31,6 +34,7 @@ describe('DigestStoriesUseCase', () => {
     let useCase: DigestStoriesUseCase;
     let testStories: Story[];
     let testNewsStories: NewsStory[];
+    let mockDigestResults: StoryDigestResult[];
 
     beforeEach(() => {
         mockStoryDigestAgent = mock<StoryDigestAgentPort>();
@@ -48,9 +52,19 @@ describe('DigestStoriesUseCase', () => {
         testStories = getMockStories(TEST_STORIES_COUNT);
         testNewsStories = createTestNewsStories(TEST_STORIES_COUNT);
 
+        // Create mock digest results (partial data from AI with raw perspective data)
+        mockDigestResults = testStories.map((story) => ({
+            category: story.category,
+            perspectives: story.perspectives.map((perspective) => ({
+                holisticDigest: perspective.holisticDigest,
+                tags: perspective.tags,
+            })),
+            synopsis: story.synopsis,
+        }));
+
         // Default mock responses
         mockNewsProvider.fetchNews.mockResolvedValue(testNewsStories);
-        mockStoryDigestAgent.run.mockImplementation(async () => testStories[0]);
+        mockStoryDigestAgent.run.mockImplementation(async () => mockDigestResults[0]);
         mockStoryRepository.create.mockImplementation(async (story) => story);
     });
 
@@ -155,7 +169,7 @@ describe('DigestStoriesUseCase', () => {
             // Given - agent returns null for some stories
             mockStoryDigestAgent.run.mockImplementation(async (params) => {
                 // Return null for first story, valid story for others
-                return params?.newsStory === testNewsStories[0] ? null : testStories[0];
+                return params?.newsStory === testNewsStories[0] ? null : mockDigestResults[0];
             });
 
             // When - executing the use case
@@ -173,7 +187,7 @@ describe('DigestStoriesUseCase', () => {
                 if (params?.newsStory === testNewsStories[1]) {
                     throw new Error('Agent processing failed');
                 }
-                return testStories[0];
+                return mockDigestResults[0];
             });
 
             // When - executing the use case

@@ -1,6 +1,9 @@
 import { type LoggerPort } from '@jterrazz/logger';
+import { randomUUID } from 'crypto';
 
+import { Perspective } from '../../../domain/entities/perspective.entity.js';
 import { type Story } from '../../../domain/entities/story.entity.js';
+import { Story as StoryEntity } from '../../../domain/entities/story.entity.js';
 import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
 
@@ -50,7 +53,7 @@ export class DigestStoriesUseCase {
             });
 
             // Filter and validate news stories
-            let validNewsStories = newsStories.filter((story) => story.articles.length >= 2);
+            const validNewsStories = newsStories.filter((story) => story.articles.length >= 2);
 
             if (validNewsStories.length === 0) {
                 this.logger.warn('No valid news stories after filtering', {
@@ -64,16 +67,16 @@ export class DigestStoriesUseCase {
             // Process each news story individually through the AI agent
             const digestedStories: Story[] = [];
 
-            validNewsStories = validNewsStories.slice(0, 1);
+            // validNewsStories = validNewsStories.slice(0, 1);
 
             for (const newsStory of validNewsStories) {
                 try {
                     // Send individual news story to AI agent to digest into structured story
-                    const digestedStory = await this.storyDigestAgent.run({
+                    const digestResult = await this.storyDigestAgent.run({
                         newsStory,
                     });
 
-                    if (!digestedStory) {
+                    if (!digestResult) {
                         this.logger.warn('AI agent returned null story', {
                             country: country.toString(),
                             language: language.toString(),
@@ -82,8 +85,37 @@ export class DigestStoriesUseCase {
                         continue;
                     }
 
+                    // Generate story metadata that we handle in the use case
+                    const storyId = randomUUID();
+                    const now = new Date();
+
+                    // Create perspectives from the raw perspective data
+                    const perspectives = digestResult.perspectives.map((perspectiveData) => {
+                        return new Perspective({
+                            createdAt: now,
+                            holisticDigest: perspectiveData.holisticDigest,
+                            id: randomUUID(),
+                            storyId,
+                            tags: perspectiveData.tags,
+                            updatedAt: now,
+                        });
+                    });
+
+                    // Create the complete story with use case-managed fields
+                    const story = new StoryEntity({
+                        category: digestResult.category,
+                        countries: [country], // Use the country from the use case context
+                        createdAt: now,
+                        dateline: newsStory.publishedAt, // Use the news story's published date
+                        id: storyId,
+                        perspectives: perspectives,
+                        sourceReferences: newsStory.articles.map((article) => article.id),
+                        synopsis: digestResult.synopsis,
+                        updatedAt: now,
+                    });
+
                     // Store the digested story in the database
-                    const savedStory = await this.storyRepository.create(digestedStory);
+                    const savedStory = await this.storyRepository.create(story);
 
                     this.logger.info(`Saving story for ${country}/${language}`, {
                         storySynopsis: savedStory.synopsis,
