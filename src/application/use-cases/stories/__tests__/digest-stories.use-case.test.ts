@@ -2,7 +2,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { beforeEach, describe, expect, mockOf, test } from '@jterrazz/test';
 import { type DeepMockProxy, mock } from 'vitest-mock-extended';
 
-import { mockStories } from '../../../../domain/entities/__mocks__/mock-of-stories.js';
+import { getMockStories } from '../../../../domain/entities/__mocks__/mock-of-stories.js';
 import { type Story } from '../../../../domain/entities/story.entity.js';
 import { Category } from '../../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../../domain/value-objects/country.vo.js';
@@ -45,7 +45,7 @@ describe('DigestStoriesUseCase', () => {
             mockStoryRepository,
         );
 
-        testStories = mockStories(TEST_STORIES_COUNT);
+        testStories = getMockStories(TEST_STORIES_COUNT);
         testNewsStories = createTestNewsStories(TEST_STORIES_COUNT);
 
         // Default mock responses

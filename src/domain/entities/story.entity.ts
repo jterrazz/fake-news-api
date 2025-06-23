@@ -5,12 +5,10 @@ import { Country } from '../value-objects/country.vo.js';
 
 import { Perspective } from './perspective.entity.js';
 
-export const titleSchema = z
+export const synopsisSchema = z
     .string()
-    .min(100, 'Story title cannot be less than 100 characters')
-    .max(400, 'Story title cannot exceed 400 characters')
     .describe(
-        "A detailed and descriptive title that summarizes the central narrative of the story, including its main viewpoints or conflicts. This title should be comprehensive enough to give a writer a clear understanding of the story's scope and nuances.",
+        'Synopsis is a concise, information-dense summary capturing essential facts, key actors, and core narrative in ~50 words. In this template: "Tesla CEO Musk acquires Twitter ($44B, Oct 2022), fires executives, adds $8 verification fee, restores suspended accounts, triggers advertiser exodus (GM, Pfizer), 75% staff cuts, sparks free speech vs. safety debate."',
     );
 
 export const storySchema = z.object({
@@ -32,7 +30,7 @@ export const storySchema = z.object({
         .array(z.string())
         .min(1, 'At least one external source reference is required')
         .describe('A list of IDs from the original source articles used to create the story.'),
-    title: titleSchema,
+    synopsis: synopsisSchema,
     updatedAt: z.date().describe('The timestamp when the story was last updated.'),
 });
 
@@ -49,7 +47,7 @@ export class Story {
     public readonly id: string;
     public readonly perspectives: Perspective[];
     public readonly sourceReferences: string[];
-    public readonly title: string;
+    public readonly synopsis: string;
     public readonly updatedAt: Date;
 
     public constructor(data: StoryProps) {
@@ -61,7 +59,7 @@ export class Story {
 
         const validatedData = result.data;
         this.id = validatedData.id;
-        this.title = validatedData.title;
+        this.synopsis = validatedData.synopsis;
         this.category = validatedData.category;
         this.perspectives = validatedData.perspectives;
         this.dateline = validatedData.dateline;

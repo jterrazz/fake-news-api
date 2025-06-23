@@ -85,12 +85,8 @@ export class DigestStoriesUseCase {
                     // Store the digested story in the database
                     const savedStory = await this.storyRepository.create(digestedStory);
 
-                    this.logger.info('Successfully digested and stored story', {
-                        country: country.toString(),
-                        language: language.toString(),
-                        storyCategory: savedStory.category.toString(),
-                        storyId: savedStory.id,
-                        storyTitle: savedStory.title,
+                    this.logger.info(`Saving story for ${country}/${language}`, {
+                        storySynopsis: savedStory.synopsis,
                     });
 
                     digestedStories.push(savedStory);

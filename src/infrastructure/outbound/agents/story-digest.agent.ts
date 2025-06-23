@@ -13,7 +13,7 @@ import { type StoryDigestAgentPort } from '../../../application/ports/outbound/a
 import { type NewsStory } from '../../../application/ports/outbound/providers/news.port.js';
 
 import { Perspective } from '../../../domain/entities/perspective.entity.js';
-import { Story, titleSchema } from '../../../domain/entities/story.entity.js';
+import { Story, synopsisSchema } from '../../../domain/entities/story.entity.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { categorySchema } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
@@ -43,11 +43,8 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 }),
             )
             .min(1, 'At least one perspective is required.')
-            .max(4, 'No more than four perspectives should be created.')
-            .describe(
-                'An array of 1 to 4 entries, where each entry is strictly defined by an observed discourse type (e.g., mainstream, alternative, under-reported, dubious). Each entry must contain the summarized information from the articles that falls into that specific discourse category. Do not create entries for discourse types not present in the articles. Each discourse type must be used at most once.',
-            ),
-        title: titleSchema,
+            .max(4, 'No more than four perspectives should be created.'),
+        synopsis: synopsisSchema,
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
@@ -77,9 +74,13 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
     static readonly USER_PROMPT = (newsStory: NewsStory) =>
         new UserPromptAdapter(
             'Your goal is to create a structured brief for a writer by sorting information from news articles into its correct discourse category. This allows the writer to understand how the story is being presented across different types of media.',
-            'First, identify the dominant, mainstream perspective present in the articles. Then, identify if there are any significant alternative, under-reported, or dubious perspectives. Each perspective you create MUST correspond to one unique discourse type, and you must not create duplicate entries for the same discourse type. Your final output must contain between 1 and 4 distinct discourse types in total.',
+            'First, identify the dominant, mainstream perspective present in the articles. Then, identify if there are any significant alternative, under-reported, or dubious perspectives. Each perspective you create MUST correspond to one unique discourse type, and you must not create duplicate entries for the same discourse type. No need for a lot of perspectives, just what you think is useful.',
             'Remember: this is not a polished article. It is a raw, detailed information dump for a professional writer. Prioritize factual completeness and accuracy for each discourse category over narrative style. Each category must be unique.',
             'Analyze the following news articles selected from multiple sources.',
+            'CRITIAL: Max 1 of each discourse type.',
+            'Synopsis is a concise, information-dense summary capturing essential facts, key actors, and core narrative in ~50 words. In this template: "Tesla CEO Musk acquires Twitter ($44B, Oct 2022), fires executives, adds $8 verification fee, restores suspended accounts, triggers advertiser exodus (GM, Pfizer), 75% staff cuts, sparks free speech vs. safety debate."',
+
+            'CRITIAL: A discourse type represents a unique perspective.',
             'News articles to analyze:',
             JSON.stringify(
                 newsStory.articles.map((article) => ({
@@ -105,6 +106,16 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 this.logger.warn(`[${StoryDigestAgentAdapter.NAME}] No result from AI model`);
                 return null;
             }
+
+            // Log successful parsing for debugging
+            this.logger.info(
+                `[${StoryDigestAgentAdapter.NAME}] Successfully parsed AI response with ${result.perspectives.length} perspectives`,
+                {
+                    category: result.category,
+                    countries: result.countries,
+                    perspectiveTypes: result.perspectives.map((p) => p.tags.discourse_type),
+                },
+            );
 
             // Create the Story entity from AI response
             const storyId = randomUUID();
@@ -141,17 +152,18 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 id: storyId,
                 perspectives,
                 sourceReferences: params.newsStory.articles.map((article) => article.id),
-                title: result.title,
+                synopsis: result.synopsis,
                 updatedAt: now,
             });
 
             this.logger.info(
-                `[${StoryDigestAgentAdapter.NAME}] Successfully digested story: ${story.title} with ${story.getPerspectiveCount()} perspectives`,
+                `[${StoryDigestAgentAdapter.NAME}] Successfully digested story: ${story.synopsis.substring(0, 100)}... with ${story.getPerspectiveCount()} perspectives`,
             );
 
             return story;
         } catch (error) {
             this.logger.error(`[${StoryDigestAgentAdapter.NAME}] Failed to digest story`, {
+                articleCount: params.newsStory.articles.length,
                 error,
             });
             return null;

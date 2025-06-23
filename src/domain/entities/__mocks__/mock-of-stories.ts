@@ -1,79 +1,71 @@
 import { Category } from '../../value-objects/category.vo.js';
 import { Country } from '../../value-objects/country.vo.js';
+import { type Perspective } from '../perspective.entity.js';
 import { Story } from '../story.entity.js';
 
 import { mockPerspectives } from './mock-of-perspectives.js';
 
-/**
- * Creates an array of mock stories for testing purposes
- */
-export function mockStories(count: number): Story[] {
-    return Array.from({ length: count }, (_, index) => createMockStory(index));
+export function getMockStories(count: number = 3): Story[] {
+    return Array.from({ length: count }, (_, index) => {
+        const category = new Category(index % 2 === 0 ? 'politics' : 'technology');
+        const countries = [new Country('us'), new Country('fr')];
+        const storyId = crypto.randomUUID();
+        const perspectives = mockPerspectives(2, storyId);
+
+        const story = new Story({
+            category,
+            countries,
+            createdAt: new Date(Date.now() - index * 1000 * 60 * 60 * 24),
+            dateline: new Date(Date.now() - index * 1000 * 60 * 60 * 24),
+            id: storyId,
+            perspectives,
+            sourceReferences: [
+                `worldnewsapi:article-${index}-1`,
+                `worldnewsapi:article-${index}-2`,
+            ],
+            synopsis: getMockStorySynopsis(index),
+            updatedAt: new Date(Date.now() - index * 1000 * 60 * 60 * 12),
+        });
+
+        return story;
+    });
 }
 
-/**
- * Creates a single mock story with the given parameters
- */
-function createMockStory(index: number): Story {
-    const storyId = crypto.randomUUID();
+export function getMockStory(options?: {
+    category?: Category;
+    countries?: Country[];
+    id?: string;
+    perspectives?: Perspective[];
+}): Story {
+    const storyId = options?.id || crypto.randomUUID();
     return new Story({
-        category: getMockStoryCategory(index),
-        countries: getMockCountries(index),
+        category: options?.category || new Category('politics'),
+        countries: options?.countries || [new Country('us')],
         createdAt: new Date(),
-        dateline: new Date(Date.now() - index * 24 * 60 * 60 * 1000), // Each story is a day older
+        dateline: new Date(),
         id: storyId,
-        perspectives: mockPerspectives(Math.max(1, (index % 3) + 1), storyId), // 1 to 3 perspectives per story
-        sourceReferences: generateMockSourceReferences(index),
-        title: `Mock Story ${index + 1}: ${getMockStoryTitle(index)}`,
+        perspectives: options?.perspectives || mockPerspectives(1, storyId),
+        sourceReferences: ['worldnewsapi:mock-article-1', 'worldnewsapi:mock-article-2'],
+        synopsis:
+            'Mock Story Synopsis: A comprehensive analysis of current political developments across multiple regions, examining the various perspectives and stakeholder positions that shape public discourse on this evolving situation.',
         updatedAt: new Date(),
     });
 }
 
 /**
- * Generates mock source reference UUIDs
+ * Generates mock story synopses based on category
  */
-function generateMockSourceReferences(index: number): string[] {
-    const sourceCount = (index % 3) + 1; // 1 to 3 sources per story
-    return Array.from({ length: sourceCount }, () => crypto.randomUUID());
-}
-
-/**
- * Generates mock country objects for stories
- */
-function getMockCountries(index: number): Country[] {
-    const countryGroups = [
-        ['us'],
-        ['fr'],
-        ['us', 'fr'],
-        ['global'], // Worldwide stories
-        ['global'], // More global stories for variety
+function getMockStorySynopsis(index: number): string {
+    const synopses = [
+        'A comprehensive political analysis examining stakeholder perspectives on policy implementation across affected regions. Government responses, opposition viewpoints, citizen concerns, and international reactions shape the evolving narrative.',
+        'In-depth technological coverage examining societal impact with industry expert viewpoints, regulatory perspectives, and public advocacy positions. Market disruption concerns and innovation opportunities drive complex discussions.',
+        'Detailed economic examination of trends and movements featuring financial institution analysis, government agency perspectives, and independent research insights. Employment impacts and monetary policy implications remain central.',
+        'Thorough environmental investigation of policy changes incorporating scientific community perspectives, environmental group positions, and industry representative viewpoints. Climate assessments and conservation efforts dominate discourse.',
+        'Complete social policy assessment analyzing community impact through demographic group positions, advocacy organization perspectives, and policy expert analysis. Implementation challenges and community benefits drive evaluation.',
+        'Comprehensive international relations review examining global implications through diplomatic, economic, and security perspectives from multiple nations. Treaty negotiations and trade relationships shape international cooperation.',
+        'Detailed healthcare analysis of system changes examining public health consequences through medical professional insights, patient advocacy perspectives, and healthcare administrator viewpoints on treatment accessibility.',
+        'In-depth educational examination of policy reforms analyzing learning outcome impacts through educator perspectives, parent viewpoints, student positions, and education researcher insights on curriculum changes.',
     ];
-    const countryCodes = countryGroups[index % countryGroups.length];
-    return countryCodes.map((code) => new Country(code));
-}
 
-/**
- * Determines the category for a story based on its index
- */
-function getMockStoryCategory(index: number): Category {
-    const categories = ['politics', 'technology', 'business', 'science', 'world'] as const;
-    const categoryName = categories[index % categories.length];
-    return new Category(categoryName);
-}
-
-/**
- * Generates mock story titles based on category
- */
-function getMockStoryTitle(index: number): string {
-    const titles = [
-        'Government Announces New Policy',
-        'Tech Giant Launches Revolutionary Product',
-        'Economic Indicators Show Growth',
-        'Scientific Breakthrough in Medicine',
-        'International Summit Concludes',
-        'Market Volatility Continues',
-        'Climate Agreement Reached',
-        'Security Measures Enhanced',
-    ];
-    return titles[index % titles.length];
+    return synopses[index % synopses.length];
 }

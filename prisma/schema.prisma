@@ -49,7 +49,7 @@ enum DiscourseType {
 
 model Story {
   id       String   @id @default(uuid())
-  title    String
+  synopsis String
   category Category
 
   // Geographic and temporal context

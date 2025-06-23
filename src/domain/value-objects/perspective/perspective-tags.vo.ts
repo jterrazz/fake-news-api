@@ -19,9 +19,9 @@ export const stanceSchema = z.enum([
 
 export const discourseTypeSchema = z.enum(['mainstream', 'alternative', 'underreported', 'dubious'])
     .describe(`Where this perspective sits in public discourse:
-- mainstream: widely accepted views, traditional media
-- alternative: outside mainstream but within reasonable debate
-- underreported: perspectives not adequately covered by media
+- mainstream: main POV of the media, within the Overton window
+- alternative: opposite side to mainstream media POV, but still within the Overton window
+- underreported: absent stories from media, only found in external POVs outside mainstream coverage
 - dubious: questionable claims, of doubtful validity`);
 
 export const perspectiveTagsSchema = z

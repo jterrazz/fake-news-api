@@ -90,7 +90,7 @@ export class StoryMapper {
             sourceReferences: Array.isArray(prismaStory.sourceReferences)
                 ? (prismaStory.sourceReferences as string[])
                 : [],
-            title: prismaStory.title,
+            synopsis: prismaStory.synopsis,
             updatedAt: prismaStory.updatedAt,
         });
     }
@@ -102,7 +102,7 @@ export class StoryMapper {
             dateline: story.dateline,
             id: story.id,
             sourceReferences: story.sourceReferences,
-            title: story.title,
+            synopsis: story.synopsis,
         };
     }
 }
