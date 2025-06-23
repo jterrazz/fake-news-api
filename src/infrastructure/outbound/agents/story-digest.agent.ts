@@ -114,16 +114,6 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
                 `[${StoryDigestAgentAdapter.NAME}] Digesting story with ${params.newsStory.articles.length} articles`,
             );
 
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log('ISSSOSUOUUUUUUUUUUUUUUUUUUUUUUUUU');
-            console.log(StoryDigestAgentAdapter.USER_PROMPT(params.newsStory).generate());
-
             const result = await this.agent.run(
                 StoryDigestAgentAdapter.USER_PROMPT(params.newsStory),
             );

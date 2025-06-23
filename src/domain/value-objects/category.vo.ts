@@ -2,15 +2,16 @@ import { z } from 'zod/v4';
 
 export const categorySchema = z
     .enum([
-        'business',
-        'entertainment',
-        'health',
-        'other',
         'politics',
-        'science',
-        'sports',
+        'business',
         'technology',
-        'world',
+        'science',
+        'health',
+        'environment',
+        'society',
+        'entertainment',
+        'sports',
+        'other',
     ])
     .describe(
         "Classifies the news story into a predefined category. If the story doesn't fit any of the specific categories, 'other' must be used as a fallback.",
