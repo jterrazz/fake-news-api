@@ -3,6 +3,7 @@ import {
     type Category as PrismaCategory,
     type Country as PrismaCountry,
     type Language as PrismaLanguage,
+    type Prisma,
 } from '@prisma/client';
 
 import { Article } from '../../../domain/entities/article.entity.js';
@@ -26,7 +27,7 @@ export class ArticleMapper {
         return language.toString();
     }
 
-    toDomain(prisma: PrismaArticle): Article {
+    toDomain(prisma: PrismaArticle & { stories?: { id: string }[] }): Article {
         return new Article({
             authenticity: new Authenticity(prisma.fakeStatus, prisma.fakeReason),
             body: new Body(prisma.body),
@@ -36,21 +37,26 @@ export class ArticleMapper {
             id: prisma.id,
             language: new Language(prisma.language),
             publishedAt: prisma.publishedAt,
+            storyIds: prisma.stories?.map((story) => story.id),
         });
     }
 
-    toPrisma(domain: Article): PrismaArticle {
+    toPrisma(domain: Article): Prisma.ArticleCreateInput {
         return {
             body: domain.body.value,
             category: this.mapCategoryToPrisma(domain.category),
             country: this.mapCountryToPrisma(domain.country),
-            createdAt: domain.publishedAt,
             fakeReason: domain.authenticity.reason,
             fakeStatus: domain.isFake(),
             headline: domain.headline.value,
             id: domain.id,
             language: this.mapLanguageToPrisma(domain.language),
             publishedAt: domain.publishedAt,
+            stories: domain.storyIds
+                ? {
+                      connect: domain.storyIds.map((id) => ({ id })),
+                  }
+                : undefined,
         };
     }
 }

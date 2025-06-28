@@ -103,6 +103,41 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
         return stories.map((story) => this.mapper.toDomain(story));
     }
 
+    async findStoriesWithoutArticles(criteria?: {
+        category?: string;
+        country?: string;
+        limit?: number;
+    }): Promise<Story[]> {
+        const where: Record<string, unknown> = {
+            articles: {
+                none: {}, // Stories that have no articles linked
+            },
+        };
+
+        // Category filter
+        if (criteria?.category) {
+            where.category = criteria.category;
+        }
+
+        // Country filter
+        if (criteria?.country) {
+            where.country = criteria.country;
+        }
+
+        const stories = await this.prisma.getPrismaClient().story.findMany({
+            include: {
+                perspectives: true,
+            },
+            orderBy: {
+                dateline: 'desc',
+            },
+            take: criteria?.limit || 50,
+            where,
+        });
+
+        return stories.map((story) => this.mapper.toDomain(story));
+    }
+
     async getAllSourceReferences(country: Country): Promise<string[]> {
         const stories = await this.prisma.getPrismaClient().story.findMany({
             orderBy: {

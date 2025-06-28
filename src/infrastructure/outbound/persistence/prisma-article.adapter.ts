@@ -35,12 +35,10 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
     }
 
     async createMany(articles: Article[]): Promise<void> {
-        const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
-
         await this.prisma.getPrismaClient().$transaction(
-            prismaArticles.map((article) =>
+            articles.map((article) =>
                 this.prisma.getPrismaClient().article.create({
-                    data: article,
+                    data: this.mapper.toPrisma(article),
                 }),
             ),
         );
@@ -89,6 +87,11 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         };
 
         const items = await this.prisma.getPrismaClient().article.findMany({
+            include: {
+                stories: {
+                    select: { id: true },
+                },
+            },
             orderBy: {
                 createdAt: 'desc',
             },

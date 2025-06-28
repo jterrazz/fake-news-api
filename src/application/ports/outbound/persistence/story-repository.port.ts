@@ -28,6 +28,16 @@ export interface StoryRepositoryPort {
     }): Promise<Story[]>;
 
     /**
+     * Find stories that don't have any articles linked to them
+     * Useful for identifying stories that need article implementation
+     */
+    findStoriesWithoutArticles(criteria?: {
+        category?: string;
+        country?: string;
+        limit?: number;
+    }): Promise<Story[]>;
+
+    /**
      * Get all existing source references (article IDs) to support deduplication
      * Limited to 2000 most recent entries, optionally filtered by country
      */

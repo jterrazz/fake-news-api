@@ -26,6 +26,7 @@ function createMockArticle(index: number, country: Country, language: Language):
         id: crypto.randomUUID(),
         language,
         publishedAt: new Date(),
+        storyIds: [], // Empty array for mock articles
     });
 }
 

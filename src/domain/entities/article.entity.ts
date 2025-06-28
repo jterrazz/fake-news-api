@@ -16,6 +16,7 @@ export const articleSchema = z.object({
     id: z.uuid(),
     language: z.instanceof(Language),
     publishedAt: z.date(),
+    storyIds: z.array(z.string()).optional(),
 });
 
 export type ArticleProps = z.input<typeof articleSchema>;
@@ -29,6 +30,7 @@ export class Article {
     public readonly id: string;
     public readonly language: Language;
     public readonly publishedAt: Date;
+    public readonly storyIds?: string[];
 
     public constructor(data: ArticleProps) {
         const result = articleSchema.safeParse(data);
@@ -46,6 +48,7 @@ export class Article {
         this.id = validatedData.id;
         this.language = validatedData.language;
         this.publishedAt = validatedData.publishedAt;
+        this.storyIds = validatedData.storyIds;
     }
 
     public isFake(): boolean {

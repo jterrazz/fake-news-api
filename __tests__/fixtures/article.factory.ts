@@ -28,6 +28,7 @@ export class ArticleFactory {
         id: string;
         language: Language;
         publishedAt: Date;
+        storyIds: string[];
     };
 
     constructor() {
@@ -40,6 +41,7 @@ export class ArticleFactory {
             id: crypto.randomUUID(),
             language: new Language('en'),
             publishedAt: new Date('2024-03-01T12:00:00.000Z'),
+            storyIds: [],
         };
     }
 
@@ -84,6 +86,9 @@ export class ArticleFactory {
                 id: article.id,
                 language: article.language.toString() as PrismaLanguage,
                 publishedAt: article.publishedAt,
+                stories: article.storyIds?.length
+                    ? { connect: article.storyIds.map((id) => ({ id })) }
+                    : undefined,
             },
         });
         return article;
@@ -143,6 +148,11 @@ export class ArticleFactory {
 
     withPublishedAt(date: Date): ArticleFactory {
         this.data.publishedAt = date;
+        return this;
+    }
+
+    withStories(storyIds: string[]): ArticleFactory {
+        this.data.storyIds = storyIds;
         return this;
     }
 }
