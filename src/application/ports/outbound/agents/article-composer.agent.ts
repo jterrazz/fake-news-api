@@ -1,7 +1,6 @@
 import { type AgentPort } from '@jterrazz/intelligence';
 
 import { type Story } from '../../../../domain/entities/story.entity.js';
-import { type Category } from '../../../../domain/value-objects/category.vo.js';
 import { type Country } from '../../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../../domain/value-objects/language.vo.js';
 
@@ -24,7 +23,6 @@ export type ArticleCompositionInput = {
  */
 export type ArticleCompositionResult = {
     body: string;
-    category: Category;
     // Main article (neutral, factual)
     headline: string;
     // Variants (perspective-based viewpoints)

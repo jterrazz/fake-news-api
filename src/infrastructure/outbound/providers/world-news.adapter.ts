@@ -35,6 +35,7 @@ type WorldNewsResponse = z.infer<typeof worldNewsResponseSchema>;
 
 // Schemas
 const worldNewsArticleSchema = z.object({
+    id: z.number(),
     publish_date: z.string(),
     text: z.string(),
     title: z.string(),
@@ -168,7 +169,7 @@ export class WorldNewsAdapter implements NewsProviderPort {
         const articles: NewsArticle[] = section.news.map((article) => ({
             body: article.text,
             headline: article.title,
-            id: `worldnewsapi:${crypto.randomUUID()}`,
+            id: `worldnewsapi:${article.id}`,
         }));
 
         // Calculate the average date from all articles

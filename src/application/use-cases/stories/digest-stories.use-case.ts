@@ -86,7 +86,8 @@ export class DigestStoriesUseCase {
             }
 
             // Filter and validate news stories
-            const validNewsStories = newNewsStories.filter((story) => story.articles.length >= 4);
+            let validNewsStories = newNewsStories.filter((story) => story.articles.length >= 4);
+            validNewsStories = validNewsStories.slice(0, 4);
 
             if (validNewsStories.length === 0) {
                 this.logger.warn('No valid news stories after filtering', {

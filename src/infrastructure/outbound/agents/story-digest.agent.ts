@@ -78,8 +78,8 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
 
             // Core task description
             'Analyze the news articles and identify distinct perspectives based on discourse types:',
-            '• MAINSTREAM: The primary, widely accepted narrative presented by major, most consensual media outlets.',
-            '• ALTERNATIVE: A counter-narrative that is still seen in the public medias.',
+            '• MAINSTREAM: The dominant narrative that is seen widely across most major media outlets.',
+            '• ALTERNATIVE: A viewpoint that is less defended or prevalent than the mainstream but still visible in public media.',
             '• UNDERREPORTED and DUBIOUS: DO NOT USE those for now.',
             // '• UNDERREPORTED: A perspective largely absent from mainstream coverage, which the provided articles might reference as coming from external sources (e.g., specialized reports, foreign analysis).',
             // '• DUBIOUS: A perspective based on questionable or unsubstantiated claims, like flat earth theories.',
@@ -93,7 +93,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
 
             // Synopsis Requirements
             'SYNOPSIS REQUIREMENTS:',
-            '• Create a concise, information-dense summary capturing essential facts, key actors, and the core narrative in ~50 words.',
+            '• Create a comprehensive, information-dense summary capturing all essential facts, key actors, and the core narrative.',
             '• Prioritize factual completeness over narrative style.',
 
             // Data input

@@ -1,12 +1,16 @@
 import {
     type Article as PrismaArticle,
+    type ArticleVariant as PrismaArticleVariant,
     type Category as PrismaCategory,
     type Country as PrismaCountry,
+    type Discourse,
     type Language as PrismaLanguage,
     type Prisma,
+    type Stance,
 } from '@prisma/client';
 
 import { Article } from '../../../domain/entities/article.entity.js';
+import { ArticleVariant } from '../../../domain/value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
@@ -27,7 +31,17 @@ export class ArticleMapper {
         return language.toString();
     }
 
-    toDomain(prisma: PrismaArticle & { stories?: { id: string }[] }): Article {
+    toDomain(prisma: PrismaArticle & { stories?: { id: string }[]; variants?: PrismaArticleVariant[] }): Article {
+        const variants = prisma.variants?.map(
+            (variant) =>
+                new ArticleVariant({
+                    body: new Body(variant.body),
+                    discourse: variant.discourse,
+                    headline: new Headline(variant.headline),
+                    stance: variant.stance,
+                }),
+        );
+
         return new Article({
             authenticity: new Authenticity(prisma.fakeStatus, prisma.fakeReason),
             body: new Body(prisma.body),
@@ -38,6 +52,7 @@ export class ArticleMapper {
             language: new Language(prisma.language),
             publishedAt: prisma.publishedAt,
             storyIds: prisma.stories?.map((story) => story.id),
+            variants,
         });
     }
 
@@ -55,6 +70,16 @@ export class ArticleMapper {
             stories: domain.storyIds
                 ? {
                       connect: domain.storyIds.map((id) => ({ id })),
+                  }
+                : undefined,
+            variants: domain.variants
+                ? {
+                      create: domain.variants.map((variant) => ({
+                          body: variant.body.value,
+                          discourse: variant.discourse as Discourse,
+                          headline: variant.headline.value,
+                          stance: variant.stance as Stance,
+                      })),
                   }
                 : undefined,
         };

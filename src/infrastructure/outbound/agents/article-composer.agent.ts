@@ -16,46 +16,32 @@ import {
 
 import { bodySchema } from '../../../domain/value-objects/article/body.vo.js';
 import { headlineSchema } from '../../../domain/value-objects/article/headline.vo.js';
-import { Category } from '../../../domain/value-objects/category.vo.js';
-import { categorySchema } from '../../../domain/value-objects/category.vo.js';
 
 export class ArticleComposerAgentAdapter implements ArticleComposerAgentPort {
     static readonly NAME = 'ArticleComposerAgent';
 
     static readonly SCHEMA = z.object({
         body: bodySchema,
-        category: categorySchema,
         // Main article (neutral, factual)
         headline: headlineSchema,
-        // Variants (perspective-based viewpoints)
+        // Variants (one per perspective provided)
         variants: z
             .array(
                 z.object({
                     body: bodySchema,
-                    discourse: z.enum(['mainstream', 'alternative', 'underreported', 'dubious']),
                     headline: headlineSchema,
-                    stance: z.enum([
-                        'supportive',
-                        'critical',
-                        'neutral',
-                        'mixed',
-                        'concerned',
-                        'optimistic',
-                        'skeptical',
-                    ]),
                 }),
             )
-            .min(0)
-            .max(3)
-            .describe('Article variants representing different viewpoints, max 3 variants'),
+            .describe(
+                'You MUST return one variant for EACH perspective in the input. The length of this array MUST match the number of perspectives provided.',
+            ),
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
         'You are an expert content composer and journalistic writer. Your mission is to transform structured story data into compelling articles: a neutral main article presenting only facts, plus variants representing different viewpoints.',
+        'Adopt the style of a quality newspaper: professional and authoritative, yet written in clear, simple words for a broad audience. Your tone should be neutral and objective.',
         PROMPT_LIBRARY.PERSONAS.JOURNALIST,
         PROMPT_LIBRARY.FOUNDATIONS.CONTEXTUAL_ONLY,
-        PROMPT_LIBRARY.TONES.NEUTRAL,
-        PROMPT_LIBRARY.VERBOSITY.DETAILED,
     );
 
     private readonly agent: BasicAgentAdapter<z.infer<typeof ArticleComposerAgentAdapter.SCHEMA>>;
@@ -72,56 +58,38 @@ export class ArticleComposerAgentAdapter implements ArticleComposerAgentPort {
         });
     }
 
-    static readonly USER_PROMPT = (input: ArticleCompositionInput) =>
-        new UserPromptAdapter(
-            // Language requirement (dynamic based on target)
+    static readonly USER_PROMPT = (input: ArticleCompositionInput) => {
+        const expectedVariantCount = input.story.perspectives.length;
+
+        return new UserPromptAdapter(
+            // Hard constraint
             `CRITICAL: Output MUST be in ${input.targetLanguage.toString().toUpperCase()} language.`,
+            '',
 
-            // Main objective
-            'Your goal is to compose articles from the provided story data:',
-            '1. MAIN ARTICLE: Neutral, factual content that presents only facts without taking sides',
-            '2. ARTICLE VARIANTS: Different viewpoints based on the perspectives, with editorial freedom to improve them',
+            // Core Mission & Audience
+            'Your mission is to write content for a mobile app that helps users understand all sides of a story. The content must be engaging, concise, and perfectly clear for a broad audience.',
+            '',
 
-            // Main article guidelines
-            'MAIN ARTICLE COMPOSITION:',
-            '• Write a completely neutral main article body that presents only factual information',
-            '• Do NOT favor any perspective or take any sides in the main article',
-            '• Present events, facts, and statements objectively',
-            '• Use clear, professional language appropriate for all readers',
-            '• Focus on "what happened" rather than interpretations or opinions',
-            '• Create a headline that accurately captures the main facts',
+            // The Hierarchical Content Model (The "What")
+            'You will create two types of content in a complementary structure:',
+            '1.  **Main Article (The Foundation):** A neutral summary of the core facts that all sides would agree upon. This is the baseline "what happened" that is shown first.',
+            `2.  **Variants (The Perspectives):** Create **exactly ${expectedVariantCount}** complementary articles, one for each perspective provided. These should **NOT** repeat facts from the main article, but instead **INTERPRET** those facts from that viewpoint. Explain **WHY** that side sees the story the way they do.`,
+            '',
 
-            // Variants guidelines
-            'ARTICLE VARIANTS COMPOSITION:',
-            '• Create variants based on the provided perspectives, but use your editorial judgment',
-            '• Each variant should represent a specific viewpoint (stance + discourse)',
-            '• Use the perspectives as guidance but improve the content for clarity and impact',
-            '• Each variant can have its own headline that reflects that particular viewpoint',
-            '• Write each variant to appeal to readers who hold that particular perspective',
-            '• Maintain factual accuracy while presenting the viewpoint compellingly',
+            // Your Role as an Editor (The "How")
+            'Act as a skilled editor:',
+            "•   **Curate, Don't Transcribe:** Use your editorial judgment to select only the **most pertinent and interesting** information. Omit minor details.",
+            '•   **Clarity is Paramount:** Write in simple, crystal-clear language. Use well-articulated phrases that are easy for anyone to understand. Avoid all jargon.',
+            '•   **Engage with Key Phrases:** Craft compelling headlines and use strong key phrases to make the content engaging and memorable.',
+            '•   **Pacing and Length:** The goal is a total read time of about **one minute**. Aim for a concise Main Article (~60-80 words) and brief, impactful Variants (~30-50 words each). These are flexible targets; prioritize clarity and pertinence over sticking to exact word counts.',
+            '',
 
-            // Content requirements
-            'CONTENT REQUIREMENTS:',
-            '• Main article: 150-300 words of neutral, factual content',
-            '• Each variant: 100-250 words presenting that specific viewpoint',
-            '• Headlines: 60-80 characters, accurate and compelling',
-            '• Use the target language throughout all content',
-
-            // Editorial guidance
-            'EDITORIAL APPROACH:',
-            '• The provided perspectives are guidance - improve them with your editorial expertise',
-            '• Prioritize reader comprehension and engagement',
-            '• Ensure each variant authentically represents its intended viewpoint',
-            '• Balance factual accuracy with viewpoint representation',
-            '• Create content that serves readers seeking that particular perspective',
-
-            // Critical rules
+            // Critical Rules
             'CRITICAL RULES:',
-            '• Base all content on the provided story data as primary source',
-            '• Do NOT add information not present in the source story',
-            '• Main article must remain completely neutral and factual',
-            '• Variants can be perspective-driven but must remain factually accurate',
-            '• Create only honest content - no misleading information',
+            `•   You **MUST** create **exactly ${expectedVariantCount}** variants, one for each perspective in the input. Do not combine or omit any.`,
+            '•   Base all content **only** on the provided story data.',
+            '•   Ensure the Main Article is strictly neutral and the Variants are complementary (no repetition).',
+            '',
 
             // Story data input
             'STORY DATA FOR COMPOSITION:',
@@ -133,14 +101,12 @@ export class ArticleComposerAgentAdapter implements ArticleComposerAgentPort {
                         discourse: perspective.tags.tags.discourse_type,
                         stance: perspective.tags.tags.stance,
                     })),
-                    synopsis: input.story.synopsis,
                 },
                 null,
                 2,
             ),
-            '',
-            'NOTE: Create a neutral main article plus variants that authentically represent different viewpoints while maintaining factual accuracy.',
         );
+    };
 
     async run(input: ArticleCompositionInput): Promise<ArticleCompositionResult | null> {
         try {
@@ -160,30 +126,36 @@ export class ArticleComposerAgentAdapter implements ArticleComposerAgentPort {
                 return null;
             }
 
+            // Validate that we have the correct number of variants
+            if (result.variants.length !== input.story.perspectives.length) {
+                this.logger.warn(
+                    `[${ArticleComposerAgentAdapter.NAME}] AI returned ${result.variants.length} variants but expected ${input.story.perspectives.length} (one per perspective)`,
+                );
+                return null;
+            }
+
             // Log successful composition for debugging
             this.logger.info(
                 `[${ArticleComposerAgentAdapter.NAME}] Successfully composed article with variants`,
                 {
                     bodyLength: result.body.length,
-                    category: result.category,
                     headlineLength: result.headline.length,
                     variantsCount: result.variants.length,
                 },
             );
 
-            // Create value objects from AI response
-            const category = new Category(result.category);
-
             const compositionResult: ArticleCompositionResult = {
                 body: result.body,
-                category,
                 headline: result.headline,
-                variants: result.variants.map((variant) => ({
-                    body: variant.body,
-                    discourse: variant.discourse,
-                    headline: variant.headline,
-                    stance: variant.stance,
-                })),
+                variants: result.variants.map((variant, index) => {
+                    const perspective = input.story.perspectives[index];
+                    return {
+                        body: variant.body,
+                        discourse: perspective.tags.tags.discourse_type || 'mainstream',
+                        headline: variant.headline,
+                        stance: perspective.tags.tags.stance || 'neutral',
+                    };
+                }),
             };
 
             this.logger.info(

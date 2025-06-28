@@ -110,7 +110,7 @@ export class GenerateArticlesFromStoriesUseCase {
                     const article = new Article({
                         authenticity: new Authenticity(false), // Always neutral/factual articles
                         body: new Body(compositionResult.body),
-                        category: compositionResult.category,
+                        category: story.category,
                         country,
                         headline: new Headline(compositionResult.headline),
                         id: randomUUID(),

@@ -52,6 +52,7 @@ const server = setupServer(
                 {
                     news: [
                         {
+                            id: 224767206,
                             publish_date: '2024-03-10T12:00:00Z',
                             summary: 'Test summary',
                             text: 'short',
@@ -59,6 +60,7 @@ const server = setupServer(
                             url: 'https://example.com/article1',
                         },
                         {
+                            id: 224839780,
                             publish_date: '2024-03-11T12:00:00Z',
                             summary: 'Test summary',
                             text: 'a bit longer',
@@ -66,6 +68,7 @@ const server = setupServer(
                             url: 'https://example.com/article2',
                         },
                         {
+                            id: 224936214,
                             publish_date: '2024-03-12T12:00:00Z',
                             summary: 'Test summary',
                             text: 'this is the longest article text',
@@ -115,17 +118,17 @@ describe('WorldNewsAdapter', () => {
                 {
                     body: 'short',
                     headline: 'Short',
-                    id: expect.stringMatching(/^worldnewsapi:/),
+                    id: 'worldnewsapi:224767206',
                 },
                 {
                     body: 'a bit longer',
                     headline: 'Medium',
-                    id: expect.stringMatching(/^worldnewsapi:/),
+                    id: 'worldnewsapi:224839780',
                 },
                 {
                     body: 'this is the longest article text',
                     headline: 'Long',
-                    id: expect.stringMatching(/^worldnewsapi:/),
+                    id: 'worldnewsapi:224936214',
                 },
             ],
             publishedAt: new Date('2024-03-11T12:00:00Z'), // Average of article dates
@@ -247,16 +250,19 @@ describe('WorldNewsAdapter.transformResponse', () => {
                 {
                     news: [
                         {
+                            id: 100001,
                             publish_date: '2024-01-01T00:00:00Z',
                             text: 'short',
                             title: 'Short',
                         },
                         {
+                            id: 100002,
                             publish_date: '2024-01-02T00:00:00Z',
                             text: 'a bit longer',
                             title: 'Medium',
                         },
                         {
+                            id: 100003,
                             publish_date: '2024-01-03T00:00:00Z',
                             text: 'this is the longest article text',
                             title: 'Long',
@@ -277,17 +283,17 @@ describe('WorldNewsAdapter.transformResponse', () => {
                 {
                     body: 'short',
                     headline: 'Short',
-                    id: expect.stringMatching(/^worldnewsapi:/),
+                    id: 'worldnewsapi:100001',
                 },
                 {
                     body: 'a bit longer',
                     headline: 'Medium',
-                    id: expect.stringMatching(/^worldnewsapi:/),
+                    id: 'worldnewsapi:100002',
                 },
                 {
                     body: 'this is the longest article text',
                     headline: 'Long',
-                    id: expect.stringMatching(/^worldnewsapi:/),
+                    id: 'worldnewsapi:100003',
                 },
             ],
             publishedAt: new Date('2024-01-02T00:00:00Z'), // Average of article dates
@@ -308,11 +314,13 @@ describe('WorldNewsAdapter.transformResponse', () => {
                 {
                     news: [
                         {
+                            id: 200001,
                             publish_date: '2024-01-01T00:00:00Z',
                             text: 'first story article 1',
                             title: 'Story 1 - Article 1',
                         },
                         {
+                            id: 200002,
                             publish_date: '2024-01-02T00:00:00Z',
                             text: 'first story article 2',
                             title: 'Story 1 - Article 2',
@@ -322,6 +330,7 @@ describe('WorldNewsAdapter.transformResponse', () => {
                 {
                     news: [
                         {
+                            id: 200003,
                             publish_date: '2024-01-03T00:00:00Z',
                             text: 'second story article 1',
                             title: 'Story 2 - Article 1',

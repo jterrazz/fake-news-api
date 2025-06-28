@@ -91,6 +91,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
                 stories: {
                     select: { id: true },
                 },
+                variants: true,
             },
             orderBy: {
                 createdAt: 'desc',
