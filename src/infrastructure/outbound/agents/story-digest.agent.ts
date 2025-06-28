@@ -46,7 +46,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
-        'You are a master investigative journalist and media analyst. Your core mission is to classify information from news articles into predefined discourse types. Your analysis must be objective and based solely on the provided text.',
+        'You are a master investigative journalist and media analyst. Your core mission is to analyze news articles and deconstruct them into a structured intelligence brief, identifying the core facts and the distinct perspectives presented.',
         PROMPT_LIBRARY.PERSONAS.JOURNALIST,
         PROMPT_LIBRARY.FOUNDATIONS.CONTEXTUAL_ONLY,
         PROMPT_LIBRARY.LANGUAGES.ENGLISH_NATIVE,
@@ -71,33 +71,35 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
 
     static readonly USER_PROMPT = (newsStory: NewsStory) =>
         new UserPromptAdapter(
-            // Main objective
-            'If my prompt is not clear, feel free to try your best based on the context.',
-            'Your goal is to create a structured brief for a writer by analyzing news articles. You must identify the underlying sides and narratives of the story and categorize the different perspectives into distinct discourse types.',
-            'You NEVER judge the quality of the perspectives, you only categorize them, in order to help the writer understand equally the different sides of the story.',
+            // Core Mission
+            'Analyze the following news articles about a single event and deconstruct them into a structured intelligence brief.',
+            '',
 
-            // Core task description
-            'Analyze the news articles and identify distinct perspectives based on discourse types:',
-            '• MAINSTREAM: The dominant narrative that is seen widely across most major media outlets.',
-            '• ALTERNATIVE: A viewpoint that is less defended or prevalent than the mainstream but still visible in public media.',
-            '• UNDERREPORTED and DUBIOUS: DO NOT USE those for now.',
-            // '• UNDERREPORTED: A perspective largely absent from mainstream coverage, which the provided articles might reference as coming from external sources (e.g., specialized reports, foreign analysis).',
-            // '• DUBIOUS: A perspective based on questionable or unsubstantiated claims, like flat earth theories.',
+            // The "What" - Required Output
+            'Your output MUST contain two parts:',
+            '1.  **Synopsis:** A comprehensive, neutral summary of the core facts. What happened, who was involved, where, and when. Prioritize factual completeness.',
+            '2.  **Perspectives:** Identify the 1 or 2 most dominant perspectives presented in the articles. For each perspective, provide:',
+            '    a.  **holisticDigest:** A detailed summary of that specific viewpoint.',
+            "    b.  **tags:** Classify the perspective's `stance` and `discourse_type`.",
+            '',
+
+            // The "How" - Your Analysis Guidelines
+            'Follow these analysis guidelines:',
+            '•   **Be an Objective Analyst:** Do not judge the viewpoints, simply identify and categorize them based on the text.',
+            '•   **Use These Discourse Definitions:**',
+            '    -   **MAINSTREAM:** The dominant narrative that is seen widely across most major media outlets.',
+            '    -   **ALTERNATIVE:** A viewpoint that is less defended or prevalent than the mainstream but still visible in public media.',
+            '    -   (Do not use other discourse types for now).',
+            '',
 
             // Critical Rules
             'CRITICAL RULES:',
-            '• Your analysis MUST be based strictly on the provided context. Do not introduce your own information.',
-            "• The 'underreported' category can ONLY be used if the articles explicitly cite a viewpoint from a non-media source. If all views originate from the newspapers themselves, do NOT use this category.",
-            '• Each perspective MUST correspond to ONE unique discourse type. NO DUPLICATES perspectives.',
-            '• MAX 2 perspectives total. Only create perspectives that are clearly present in the articles.',
-
-            // Synopsis Requirements
-            'SYNOPSIS REQUIREMENTS:',
-            '• Create a comprehensive, information-dense summary capturing all essential facts, key actors, and the core narrative.',
-            '• Prioritize factual completeness over narrative style.',
+            '•   Base your entire analysis **only** on the provided articles. Do not add external information.',
+            '•   Identify a **maximum of 2** perspectives. Only create perspectives that are clearly distinct and present in the text.',
+            '',
 
             // Data input
-            'Newspapers articles to analyze:',
+            'NEWS ARTICLES TO ANALYZE:',
             JSON.stringify(
                 newsStory.articles.map((article) => ({
                     body: article.body,
