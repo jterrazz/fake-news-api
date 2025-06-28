@@ -27,6 +27,7 @@ import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.ad
 import { StoryDigestTask } from '../infrastructure/inbound/executor/stories/story-digest.task.js';
 import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
+import { ArticleComposerAgentAdapter } from '../infrastructure/outbound/agents/article-composer.agent.js';
 import { StoryDigestAgentAdapter } from '../infrastructure/outbound/agents/story-digest.agent.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
@@ -108,15 +109,7 @@ const storyDigestAgentFactory = Injectable(
 const articleComposerAgentFactory = Injectable(
     'ArticleComposerAgent',
     ['Model', 'Logger'] as const,
-    (model: ModelPort, logger: LoggerPort): ArticleComposerAgentPort => {
-        // TODO: Replace with actual implementation when available
-        return {
-            async run() {
-                logger.warn('Article composer agent not implemented yet');
-                return null;
-            },
-        };
-    },
+    (model: ModelPort, logger: LoggerPort) => new ArticleComposerAgentAdapter(model, logger),
 );
 
 /**

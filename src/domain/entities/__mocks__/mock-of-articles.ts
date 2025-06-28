@@ -1,3 +1,4 @@
+import { ArticleVariant } from '../../value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../../value-objects/article/authenticity.vo.js';
 import { Body } from '../../value-objects/article/body.vo.js';
 import { Headline } from '../../value-objects/article/headline.vo.js';
@@ -27,6 +28,7 @@ function createMockArticle(index: number, country: Country, language: Language):
         language,
         publishedAt: new Date(),
         storyIds: [], // Empty array for mock articles
+        variants: createMockVariants(index),
     });
 }
 
@@ -42,6 +44,44 @@ function createMockAuthenticity(): Authenticity {
  */
 function createMockHeadline(index: number): Headline {
     return new Headline(`Generated Mock Article ${index + 1}`);
+}
+
+/**
+ * Creates mock variants for an article
+ */
+function createMockVariants(index: number): ArticleVariant[] {
+    const variants: ArticleVariant[] = [];
+
+    // Add 1-2 variants per article for variety
+    const variantCount = 1 + (index % 2);
+
+    if (variantCount >= 1) {
+        variants.push(
+            new ArticleVariant({
+                body: new Body(
+                    `This critical perspective examines the implications of the developments discussed in article ${index + 1}. We analyze the potential concerns and challenges that arise from these changes.`,
+                ),
+                discourse: 'alternative',
+                headline: new Headline(`Critical Analysis: Mock Article ${index + 1}`),
+                stance: 'critical',
+            }),
+        );
+    }
+
+    if (variantCount >= 2) {
+        variants.push(
+            new ArticleVariant({
+                body: new Body(
+                    `This supportive analysis highlights the positive aspects and opportunities presented in article ${index + 1}. We explore the benefits and potential for progress.`,
+                ),
+                discourse: 'mainstream',
+                headline: new Headline(`Supportive View: Mock Article ${index + 1}`),
+                stance: 'supportive',
+            }),
+        );
+    }
+
+    return variants;
 }
 
 /**

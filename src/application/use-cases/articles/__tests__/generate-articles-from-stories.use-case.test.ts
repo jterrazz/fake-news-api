@@ -51,10 +51,15 @@ describe('GenerateArticlesFromStoriesUseCase', () => {
         mockCompositionResults = testStories.map((story, index) => ({
             body: `Composed article body for story ${index + 1} with neutral presentation of facts from all perspectives.`,
             category: story.category,
-            // First story generates fake article
-            fakeReason: index === 0 ? 'Composed for testing purposes' : undefined,
-            fakeStatus: index === 0,
             headline: `Composed Article ${index + 1}`,
+            variants: [
+                {
+                    body: `Variant article body for story ${index + 1} presenting a specific viewpoint on the matter.`,
+                    discourse: 'mainstream',
+                    headline: `${story.category.toString()} Perspective: ${index + 1}`,
+                    stance: 'neutral',
+                },
+            ],
         }));
 
         // Default mock responses
@@ -102,6 +107,11 @@ describe('GenerateArticlesFromStoriesUseCase', () => {
                     }),
                 ]),
             );
+
+            // All articles should be neutral/factual
+            result.forEach((article) => {
+                expect(article.isFake()).toBe(false);
+            });
         });
 
         test('should handle empty stories result gracefully', async () => {
@@ -218,51 +228,8 @@ describe('GenerateArticlesFromStoriesUseCase', () => {
             expect(result[0].storyIds).toEqual([testStory.id]);
             expect(result[0].publishedAt).toEqual(testStory.dateline);
             expect(result[0].category).toEqual(testStory.category);
-        });
-
-        test('should handle fake and real article composition correctly', async () => {
-            // Reset all mocks to ensure clean state for this test
-            mockStoryRepository.findStoriesWithoutArticles.mockClear();
-            mockArticleComposerAgent.run.mockClear();
-            mockArticleRepository.createMany.mockClear();
-
-            // Given - composition results with different fake statuses
-            const fakeResult: ArticleCompositionResult = {
-                body: 'This is a fake article body with enough content to meet minimum requirements for testing purposes',
-                category: new Category('technology'),
-                fakeReason: 'Fabricated for testing',
-                fakeStatus: true,
-                headline: 'Fake Article',
-            };
-            const realResult: ArticleCompositionResult = {
-                body: 'This is a real article body with enough content to meet minimum requirements for testing purposes',
-                category: new Category('technology'),
-                fakeStatus: false,
-                headline: 'Real Article',
-            };
-
-            mockStoryRepository.findStoriesWithoutArticles.mockResolvedValue([
-                testStories[0],
-                testStories[1],
-            ]);
-            mockArticleComposerAgent.run
-                .mockResolvedValueOnce(fakeResult)
-                .mockResolvedValueOnce(realResult);
-            mockArticleRepository.createMany.mockResolvedValue();
-
-            // When - executing the use case
-            const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
-
-            // Then - it should create articles with correct authenticity
-            expect(result).toHaveLength(2);
-
-            const fakeArticle = result.find((article) => article.headline.value.includes('Fake'));
-            const realArticle = result.find((article) => article.headline.value.includes('Real'));
-
-            expect(fakeArticle?.isFake()).toBe(true);
-            expect(fakeArticle?.authenticity.reason).toBe('Fabricated for testing');
-            expect(realArticle?.isFake()).toBe(false);
-            expect(realArticle?.authenticity.reason).toBeNull();
+            // And article should be neutral/factual
+            expect(result[0].isFake()).toBe(false);
         });
     });
 });

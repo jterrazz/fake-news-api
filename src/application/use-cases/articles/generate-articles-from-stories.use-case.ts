@@ -2,6 +2,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { randomUUID } from 'crypto';
 
 import { Article } from '../../../domain/entities/article.entity.js';
+import { ArticleVariant } from '../../../domain/value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
@@ -83,12 +84,31 @@ export class GenerateArticlesFromStoriesUseCase {
                         continue;
                     }
 
+                    // Create article variants from composition result
+                    const variants = compositionResult.variants.map(
+                        (variantData) =>
+                            new ArticleVariant({
+                                body: new Body(variantData.body),
+                                discourse: variantData.discourse as
+                                    | 'alternative'
+                                    | 'dubious'
+                                    | 'mainstream'
+                                    | 'underreported',
+                                headline: new Headline(variantData.headline),
+                                stance: variantData.stance as
+                                    | 'concerned'
+                                    | 'critical'
+                                    | 'mixed'
+                                    | 'neutral'
+                                    | 'optimistic'
+                                    | 'skeptical'
+                                    | 'supportive',
+                            }),
+                    );
+
                     // Create article domain entity
                     const article = new Article({
-                        authenticity: new Authenticity(
-                            compositionResult.fakeStatus,
-                            compositionResult.fakeReason,
-                        ),
+                        authenticity: new Authenticity(false), // Always neutral/factual articles
                         body: new Body(compositionResult.body),
                         category: compositionResult.category,
                         country,
@@ -97,6 +117,7 @@ export class GenerateArticlesFromStoriesUseCase {
                         language,
                         publishedAt: story.dateline, // Use story's dateline as article publication date
                         storyIds: [story.id], // Link back to the source story
+                        variants, // Include the variants
                     });
 
                     // Save the article
@@ -108,6 +129,7 @@ export class GenerateArticlesFromStoriesUseCase {
                         headline: article.headline.value,
                         language: language.toString(),
                         storyId: story.id,
+                        variantsCount: variants.length,
                     });
 
                     generatedArticles.push(article);

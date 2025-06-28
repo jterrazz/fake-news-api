@@ -25,7 +25,18 @@ export type ArticleCompositionInput = {
 export type ArticleCompositionResult = {
     body: string;
     category: Category;
-    fakeReason?: string;
-    fakeStatus: boolean;
+    // Main article (neutral, factual)
     headline: string;
+    // Variants (perspective-based viewpoints)
+    variants: ArticleVariantResult[];
+};
+
+/**
+ * Article variant representing a specific viewpoint
+ */
+export type ArticleVariantResult = {
+    body: string;
+    discourse: string;
+    headline: string;
+    stance: string;
 };

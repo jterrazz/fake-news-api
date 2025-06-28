@@ -151,8 +151,14 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
             const article = data.items[0];
 
-            // Test complete article structure with new variants schema
+            // Test complete article structure with new clean schema
             expect(article).toEqual({
+                authenticity: {
+                    reason: 'Exaggerated claims about AI capabilities',
+                    status: 'fake',
+                },
+                body: expectedContentWithAnnotations,
+                headline: 'Revolutionary AI Breakthrough Announced',
                 id: expect.stringMatching(
                     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
                 ),
@@ -162,16 +168,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
                     language: 'en',
                 },
                 publishedAt: '2024-03-15T14:30:00.000Z',
-                variants: {
-                    fake: [
-                        {
-                            body: expectedContentWithAnnotations,
-                            headline: 'Revolutionary AI Breakthrough Announced',
-                            reason: 'Exaggerated claims about AI capabilities',
-                        },
-                    ],
-                    original: [],
-                },
+                variants: [],
             });
         });
 
@@ -204,6 +201,11 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
             // Test complete legitimate article structure
             expect(article).toEqual({
+                authenticity: {
+                    status: 'authentic',
+                },
+                body: expectedContentRaw,
+                headline: 'Legitimate Tech News',
                 id: expect.stringMatching(
                     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
                 ),
@@ -213,15 +215,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
                     language: 'en',
                 },
                 publishedAt: '2024-03-15T14:30:00.000Z',
-                variants: {
-                    fake: [],
-                    original: [
-                        {
-                            body: expectedContentRaw,
-                            headline: 'Legitimate Tech News',
-                        },
-                    ],
-                },
+                variants: [],
             });
         });
 
@@ -250,18 +244,18 @@ describe('HTTP - Get Articles - Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(data.items).toHaveLength(2);
 
-            const realArticle = data.items.find(
-                (item) => item.variants.original.length > 0 && item.variants.fake.length === 0,
-            );
-            const fakeArticle = data.items.find(
-                (item) => item.variants.fake.length > 0 && item.variants.original.length === 0,
-            );
+            const realArticle = data.items.find((item) => item.authenticity.status === 'authentic');
+            const fakeArticle = data.items.find((item) => item.authenticity.status === 'fake');
 
             expect(realArticle).toBeDefined();
-            expect(realArticle.variants.original[0].headline).toContain('Real');
+            expect(realArticle.headline).toContain('Real');
+            expect(realArticle.authenticity.status).toBe('authentic');
+            expect(realArticle.authenticity.reason).toBeUndefined();
+
             expect(fakeArticle).toBeDefined();
-            expect(fakeArticle.variants.fake[0].headline).toContain('Fake');
-            expect(fakeArticle.variants.fake[0].reason).toBe('Fabricated information');
+            expect(fakeArticle.headline).toContain('Fake');
+            expect(fakeArticle.authenticity.status).toBe('fake');
+            expect(fakeArticle.authenticity.reason).toBe('Fabricated information');
         });
     });
 

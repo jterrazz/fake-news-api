@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 
+import { ArticleVariant } from '../value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../value-objects/article/authenticity.vo.js';
 import { Body } from '../value-objects/article/body.vo.js';
 import { Headline } from '../value-objects/article/headline.vo.js';
@@ -17,6 +18,7 @@ export const articleSchema = z.object({
     language: z.instanceof(Language),
     publishedAt: z.date(),
     storyIds: z.array(z.string()).optional(),
+    variants: z.array(z.instanceof(ArticleVariant)).optional(),
 });
 
 export type ArticleProps = z.input<typeof articleSchema>;
@@ -31,6 +33,7 @@ export class Article {
     public readonly language: Language;
     public readonly publishedAt: Date;
     public readonly storyIds?: string[];
+    public readonly variants?: ArticleVariant[];
 
     public constructor(data: ArticleProps) {
         const result = articleSchema.safeParse(data);
@@ -49,6 +52,7 @@ export class Article {
         this.language = validatedData.language;
         this.publishedAt = validatedData.publishedAt;
         this.storyIds = validatedData.storyIds;
+        this.variants = validatedData.variants;
     }
 
     public isFake(): boolean {

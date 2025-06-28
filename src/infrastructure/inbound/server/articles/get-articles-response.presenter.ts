@@ -11,24 +11,23 @@ type ArticleMetadata = {
 };
 
 type ArticleResponse = {
+    authenticity: {
+        reason?: string;
+        status: 'authentic' | 'fake';
+    };
+    body: string;
+    headline: string;
     id: string;
     metadata: ArticleMetadata;
     publishedAt: string;
-    variants: ArticleVariants;
+    variants: ArticleVariantResponse[];
 };
 
-type ArticleVariant = {
+type ArticleVariantResponse = {
     body: string;
+    discourse: string;
     headline: string;
-};
-
-type ArticleVariants = {
-    fake: FakeArticleVariant[];
-    original: ArticleVariant[];
-};
-
-type FakeArticleVariant = ArticleVariant & {
-    reason: string;
+    stance: string;
 };
 
 type HttpPaginatedResponse<T> = {
@@ -39,7 +38,7 @@ type HttpPaginatedResponse<T> = {
 
 /**
  * Handles response formatting for GET /articles endpoint
- * Transforms domain objects to HTTP response format with variants structure
+ * Transforms domain objects to HTTP response format with clean article + variants structure
  */
 export class GetArticlesResponsePresenter {
     present(result: UseCasePaginatedResponse<Article>): HttpPaginatedResponse<ArticleResponse> {
@@ -62,7 +61,25 @@ export class GetArticlesResponsePresenter {
         const content = article.body.toString();
         const { contentRaw, contentWithAnnotations } = this.processContent(content);
 
+        // Use processed content based on authenticity
+        const displayBody = article.isFake() ? contentWithAnnotations : contentRaw;
+
+        // Map article variants from domain entities
+        const variants: ArticleVariantResponse[] =
+            article.variants?.map((variant) => ({
+                body: variant.body.toString(),
+                discourse: variant.discourse,
+                headline: variant.headline.toString(),
+                stance: variant.stance,
+            })) ?? [];
+
         return {
+            authenticity: {
+                reason: article.authenticity.reason ?? undefined,
+                status: article.isFake() ? 'fake' : 'authentic',
+            },
+            body: displayBody,
+            headline: article.headline.toString(),
             id: article.id,
             metadata: {
                 category: article.category.toString() as Category,
@@ -70,26 +87,7 @@ export class GetArticlesResponsePresenter {
                 language: article.language.toString() as Language,
             },
             publishedAt: article.publishedAt.toISOString(),
-            variants: article.isFake()
-                ? {
-                      fake: [
-                          {
-                              body: contentWithAnnotations,
-                              headline: article.headline.toString(),
-                              reason: article.authenticity.reason!,
-                          },
-                      ],
-                      original: [],
-                  }
-                : {
-                      fake: [],
-                      original: [
-                          {
-                              body: contentRaw,
-                              headline: article.headline.toString(),
-                          },
-                      ],
-                  },
+            variants,
         };
     }
 
