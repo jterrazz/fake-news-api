@@ -1,7 +1,6 @@
 import { Authenticity } from '../../value-objects/article/authenticity.vo.js';
 import { Body } from '../../value-objects/article/body.vo.js';
 import { Headline } from '../../value-objects/article/headline.vo.js';
-import { Summary } from '../../value-objects/article/summary.vo.js';
 import { Category } from '../../value-objects/category.vo.js';
 import { type Country } from '../../value-objects/country.vo.js';
 import { type Language } from '../../value-objects/language.vo.js';
@@ -27,7 +26,6 @@ function createMockArticle(index: number, country: Country, language: Language):
         id: crypto.randomUUID(),
         language,
         publishedAt: new Date(),
-        summary: createMockSummary(index),
     });
 }
 
@@ -43,17 +41,6 @@ function createMockAuthenticity(): Authenticity {
  */
 function createMockHeadline(index: number): Headline {
     return new Headline(`Generated Mock Article ${index + 1}`);
-}
-
-/**
- * Creates a mock summary for an article
- */
-function createMockSummary(index: number): Summary {
-    const summaryText =
-        `Summary of generated article ${index + 1} providing key insights and main points. `.repeat(
-            5,
-        );
-    return new Summary(summaryText.trim());
 }
 
 /**

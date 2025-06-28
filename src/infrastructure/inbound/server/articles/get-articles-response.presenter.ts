@@ -10,26 +10,7 @@ type ArticleMetadata = {
     language: Language;
 };
 
-type ArticleResponse = ArticleResponseDeprecated & ArticleResponseNew;
-
-/**
- * Deprecated article response properties - maintained for backward compatibility
- */
-type ArticleResponseDeprecated = {
-    article: string;
-    category: Category;
-    contentRaw: string;
-    contentWithAnnotations: string;
-    country: Country;
-    createdAt: Date;
-    fakeReason: null | string;
-    headline: string;
-    isFake: boolean;
-    language: Language;
-    summary: string;
-};
-
-type ArticleResponseNew = {
+type ArticleResponse = {
     id: string;
     metadata: ArticleMetadata;
     publishedAt: string;
@@ -81,7 +62,7 @@ export class GetArticlesResponsePresenter {
         const content = article.body.toString();
         const { contentRaw, contentWithAnnotations } = this.processContent(content);
 
-        const newResponse: ArticleResponseNew = {
+        return {
             id: article.id,
             metadata: {
                 category: article.category.toString() as Category,
@@ -109,25 +90,6 @@ export class GetArticlesResponsePresenter {
                           },
                       ],
                   },
-        };
-
-        const deprecatedResponse: ArticleResponseDeprecated = {
-            article: contentRaw,
-            category: article.category.toString() as Category,
-            contentRaw,
-            contentWithAnnotations,
-            country: article.country.toString() as Country,
-            createdAt: article.publishedAt,
-            fakeReason: article.authenticity.reason,
-            headline: article.headline.toString(),
-            isFake: article.isFake(),
-            language: article.language.toString() as Language,
-            summary: article.summary.toString(),
-        };
-
-        return {
-            ...newResponse,
-            ...deprecatedResponse,
         };
     }
 

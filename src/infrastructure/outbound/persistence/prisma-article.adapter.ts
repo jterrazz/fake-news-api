@@ -64,15 +64,15 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
                 createdAt: 'desc',
             },
             select: {
+                body: true,
                 headline: true,
-                summary: true,
             },
             where,
         });
 
         return articles.map((article) => ({
             headline: article.headline,
-            summary: article.summary,
+            summary: article.body.substring(0, 200) + '...', // Generate summary from body // TODO FIx this
         }));
     }
 

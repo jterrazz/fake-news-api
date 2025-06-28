@@ -9,14 +9,13 @@ import { Article } from '../../../domain/entities/article.entity.js';
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
-import { Summary } from '../../../domain/value-objects/article/summary.vo.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../domain/value-objects/language.vo.js';
 
 export class ArticleMapper {
     mapCategoryToPrisma(category: Category): PrismaCategory {
-        return category.toString().toUpperCase() as PrismaCategory;
+        return category.toString() as PrismaCategory;
     }
 
     mapCountryToPrisma(country: Country): PrismaCountry {
@@ -29,30 +28,29 @@ export class ArticleMapper {
 
     toDomain(prisma: PrismaArticle): Article {
         return new Article({
-            authenticity: new Authenticity(prisma.isFake, prisma.fakeReason),
-            body: new Body(prisma.article),
+            authenticity: new Authenticity(prisma.fakeStatus, prisma.fakeReason),
+            body: new Body(prisma.body),
             category: new Category(prisma.category),
             country: new Country(prisma.country),
             headline: new Headline(prisma.headline),
             id: prisma.id,
             language: new Language(prisma.language),
-            publishedAt: prisma.createdAt,
-            summary: new Summary(prisma.summary),
+            publishedAt: prisma.publishedAt,
         });
     }
 
     toPrisma(domain: Article): PrismaArticle {
         return {
-            article: domain.body.value,
+            body: domain.body.value,
             category: this.mapCategoryToPrisma(domain.category),
             country: this.mapCountryToPrisma(domain.country),
             createdAt: domain.publishedAt,
             fakeReason: domain.authenticity.reason,
+            fakeStatus: domain.isFake(),
             headline: domain.headline.value,
             id: domain.id,
-            isFake: domain.isFake(),
             language: this.mapLanguageToPrisma(domain.language),
-            summary: domain.summary.value,
+            publishedAt: domain.publishedAt,
         };
     }
 }

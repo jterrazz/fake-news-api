@@ -19,16 +19,16 @@ enum Language {
 }
 
 enum Category {
-  POLITICS
-  BUSINESS
-  TECHNOLOGY
-  SCIENCE
-  HEALTH
-  ENVIRONMENT
-  SOCIETY
-  ENTERTAINMENT
-  SPORTS
-  OTHER
+  politics
+  business
+  technology
+  science
+  health
+  environment
+  society
+  entertainment
+  sports
+  other
 }
 
 enum Stance {
@@ -41,7 +41,7 @@ enum Stance {
   skeptical
 }
 
-enum DiscourseType {
+enum Discourse {
   mainstream
   alternative
   underreported
@@ -74,47 +74,59 @@ model Story {
 }
 
 model Perspective {
-  id             String @id @default(uuid())
+  id             String     @id @default(uuid())
   holisticDigest String
+  stance         Stance?
+  discourse      Discourse?
 
   // Relations
   story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
   storyId String
-
-  tags PerspectiveTag?
 
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([storyId])
-}
-
-model PerspectiveTag {
-  id            String         @id @default(uuid())
-  stance        Stance?
-  discourseType DiscourseType?
-
-  // Relations
-  perspective   Perspective @relation(fields: [perspectiveId], references: [id], onDelete: Cascade)
-  perspectiveId String      @unique
-
   @@index([stance])
-  @@index([discourseType])
+  @@index([discourse])
 }
 
 model Article {
-  id         String   @id @default(uuid())
-  headline   String
-  article    String
-  summary    String
-  category   Category
-  isFake     Boolean
-  fakeReason String?
-  country    Country
-  language   Language
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  headline    String
+  body        String // Main neutral article presenting only facts from all sides
+  category    Category
+  fakeStatus  Boolean // For game aspect - main article could be entirely fabricated
+  fakeReason  String? // Reason why the main article is fake (if applicable)
+  country     Country
+  language    Language
+  publishedAt DateTime // When the original story was published
+  createdAt   DateTime @default(now())
+
+  // Relations
+  variants ArticleVariant[]
 
   @@index([language, country])
   @@index([createdAt])
+  @@index([publishedAt])
+}
+
+model ArticleVariant {
+  id        String    @id @default(uuid())
+  headline  String // Variant headline from this viewpoint
+  body      String // Viewpoint-specific content explaining this side of the story
+  stance    Stance // The viewpoint/stance this variant represents
+  discourse Discourse // The type of discourse this variant represents
+
+  // Relations
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  // Metadata
+  createdAt DateTime @default(now())
+
+  @@index([articleId])
+  @@index([stance])
+  @@index([discourse])
 }

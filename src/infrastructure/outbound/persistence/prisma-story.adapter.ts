@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import { type StoryRepositoryPort } from '../../../application/ports/outbound/persistence/story-repository.port.js';
 
 import { type Story } from '../../../domain/entities/story.entity.js';
@@ -18,7 +16,7 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
     async create(story: Story): Promise<Story> {
         const prismaClient = this.prisma.getPrismaClient();
 
-        // Use transaction to create story with perspectives and tags
+        // Use transaction to create story with perspectives
         const result = await prismaClient.$transaction(async (tx) => {
             // Create the story
             const createdStory = await tx.story.create({
@@ -30,27 +28,12 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
                 await tx.perspective.create({
                     data: this.mapper.perspectiveToPrisma(perspective),
                 });
-
-                // Create perspective tags if they exist
-                const tagData = this.mapper.perspectiveTagToPrisma(perspective);
-                if (tagData.stance || tagData.discourseType) {
-                    await tx.perspectiveTag.create({
-                        data: {
-                            ...tagData,
-                            id: randomUUID(),
-                        },
-                    });
-                }
             }
 
             // Return the created story with perspectives
             return await tx.story.findUnique({
                 include: {
-                    perspectives: {
-                        include: {
-                            tags: true,
-                        },
-                    },
+                    perspectives: true,
                 },
                 where: { id: createdStory.id },
             });
@@ -66,11 +49,7 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
     async findById(id: string): Promise<null | Story> {
         const prismaStory = await this.prisma.getPrismaClient().story.findUnique({
             include: {
-                perspectives: {
-                    include: {
-                        tags: true,
-                    },
-                },
+                perspectives: true,
             },
             where: { id },
         });
@@ -111,11 +90,7 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
 
         const stories = await this.prisma.getPrismaClient().story.findMany({
             include: {
-                perspectives: {
-                    include: {
-                        tags: true,
-                    },
-                },
+                perspectives: true,
             },
             orderBy: {
                 dateline: 'desc',

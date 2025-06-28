@@ -10,7 +10,6 @@ import { Article } from '../../src/domain/entities/article.entity.js';
 import { Authenticity } from '../../src/domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../src/domain/value-objects/article/body.vo.js';
 import { Headline } from '../../src/domain/value-objects/article/headline.vo.js';
-import { Summary } from '../../src/domain/value-objects/article/summary.vo.js';
 import { Category } from '../../src/domain/value-objects/category.vo.js';
 import { Country } from '../../src/domain/value-objects/country.vo.js';
 import { Language } from '../../src/domain/value-objects/language.vo.js';
@@ -29,7 +28,6 @@ export class ArticleFactory {
         id: string;
         language: Language;
         publishedAt: Date;
-        summary: Summary;
     };
 
     constructor() {
@@ -42,7 +40,6 @@ export class ArticleFactory {
             id: crypto.randomUUID(),
             language: new Language('en'),
             publishedAt: new Date('2024-03-01T12:00:00.000Z'),
-            summary: new Summary('Default test article summary providing key information.'),
         };
     }
 
@@ -77,16 +74,16 @@ export class ArticleFactory {
         const article = this.build();
         await prisma.article.create({
             data: {
-                article: article.body.value,
-                category: article.category.toString().toUpperCase() as PrismaCategory,
+                body: article.body.value,
+                category: article.category.toString() as PrismaCategory,
                 country: article.country.toString() as PrismaCountry,
                 createdAt: article.publishedAt,
                 fakeReason: article.authenticity.reason,
+                fakeStatus: article.isFake(),
                 headline: article.headline.value,
                 id: article.id,
-                isFake: article.isFake(),
                 language: article.language.toString() as PrismaLanguage,
-                summary: article.summary.value,
+                publishedAt: article.publishedAt,
             },
         });
         return article;
@@ -102,7 +99,6 @@ export class ArticleFactory {
                     .withLanguage(article.language.toString())
                     .withHeadline(article.headline.value)
                     .withBody(article.body.value)
-                    .withSummary(article.summary.value)
                     .withPublishedAt(article.publishedAt)
                     .createInDatabase(prisma),
             ),
@@ -147,11 +143,6 @@ export class ArticleFactory {
 
     withPublishedAt(date: Date): ArticleFactory {
         this.data.publishedAt = date;
-        return this;
-    }
-
-    withSummary(summary: string): ArticleFactory {
-        this.data.summary = new Summary(summary);
         return this;
     }
 }

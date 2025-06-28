@@ -85,6 +85,16 @@ describe('DigestStoriesUseCase', () => {
                     headline: `Test Headline ${i + 1} Second`,
                     id: `article-${i + 1}-2`,
                 },
+                {
+                    body: `Test article body ${i + 1} third article content with sufficient length`,
+                    headline: `Test Headline ${i + 1} Third`,
+                    id: `article-${i + 1}-3`,
+                },
+                {
+                    body: `Test article body ${i + 1} fourth article content with sufficient length`,
+                    headline: `Test Headline ${i + 1} Fourth`,
+                    id: `article-${i + 1}-4`,
+                },
             ],
             publishedAt: new Date(`2024-01-0${i + 1}T10:00:00Z`),
         }));
@@ -129,7 +139,7 @@ describe('DigestStoriesUseCase', () => {
         });
 
         test('should filter out news stories with insufficient articles', async () => {
-            // Given - news stories with insufficient article count
+            // Given - news stories with insufficient article count (less than 4 articles)
             const insufficientNewsStories: NewsStory[] = [
                 {
                     articles: [
@@ -138,17 +148,27 @@ describe('DigestStoriesUseCase', () => {
                             headline: 'Single Headline',
                             id: 'single-article-1',
                         },
-                    ],
+                        {
+                            body: 'Second article body',
+                            headline: 'Second Headline',
+                            id: 'single-article-2',
+                        },
+                        {
+                            body: 'Third article body',
+                            headline: 'Third Headline',
+                            id: 'single-article-3',
+                        },
+                    ], // Only 3 articles - insufficient (need >= 4)
                     publishedAt: new Date('2024-01-01T10:00:00Z'),
                 },
-                ...testNewsStories, // Valid stories
+                ...testNewsStories, // Valid stories with 4 articles each
             ];
             mockNewsProvider.fetchNews.mockResolvedValue(insufficientNewsStories);
 
             // When - executing the use case
             const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
 
-            // Then - it should only process valid stories
+            // Then - it should only process valid stories (those with >= 4 articles)
             expect(mockStoryDigestAgent.run).toHaveBeenCalledTimes(TEST_STORIES_COUNT);
             expect(result).toHaveLength(TEST_STORIES_COUNT);
         });
@@ -254,6 +274,8 @@ describe('DigestStoriesUseCase', () => {
                     articles: [
                         { body: 'New article 1', headline: 'New Headline 1', id: 'new-article-1' },
                         { body: 'New article 2', headline: 'New Headline 2', id: 'new-article-2' },
+                        { body: 'New article 3', headline: 'New Headline 3', id: 'new-article-3' },
+                        { body: 'New article 4', headline: 'New Headline 4', id: 'new-article-4' },
                     ],
                     publishedAt: new Date('2024-01-01T10:00:00Z'),
                 },
@@ -269,6 +291,16 @@ describe('DigestStoriesUseCase', () => {
                             headline: 'Another Headline',
                             id: 'another-article',
                         },
+                        {
+                            body: 'Third article',
+                            headline: 'Third Headline',
+                            id: 'third-article',
+                        },
+                        {
+                            body: 'Fourth article',
+                            headline: 'Fourth Headline',
+                            id: 'fourth-article',
+                        },
                     ],
                     publishedAt: new Date('2024-01-01T11:00:00Z'),
                 },
@@ -283,6 +315,16 @@ describe('DigestStoriesUseCase', () => {
                             body: 'Fresh article 2',
                             headline: 'Fresh Headline 2',
                             id: 'fresh-article-2',
+                        },
+                        {
+                            body: 'Fresh article 3',
+                            headline: 'Fresh Headline 3',
+                            id: 'fresh-article-3',
+                        },
+                        {
+                            body: 'Fresh article 4',
+                            headline: 'Fresh Headline 4',
+                            id: 'fresh-article-4',
                         },
                     ],
                     publishedAt: new Date('2024-01-01T12:00:00Z'),
