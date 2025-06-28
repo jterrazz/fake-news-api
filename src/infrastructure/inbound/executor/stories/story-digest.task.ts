@@ -3,6 +3,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { type StoryDigestTaskConfig } from '../../../../application/ports/inbound/configuration.port.js';
 
 import { type TaskPort } from '../../../../application/ports/inbound/executor.port.js';
+import { type GenerateArticlesFromStoriesUseCase } from '../../../../application/use-cases/articles/generate-articles-from-stories.use-case.js';
 import { type DigestStoriesUseCase } from '../../../../application/use-cases/stories/digest-stories.use-case.js';
 
 import { Country } from '../../../../domain/value-objects/country.vo.js';
@@ -15,6 +16,7 @@ export class StoryDigestTask implements TaskPort {
 
     constructor(
         private readonly digestStories: DigestStoriesUseCase,
+        private readonly generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
         private readonly taskConfigs: StoryDigestTaskConfig[],
         private readonly logger: LoggerPort,
     ) {}
@@ -33,6 +35,7 @@ export class StoryDigestTask implements TaskPort {
                 language: new Language(config.language),
             }));
 
+            // Step 1: Digest stories
             await Promise.all(
                 languages.map(async ({ country, language }) => {
                     this.logger.info('Digesting stories', {
@@ -43,7 +46,20 @@ export class StoryDigestTask implements TaskPort {
                 }),
             );
 
-            this.logger.info('Story digest task completed successfully');
+            this.logger.info('Story digest completed, starting article generation');
+
+            // Step 2: Generate articles from stories that don't have articles yet
+            await Promise.all(
+                languages.map(async ({ country, language }) => {
+                    this.logger.info('Generating articles from stories', {
+                        country: country.toString(),
+                        language: language.toString(),
+                    });
+                    return this.generateArticlesFromStories.execute(language, country);
+                }),
+            );
+
+            this.logger.info('Story digest and article generation task completed successfully');
         } catch (error) {
             this.logger.error('Story digest task failed', { error });
             throw error;

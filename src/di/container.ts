@@ -13,10 +13,12 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 import type { ExecutorPort } from '../application/ports/inbound/executor.port.js';
 import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
+import { type ArticleComposerAgentPort } from '../application/ports/outbound/agents/article-composer.agent.js';
 import { type StoryDigestAgentPort } from '../application/ports/outbound/agents/story-digest.agent.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import { type StoryRepositoryPort } from '../application/ports/outbound/persistence/story-repository.port.js';
 import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
+import { GenerateArticlesFromStoriesUseCase } from '../application/use-cases/articles/generate-articles-from-stories.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 import { DigestStoriesUseCase } from '../application/use-cases/stories/digest-stories.use-case.js';
 
@@ -103,6 +105,20 @@ const storyDigestAgentFactory = Injectable(
     (model: ModelPort, logger: LoggerPort) => new StoryDigestAgentAdapter(model, logger),
 );
 
+const articleComposerAgentFactory = Injectable(
+    'ArticleComposerAgent',
+    ['Model', 'Logger'] as const,
+    (model: ModelPort, logger: LoggerPort): ArticleComposerAgentPort => {
+        // TODO: Replace with actual implementation when available
+        return {
+            async run() {
+                logger.warn('Article composer agent not implemented yet');
+                return null;
+            },
+        };
+    },
+);
+
 /**
  * Repository adapters
  */
@@ -146,6 +162,23 @@ const digestStoriesUseCaseFactory = Injectable(
     ) => new DigestStoriesUseCase(storyDigestAgent, logger, newsService, storyRepository),
 );
 
+const generateArticlesFromStoriesUseCaseFactory = Injectable(
+    'GenerateArticlesFromStories',
+    ['ArticleComposerAgent', 'Logger', 'StoryRepository', 'ArticleRepository'] as const,
+    (
+        articleComposerAgent: ArticleComposerAgentPort,
+        logger: LoggerPort,
+        storyRepository: StoryRepositoryPort,
+        articleRepository: ArticleRepositoryPort,
+    ) =>
+        new GenerateArticlesFromStoriesUseCase(
+            articleComposerAgent,
+            logger,
+            storyRepository,
+            articleRepository,
+        ),
+);
+
 /**
  * Controller factories
  */
@@ -160,9 +193,10 @@ const getArticlesControllerFactory = Injectable(
  */
 const tasksFactory = Injectable(
     'Tasks',
-    ['DigestStories', 'Configuration', 'Logger'] as const,
+    ['DigestStories', 'GenerateArticlesFromStories', 'Configuration', 'Logger'] as const,
     (
         digestStories: DigestStoriesUseCase,
+        generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
         configuration: ConfigurationPort,
         logger: LoggerPort,
     ): TaskPort[] => {
@@ -170,7 +204,14 @@ const tasksFactory = Injectable(
 
         // Story digest task
         const storyDigestConfigs = configuration.getInboundConfiguration().tasks.storyDigest;
-        tasks.push(new StoryDigestTask(digestStories, storyDigestConfigs, logger));
+        tasks.push(
+            new StoryDigestTask(
+                digestStories,
+                generateArticlesFromStories,
+                storyDigestConfigs,
+                logger,
+            ),
+        );
 
         return tasks;
     },
@@ -241,12 +282,14 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(newsFactory)
         .provides(modelFactory)
         .provides(storyDigestAgentFactory)
+        .provides(articleComposerAgentFactory)
         // Repositories
         .provides(articleRepositoryFactory)
         .provides(storyRepositoryFactory)
         // Use cases
         .provides(getArticlesUseCaseFactory)
         .provides(digestStoriesUseCaseFactory)
+        .provides(generateArticlesFromStoriesUseCaseFactory)
         // Controllers and tasks
         .provides(getArticlesControllerFactory)
         .provides(tasksFactory)
