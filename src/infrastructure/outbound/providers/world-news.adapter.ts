@@ -6,6 +6,7 @@ import {
     type NewsArticle,
     type NewsOptions,
     type NewsProviderPort,
+    type NewsStory,
 } from '../../../application/ports/outbound/providers/news.port.js';
 
 import { Country } from '../../../domain/value-objects/country.vo.js';
@@ -34,6 +35,7 @@ type WorldNewsResponse = z.infer<typeof worldNewsResponseSchema>;
 
 // Schemas
 const worldNewsArticleSchema = z.object({
+    id: z.number(),
     publish_date: z.string(),
     text: z.string(),
     title: z.string(),
@@ -58,7 +60,7 @@ export class WorldNewsAdapter implements NewsProviderPort {
         private readonly monitoring: MonitoringPort,
     ) {}
 
-    public async fetchNews(options?: NewsOptions): Promise<NewsArticle[]> {
+    public async fetchNews(options?: NewsOptions): Promise<NewsStory[]> {
         const {
             country = new Country(DEFAULT_COUNTRY),
             language = new Language(DEFAULT_LANGUAGE),
@@ -74,14 +76,14 @@ export class WorldNewsAdapter implements NewsProviderPort {
 
                 const url = this.buildApiUrl(country, language);
                 const response = await this.makeApiRequest(url);
-                const articles = await this.processApiResponse(response);
+                const stories = await this.processApiResponse(response);
 
-                this.logger.info('Successfully retrieved news articles:', {
-                    articleCount: articles.length,
+                this.logger.info('Successfully retrieved news stories:', {
                     country: country.toString(),
                     language: language.toString(),
+                    storyCount: stories.length,
                 });
-                return articles;
+                return stories;
             } catch (error) {
                 this.monitoring.recordCount('WorldNews', 'Errors');
                 this.logger.error(`Failed to fetch ${language} news:`, {
@@ -141,35 +143,40 @@ export class WorldNewsAdapter implements NewsProviderPort {
         return response;
     }
 
-    private async processApiResponse(response: Response): Promise<NewsArticle[]> {
+    private async processApiResponse(response: Response): Promise<NewsStory[]> {
         const data = await response.json();
         const parsed = worldNewsResponseSchema.parse(data);
         return this.transformResponse(parsed);
     }
 
-    private selectMedianArticle(articles: WorldNewsArticle[]): WorldNewsArticle {
-        const sorted = [...articles].sort((a, b) => a.text.length - b.text.length);
-        const medianIndex = Math.floor((sorted.length - 1) / 2);
-        return sorted[medianIndex];
-    }
-
-    private transformResponse(response: WorldNewsResponse): NewsArticle[] {
+    private transformResponse(response: WorldNewsResponse): NewsStory[] {
         return response.top_news
             .map((section) => this.transformSection(section))
-            .filter(Boolean) as NewsArticle[];
+            .filter(Boolean) as NewsStory[];
     }
 
-    private transformSection(section: { news: WorldNewsArticle[] }): NewsArticle | undefined {
+    private transformSection(section: { news: WorldNewsArticle[] }): NewsStory | undefined {
         if (section.news.length === 0) {
             return undefined;
         }
 
-        const medianArticle = this.selectMedianArticle(section.news);
+        const articles: NewsArticle[] = section.news.map((article) => ({
+            body: article.text,
+            headline: article.title,
+            id: `worldnewsapi:${article.id}`,
+        }));
+
+        // Calculate the average date from all articles
+        const articleDates = section.news.map((article) =>
+            new Date(article.publish_date).getTime(),
+        );
+        const averageTimestamp =
+            articleDates.reduce((sum, timestamp) => sum + timestamp, 0) / articleDates.length;
+        const storyDate = new Date(averageTimestamp);
+
         return {
-            body: medianArticle.text,
-            coverage: section.news.length,
-            headline: medianArticle.title,
-            publishedAt: new Date(medianArticle.publish_date),
+            articles,
+            publishedAt: storyDate,
         };
     }
 }

@@ -1,7 +1,7 @@
+import { ArticleVariant } from '../../value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../../value-objects/article/authenticity.vo.js';
 import { Body } from '../../value-objects/article/body.vo.js';
 import { Headline } from '../../value-objects/article/headline.vo.js';
-import { Summary } from '../../value-objects/article/summary.vo.js';
 import { Category } from '../../value-objects/category.vo.js';
 import { type Country } from '../../value-objects/country.vo.js';
 import { type Language } from '../../value-objects/language.vo.js';
@@ -27,7 +27,8 @@ function createMockArticle(index: number, country: Country, language: Language):
         id: crypto.randomUUID(),
         language,
         publishedAt: new Date(),
-        summary: createMockSummary(index),
+        storyIds: [], // Empty array for mock articles
+        variants: createMockVariants(index),
     });
 }
 
@@ -46,14 +47,41 @@ function createMockHeadline(index: number): Headline {
 }
 
 /**
- * Creates a mock summary for an article
+ * Creates mock variants for an article
  */
-function createMockSummary(index: number): Summary {
-    const summaryText =
-        `Summary of generated article ${index + 1} providing key insights and main points. `.repeat(
-            5,
+function createMockVariants(index: number): ArticleVariant[] {
+    const variants: ArticleVariant[] = [];
+
+    // Add 1-2 variants per article for variety
+    const variantCount = 1 + (index % 2);
+
+    if (variantCount >= 1) {
+        variants.push(
+            new ArticleVariant({
+                body: new Body(
+                    `This critical perspective examines the implications of the developments discussed in article ${index + 1}. We analyze the potential concerns and challenges that arise from these changes.`,
+                ),
+                discourse: 'alternative',
+                headline: new Headline(`Critical Analysis: Mock Article ${index + 1}`),
+                stance: 'critical',
+            }),
         );
-    return new Summary(summaryText.trim());
+    }
+
+    if (variantCount >= 2) {
+        variants.push(
+            new ArticleVariant({
+                body: new Body(
+                    `This supportive analysis highlights the positive aspects and opportunities presented in article ${index + 1}. We explore the benefits and potential for progress.`,
+                ),
+                discourse: 'mainstream',
+                headline: new Headline(`Supportive View: Mock Article ${index + 1}`),
+                stance: 'supportive',
+            }),
+        );
+    }
+
+    return variants;
 }
 
 /**

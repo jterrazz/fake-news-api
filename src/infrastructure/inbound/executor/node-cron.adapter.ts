@@ -1,5 +1,5 @@
 import { type LoggerPort } from '@jterrazz/logger';
-import cron from 'node-cron';
+import cron, { type ScheduledTask } from 'node-cron';
 
 import {
     type ExecutorPort,
@@ -8,7 +8,7 @@ import {
 
 export class NodeCronAdapter implements ExecutorPort {
     private readonly logger: LoggerPort;
-    private readonly scheduledTasks: cron.ScheduledTask[] = [];
+    private readonly scheduledTasks: ScheduledTask[] = [];
     private readonly tasks: TaskPort[];
 
     constructor(logger: LoggerPort, tasks: TaskPort[]) {
@@ -22,21 +22,15 @@ export class NodeCronAdapter implements ExecutorPort {
         for (const task of this.tasks) {
             this.logger.info(`Scheduling task: ${task.name} with schedule: ${task.schedule}`);
 
-            const cronTask = cron.schedule(
-                task.schedule,
-                async () => {
-                    this.logger.info(`Executing task: ${task.name}`);
-                    try {
-                        await task.execute();
-                        this.logger.info(`Task completed successfully: ${task.name}`);
-                    } catch (error) {
-                        this.logger.error(`Task failed: ${task.name}`, { error });
-                    }
-                },
-                {
-                    scheduled: false,
-                },
-            );
+            const cronTask = cron.schedule(task.schedule, async () => {
+                this.logger.info(`Executing task: ${task.name}`);
+                try {
+                    await task.execute();
+                    this.logger.info(`Task completed successfully: ${task.name}`);
+                } catch (error) {
+                    this.logger.error(`Task failed: ${task.name}`, { error });
+                }
+            });
 
             this.scheduledTasks.push(cronTask);
 

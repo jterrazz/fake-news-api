@@ -10,7 +10,7 @@ export interface ArticleRepositoryPort {
     /**
      * Count articles matching the given criteria
      */
-    countMany(params: CountManyOptions): Promise<number>;
+    countMany(options: CountManyOptions): Promise<number>;
 
     /**
      * Create multiple articles
@@ -21,13 +21,13 @@ export interface ArticleRepositoryPort {
      * Find headlines and summaries matching the given criteria
      */
     findHeadlinesAndSummaries(
-        params: FindHeadlinesAndSummariesOptions,
+        options: FindHeadlinesAndSummariesOptions,
     ): Promise<Array<{ headline: string; summary: string }>>;
 
     /**
      * Find articles matching the given criteria
      */
-    findMany(params: FindManyOptions): Promise<Article[]>;
+    findMany(options: FindManyOptions): Promise<Article[]>;
 }
 
 export interface CountManyOptions {
@@ -48,6 +48,7 @@ export interface FindManyOptions {
     category?: Category;
     country?: Country;
     cursor?: Date;
+    interestTier?: Array<'NICHE' | 'STANDARD'>;
     language?: Language;
     limit: number;
 }

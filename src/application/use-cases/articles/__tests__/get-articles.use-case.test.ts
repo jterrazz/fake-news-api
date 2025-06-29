@@ -56,8 +56,9 @@ describe('GetArticlesUseCase', () => {
                 category: undefined,
                 country: DEFAULT_COUNTRY,
                 cursor: undefined,
+                interestTier: ['STANDARD', 'NICHE'],
                 language: DEFAULT_LANGUAGE,
-                limit: DEFAULT_LIMIT,
+                limit: DEFAULT_LIMIT + 1,
             });
 
             expect(mockArticleRepository.countMany).toHaveBeenCalledWith({
@@ -84,7 +85,7 @@ describe('GetArticlesUseCase', () => {
 
             // Then - it should respect the custom limit
             expect(mockArticleRepository.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({ limit: customLimit }),
+                expect.objectContaining({ limit: customLimit + 1 }),
             );
             expect(result.items).toHaveLength(customLimit);
         });

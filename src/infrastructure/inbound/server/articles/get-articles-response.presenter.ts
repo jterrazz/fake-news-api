@@ -7,47 +7,28 @@ import { type Article } from '../../../../domain/entities/article.entity.js';
 type ArticleMetadata = {
     category: Category;
     country: Country;
+    interestTier?: 'ARCHIVED' | 'NICHE' | 'STANDARD';
     language: Language;
 };
 
-type ArticleResponse = ArticleResponseDeprecated & ArticleResponseNew;
-
-/**
- * Deprecated article response properties - maintained for backward compatibility
- */
-type ArticleResponseDeprecated = {
-    article: string;
-    category: Category;
-    contentRaw: string;
-    contentWithAnnotations: string;
-    country: Country;
-    createdAt: Date;
-    fakeReason: null | string;
+type ArticleResponse = {
+    authenticity: {
+        reason?: string;
+        status: 'authentic' | 'fake';
+    };
+    body: string;
     headline: string;
-    isFake: boolean;
-    language: Language;
-    summary: string;
-};
-
-type ArticleResponseNew = {
     id: string;
     metadata: ArticleMetadata;
     publishedAt: string;
-    variants: ArticleVariants;
+    variants: ArticleVariantResponse[];
 };
 
-type ArticleVariant = {
+type ArticleVariantResponse = {
     body: string;
+    discourse: string;
     headline: string;
-};
-
-type ArticleVariants = {
-    fake: FakeArticleVariant[];
-    original: ArticleVariant[];
-};
-
-type FakeArticleVariant = ArticleVariant & {
-    reason: string;
+    stance: string;
 };
 
 type HttpPaginatedResponse<T> = {
@@ -58,7 +39,7 @@ type HttpPaginatedResponse<T> = {
 
 /**
  * Handles response formatting for GET /articles endpoint
- * Transforms domain objects to HTTP response format with variants structure
+ * Transforms domain objects to HTTP response format with clean article + variants structure
  */
 export class GetArticlesResponsePresenter {
     present(result: UseCasePaginatedResponse<Article>): HttpPaginatedResponse<ArticleResponse> {
@@ -81,53 +62,38 @@ export class GetArticlesResponsePresenter {
         const content = article.body.toString();
         const { contentRaw, contentWithAnnotations } = this.processContent(content);
 
-        const newResponse: ArticleResponseNew = {
+        // Use processed content based on authenticity
+        const displayBody = article.isFake() ? contentWithAnnotations : contentRaw;
+
+        // Map article variants from domain entities
+        const variants: ArticleVariantResponse[] =
+            article.variants?.map((variant) => ({
+                body: variant.body.toString(),
+                discourse: variant.discourse,
+                headline: variant.headline.toString(),
+                stance: variant.stance,
+            })) ?? [];
+
+        return {
+            authenticity: {
+                reason: article.authenticity.reason ?? undefined,
+                status: article.isFake() ? 'fake' : 'authentic',
+            },
+            body: displayBody,
+            headline: article.headline.toString(),
             id: article.id,
             metadata: {
                 category: article.category.toString() as Category,
                 country: article.country.toString() as Country,
+                interestTier: article.interestTier?.value as
+                    | 'ARCHIVED'
+                    | 'NICHE'
+                    | 'STANDARD'
+                    | undefined,
                 language: article.language.toString() as Language,
             },
             publishedAt: article.publishedAt.toISOString(),
-            variants: article.isFake()
-                ? {
-                      fake: [
-                          {
-                              body: contentWithAnnotations,
-                              headline: article.headline.toString(),
-                              reason: article.authenticity.reason!,
-                          },
-                      ],
-                      original: [],
-                  }
-                : {
-                      fake: [],
-                      original: [
-                          {
-                              body: contentRaw,
-                              headline: article.headline.toString(),
-                          },
-                      ],
-                  },
-        };
-
-        const deprecatedResponse: ArticleResponseDeprecated = {
-            article: contentRaw,
-            category: article.category.toString() as Category,
-            contentRaw,
-            contentWithAnnotations,
-            country: article.country.toString() as Country,
-            createdAt: article.publishedAt,
-            fakeReason: article.authenticity.reason,
-            headline: article.headline.toString(),
-            isFake: article.isFake(),
-            language: article.language.toString() as Language,
-            summary: article.summary.toString(),
-        };
-
-        return {
-            ...newResponse,
-            ...deprecatedResponse,
+            variants,
         };
     }
 

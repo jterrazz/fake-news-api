@@ -6,10 +6,16 @@ inbound:
   logger:
     level: info
     prettyPrint: false
+  tasks:
+    storyDigest:
+      - country: fr
+        language: fr
+      - country: us
+        language: en
 
 outbound:
   openRouter:
-    budget: paid
+    budget: high
   worldNews:
     useCache: false
   newRelic:

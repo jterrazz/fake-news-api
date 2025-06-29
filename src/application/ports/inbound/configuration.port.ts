@@ -1,7 +1,10 @@
 import { type LoggerLevel } from '@jterrazz/logger';
 
+import { type CountryEnum } from '../../../domain/value-objects/country.vo.js';
+import { type LanguageEnum } from '../../../domain/value-objects/language.vo.js';
+
 /**
- * Configuration port - defines how the application can be configured
+ * Configuration port providing access to application settings
  */
 export interface ConfigurationPort {
     /**
@@ -16,7 +19,7 @@ export interface ConfigurationPort {
 }
 
 /**
- * Inbound configuration
+ * Inbound configuration (defined by the user)
  */
 export interface InboundConfigurationPort {
     env: 'development' | 'production' | 'test';
@@ -28,10 +31,13 @@ export interface InboundConfigurationPort {
         level: LoggerLevel;
         prettyPrint: boolean;
     };
+    tasks: {
+        storyDigest: StoryDigestTaskConfig[];
+    };
 }
 
 /**
- * Outbound configuration
+ * Outbound configuration (defined by external services)
  */
 export interface OutboundConfigurationPort {
     newRelic: {
@@ -40,7 +46,7 @@ export interface OutboundConfigurationPort {
     };
     openRouter: {
         apiKey: string;
-        budget: 'free' | 'paid';
+        budget: 'high' | 'low' | 'medium';
     };
     prisma: {
         databaseUrl: string;
@@ -49,4 +55,19 @@ export interface OutboundConfigurationPort {
         apiKey: string;
         useCache: boolean;
     };
+}
+
+/**
+ * Story digest task configuration
+ */
+export interface StoryDigestTaskConfig {
+    country: CountryEnum;
+    language: LanguageEnum;
+}
+
+/**
+ * Tasks configuration
+ */
+export interface TasksConfigurationPort {
+    storyDigest: StoryDigestTaskConfig[];
 }

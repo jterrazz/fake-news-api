@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,6 +8,7 @@ datasource db {
 }
 
 enum Country {
+  global
   us
   fr
 }
@@ -24,29 +19,124 @@ enum Language {
 }
 
 enum Category {
-  POLITICS
-  TECHNOLOGY
-  SCIENCE
-  HEALTH
-  ENTERTAINMENT
-  SPORTS
-  BUSINESS
-  WORLD
-  OTHER
+  politics
+  business
+  technology
+  science
+  health
+  environment
+  society
+  entertainment
+  sports
+  other
+}
+
+enum Stance {
+  supportive
+  critical
+  neutral
+  mixed
+  concerned
+  optimistic
+  skeptical
+}
+
+enum InterestTier {
+  STANDARD
+  NICHE
+  PENDING_REVIEW
+  ARCHIVED
+}
+
+enum Discourse {
+  mainstream
+  alternative
+  underreported
+  dubious
+}
+
+model Story {
+  id           String       @id @default(uuid())
+  synopsis     String
+  category     Category
+  interestTier InterestTier @default(PENDING_REVIEW)
+
+  // Geographic and temporal context
+  country  Country
+  dateline DateTime
+
+  // Sources
+  sourceReferences Json
+
+  // Relations
+  perspectives Perspective[]
+  articles     Article[]     @relation("StoryArticles")
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([country])
+  @@index([dateline])
+  @@index([createdAt])
+}
+
+model Perspective {
+  id             String     @id @default(uuid())
+  holisticDigest String
+  stance         Stance?
+  discourse      Discourse?
+
+  // Relations
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  storyId String
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storyId])
+  @@index([stance])
+  @@index([discourse])
 }
 
 model Article {
-  id         String    @id @default(uuid())
-  headline   String
-  article    String
-  summary    String
-  category   Category
-  isFake     Boolean
-  fakeReason String?
-  country    Country
-  language   Language
-  createdAt  DateTime  @default(now())
+  id          String   @id @default(uuid())
+  headline    String
+  body        String // Main neutral article presenting only facts from all sides
+  category    Category
+  fakeStatus  Boolean // For game aspect - main article could be entirely fabricated
+  fakeReason  String? // Reason why the main article is fake (if applicable)
+  country     Country
+  language    Language
+  publishedAt DateTime // When the original story was published
+  createdAt   DateTime @default(now())
+
+  // Relations
+  variants ArticleVariant[]
+  stories  Story[]          @relation("StoryArticles")
 
   @@index([language, country])
   @@index([createdAt])
+  @@index([publishedAt])
+}
+
+model ArticleVariant {
+  id        String    @id @default(uuid())
+  headline  String // Variant headline from this viewpoint
+  body      String // Viewpoint-specific content explaining this side of the story
+  stance    Stance // The viewpoint/stance this variant represents
+  discourse Discourse // The type of discourse this variant represents
+
+  // Relations
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  // Metadata
+  createdAt DateTime @default(now())
+
+  @@index([articleId])
+  @@index([stance])
+  @@index([discourse])
 }

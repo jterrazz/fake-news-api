@@ -7,6 +7,9 @@ import {
     type OutboundConfigurationPort,
 } from '../../../application/ports/inbound/configuration.port.js';
 
+import { countrySchema } from '../../../domain/value-objects/country.vo.js';
+import { languageSchema } from '../../../domain/value-objects/language.vo.js';
+
 const configurationSchema = z.object({
     inbound: z.object({
         env: z.enum(['development', 'production', 'test']),
@@ -18,6 +21,17 @@ const configurationSchema = z.object({
             level: LoggerLevelSchema,
             prettyPrint: z.boolean(),
         }),
+        tasks: z.object({
+            storyDigest: z
+                .array(
+                    z.object({
+                        country: countrySchema,
+                        language: languageSchema,
+                    }),
+                )
+                .optional()
+                .default([]),
+        }),
     }),
     outbound: z.object({
         newRelic: z.object({
@@ -26,7 +40,7 @@ const configurationSchema = z.object({
         }),
         openRouter: z.object({
             apiKey: z.string().min(1),
-            budget: z.enum(['free', 'paid']),
+            budget: z.enum(['low', 'medium', 'high']),
         }),
         prisma: z.object({
             databaseUrl: z.string().min(1),

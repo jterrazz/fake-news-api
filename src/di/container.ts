@@ -1,3 +1,4 @@
+import { type ModelPort, OpenRouterAdapter } from '@jterrazz/intelligence';
 import { type LoggerPort, PinoLoggerAdapter } from '@jterrazz/logger';
 import {
     type MonitoringPort,
@@ -12,22 +13,28 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 import type { ExecutorPort } from '../application/ports/inbound/executor.port.js';
 import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
-import { type ArticleGeneratorPort } from '../application/ports/outbound/ai/article-generator.port.js';
-import { type AIProviderPort } from '../application/ports/outbound/ai/provider.port.js';
+import { type ArticleComposerAgentPort } from '../application/ports/outbound/agents/article-composer.agent.js';
+import { type StoryClassifierAgentPort } from '../application/ports/outbound/agents/story-classifier.agent.js';
+import { type StoryDigestAgentPort } from '../application/ports/outbound/agents/story-digest.agent.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
+import { type StoryRepositoryPort } from '../application/ports/outbound/persistence/story-repository.port.js';
 import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
-import { GenerateArticlesUseCase } from '../application/use-cases/articles/generate-articles.use-case.js';
+import { GenerateArticlesFromStoriesUseCase } from '../application/use-cases/articles/generate-articles-from-stories.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
+import { ClassifyStoriesUseCase } from '../application/use-cases/stories/classify-stories.use-case.js';
+import { DigestStoriesUseCase } from '../application/use-cases/stories/digest-stories.use-case.js';
 
 import { NodeConfigAdapter } from '../infrastructure/inbound/configuration/node-config.adapter.js';
-import { ArticleGenerationTask } from '../infrastructure/inbound/executor/articles/article-generation.task.js';
 import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.adapter.js';
+import { StoryDigestTask } from '../infrastructure/inbound/executor/stories/story-digest.task.js';
 import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
-import { AIArticleGenerator } from '../infrastructure/outbound/ai/article-generator.adapter.js';
-import { OpenRouterAdapter } from '../infrastructure/outbound/ai/providers/open-router.adapter.js';
+import { ArticleComposerAgentAdapter } from '../infrastructure/outbound/agents/article-composer.agent.js';
+import { StoryClassifierAgentAdapter } from '../infrastructure/outbound/agents/story-classifier.agent.js';
+import { StoryDigestAgentAdapter } from '../infrastructure/outbound/agents/story-digest.agent.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
+import { PrismaStoryRepository } from '../infrastructure/outbound/persistence/prisma-story.adapter.js';
 import { CachedNewsAdapter } from '../infrastructure/outbound/providers/cached-news.adapter.js';
 import { WorldNewsAdapter } from '../infrastructure/outbound/providers/world-news.adapter.js';
 
@@ -79,21 +86,39 @@ const newsFactory = Injectable(
     },
 );
 
-const aiProviderFactory = Injectable(
-    'AIProvider',
-    ['Configuration', 'Logger', 'NewRelic'] as const,
-    (config: ConfigurationPort, logger: LoggerPort, monitoring: MonitoringPort) => {
-        return new OpenRouterAdapter(logger, monitoring, {
+const modelFactory = Injectable(
+    'Model',
+    ['Configuration'] as const,
+    (config: ConfigurationPort): ModelPort =>
+        new OpenRouterAdapter({
             apiKey: config.getOutboundConfiguration().openRouter.apiKey,
-            budget: config.getOutboundConfiguration().openRouter.budget,
-        });
-    },
+            metadata: {
+                application: 'jterrazz-agents',
+                website: 'https://jterrazz.com',
+            },
+            modelName:
+                config.getOutboundConfiguration().openRouter.budget === 'low'
+                    ? 'google/gemini-2.5-flash-lite-preview-06-17'
+                    : 'google/gemini-2.5-flash',
+        }),
 );
 
-const articleGeneratorFactory = Injectable(
-    'ArticleGenerator',
-    ['AIProvider', 'Logger'] as const,
-    (aiProvider: AIProviderPort, logger: LoggerPort) => new AIArticleGenerator(aiProvider, logger),
+const storyDigestAgentFactory = Injectable(
+    'StoryDigestAgent',
+    ['Model', 'Logger'] as const,
+    (model: ModelPort, logger: LoggerPort) => new StoryDigestAgentAdapter(model, logger),
+);
+
+const articleComposerAgentFactory = Injectable(
+    'ArticleComposerAgent',
+    ['Model', 'Logger'] as const,
+    (model: ModelPort, logger: LoggerPort) => new ArticleComposerAgentAdapter(model, logger),
+);
+
+const storyClassifierAgentFactory = Injectable(
+    'StoryClassifierAgent',
+    ['Model', 'Logger'] as const,
+    (model: ModelPort, logger: LoggerPort) => new StoryClassifierAgentAdapter(model, logger),
 );
 
 /**
@@ -109,24 +134,61 @@ const articleRepositoryFactory = Injectable(
     },
 );
 
+const storyRepositoryFactory = Injectable(
+    'StoryRepository',
+    ['Database', 'Logger'] as const,
+    (db: PrismaAdapter, logger: LoggerPort) => {
+        logger.info('Initializing Prisma story repository');
+        const storyRepository = new PrismaStoryRepository(db);
+        return storyRepository;
+    },
+);
+
 /**
  * Use case factories
  */
-const generateArticlesUseCaseFactory = Injectable(
-    'GenerateArticles',
-    ['ArticleRepository', 'Logger', 'News', 'ArticleGenerator'] as const,
-    (
-        articleRepository: ArticleRepositoryPort,
-        logger: LoggerPort,
-        newsService: NewsProviderPort,
-        articleGenerator: ArticleGeneratorPort,
-    ) => new GenerateArticlesUseCase(articleGenerator, articleRepository, logger, newsService),
-);
-
 const getArticlesUseCaseFactory = Injectable(
     'GetArticles',
     ['ArticleRepository'] as const,
     (articleRepository: ArticleRepositoryPort) => new GetArticlesUseCase(articleRepository),
+);
+
+const digestStoriesUseCaseFactory = Injectable(
+    'DigestStories',
+    ['StoryDigestAgent', 'Logger', 'News', 'StoryRepository'] as const,
+    (
+        storyDigestAgent: StoryDigestAgentPort,
+        logger: LoggerPort,
+        newsService: NewsProviderPort,
+        storyRepository: StoryRepositoryPort,
+    ) => new DigestStoriesUseCase(storyDigestAgent, logger, newsService, storyRepository),
+);
+
+const generateArticlesFromStoriesUseCaseFactory = Injectable(
+    'GenerateArticlesFromStories',
+    ['ArticleComposerAgent', 'Logger', 'StoryRepository', 'ArticleRepository'] as const,
+    (
+        articleComposerAgent: ArticleComposerAgentPort,
+        logger: LoggerPort,
+        storyRepository: StoryRepositoryPort,
+        articleRepository: ArticleRepositoryPort,
+    ) =>
+        new GenerateArticlesFromStoriesUseCase(
+            articleComposerAgent,
+            logger,
+            storyRepository,
+            articleRepository,
+        ),
+);
+
+const classifyStoriesUseCaseFactory = Injectable(
+    'ClassifyStories',
+    ['StoryClassifierAgent', 'StoryRepository', 'Logger'] as const,
+    (
+        storyClassifierAgent: StoryClassifierAgentPort,
+        storyRepository: StoryRepositoryPort,
+        logger: LoggerPort,
+    ) => new ClassifyStoriesUseCase(storyClassifierAgent, storyRepository, logger),
 );
 
 /**
@@ -143,9 +205,35 @@ const getArticlesControllerFactory = Injectable(
  */
 const tasksFactory = Injectable(
     'Tasks',
-    ['GenerateArticles', 'Logger'] as const,
-    (generateArticles: GenerateArticlesUseCase, logger: LoggerPort): TaskPort[] => {
-        return [new ArticleGenerationTask(generateArticles, logger)];
+    [
+        'DigestStories',
+        'GenerateArticlesFromStories',
+        'ClassifyStories',
+        'Configuration',
+        'Logger',
+    ] as const,
+    (
+        digestStories: DigestStoriesUseCase,
+        generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
+        classifyStories: ClassifyStoriesUseCase,
+        configuration: ConfigurationPort,
+        logger: LoggerPort,
+    ): TaskPort[] => {
+        const tasks: TaskPort[] = [];
+
+        // Story digest task
+        const storyDigestConfigs = configuration.getInboundConfiguration().tasks.storyDigest;
+        tasks.push(
+            new StoryDigestTask(
+                digestStories,
+                generateArticlesFromStories,
+                classifyStories,
+                storyDigestConfigs,
+                logger,
+            ),
+        );
+
+        return tasks;
     },
 );
 
@@ -212,13 +300,18 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(newRelicFactory)
         .provides(databaseFactory)
         .provides(newsFactory)
-        .provides(aiProviderFactory)
-        .provides(articleGeneratorFactory)
+        .provides(modelFactory)
+        .provides(storyDigestAgentFactory)
+        .provides(articleComposerAgentFactory)
+        .provides(storyClassifierAgentFactory)
         // Repositories
         .provides(articleRepositoryFactory)
+        .provides(storyRepositoryFactory)
         // Use cases
-        .provides(generateArticlesUseCaseFactory)
         .provides(getArticlesUseCaseFactory)
+        .provides(digestStoriesUseCaseFactory)
+        .provides(generateArticlesFromStoriesUseCaseFactory)
+        .provides(classifyStoriesUseCaseFactory)
         // Controllers and tasks
         .provides(getArticlesControllerFactory)
         .provides(tasksFactory)

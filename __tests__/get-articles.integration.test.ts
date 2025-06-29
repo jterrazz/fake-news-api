@@ -42,8 +42,8 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
             // Verify default filtering (US articles in English)
             data.items.forEach((item) => {
-                expect(item.country).toBe('us');
-                expect(item.language).toBe('en');
+                expect(item.metadata.country).toBe('us');
+                expect(item.metadata.language).toBe('en');
             });
 
             // Verify ordering (newest first)
@@ -66,7 +66,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
             // Then
             expect(response.status).toBe(200);
             expect(data.items).toHaveLength(1);
-            expect(data.items[0]).toMatchObject({
+            expect(data.items[0].metadata).toMatchObject({
                 category: 'technology',
                 country: 'fr',
                 language: 'fr',
@@ -128,8 +128,6 @@ describe('HTTP - Get Articles - Integration Tests', () => {
             // Given
             const testBody =
                 'Scientists at leading universities have announced a %%[(REVOLUTIONARY)]( groundbreaking advancement in artificial intelligence.)%% The research shows significant progress in machine learning capabilities.';
-            const expectedContentRaw =
-                'Scientists at leading universities have announced a REVOLUTIONARY groundbreaking advancement in artificial intelligence. The research shows significant progress in machine learning capabilities.';
             const expectedContentWithAnnotations =
                 'Scientists at leading universities have announced a %%[(REVOLUTIONARY)]( groundbreaking advancement in artificial intelligence.) The research shows significant progress in machine learning capabilities.';
 
@@ -139,8 +137,6 @@ describe('HTTP - Get Articles - Integration Tests', () => {
                 .withLanguage('en')
                 .withHeadline('Revolutionary AI Breakthrough Announced')
                 .withBody(testBody)
-                .withSummary('A major breakthrough in AI technology has been announced.')
-                .withPublishedAt(new Date('2024-03-15T14:30:00.000Z'))
                 .withPublishedAt(new Date('2024-03-15T14:30:00.000Z'))
                 .asFake('Exaggerated claims about AI capabilities')
                 .createInDatabase(testContext.prisma);
@@ -155,40 +151,25 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
             const article = data.items[0];
 
-            // Test complete article structure - new schema + backward compatibility
+            // Test complete article structure with new clean schema
             expect(article).toEqual({
-                // Backward compatibility - deprecated fields
-                article: expectedContentRaw,
-                category: 'technology',
-                contentRaw: expectedContentRaw,
-                contentWithAnnotations: expectedContentWithAnnotations,
-                country: 'us',
-                createdAt: '2024-03-15T14:30:00.000Z',
-                fakeReason: 'Exaggerated claims about AI capabilities',
+                authenticity: {
+                    reason: 'Exaggerated claims about AI capabilities',
+                    status: 'fake',
+                },
+                body: expectedContentWithAnnotations,
                 headline: 'Revolutionary AI Breakthrough Announced',
-                // New variants schema
                 id: expect.stringMatching(
                     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
                 ),
-                isFake: true,
-                language: 'en',
                 metadata: {
                     category: 'technology',
                     country: 'us',
+                    interestTier: 'STANDARD',
                     language: 'en',
                 },
                 publishedAt: '2024-03-15T14:30:00.000Z',
-                summary: 'A major breakthrough in AI technology has been announced.',
-                variants: {
-                    fake: [
-                        {
-                            body: expectedContentWithAnnotations,
-                            headline: 'Revolutionary AI Breakthrough Announced',
-                            reason: 'Exaggerated claims about AI capabilities',
-                        },
-                    ],
-                    original: [],
-                },
+                variants: [],
             });
         });
 
@@ -221,38 +202,22 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
             // Test complete legitimate article structure
             expect(article).toEqual({
-                // Backward compatibility - deprecated fields
-                article: expectedContentRaw,
-                category: 'technology',
-                contentRaw: expectedContentRaw,
-                contentWithAnnotations:
-                    'This is a %%[(legitimate)]( news article with proper sourcing) and verified information.', // Content with annotations processed
-                country: 'us',
-                createdAt: expect.any(String), // Creation time will vary
-                fakeReason: null,
+                authenticity: {
+                    status: 'authentic',
+                },
+                body: expectedContentRaw,
                 headline: 'Legitimate Tech News',
-                // New variants schema
                 id: expect.stringMatching(
                     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
                 ),
-                isFake: false,
-                language: 'en',
                 metadata: {
                     category: 'technology',
                     country: 'us',
+                    interestTier: 'STANDARD',
                     language: 'en',
                 },
                 publishedAt: '2024-03-15T14:30:00.000Z',
-                summary: expect.any(String), // Default summary from factory
-                variants: {
-                    fake: [],
-                    original: [
-                        {
-                            body: expectedContentRaw,
-                            headline: 'Legitimate Tech News',
-                        },
-                    ], // No fake variant for legitimate articles
-                },
+                variants: [],
             });
         });
 
@@ -281,13 +246,18 @@ describe('HTTP - Get Articles - Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(data.items).toHaveLength(2);
 
-            const realArticle = data.items.find((item) => item.headline.includes('Real'));
-            const fakeArticle = data.items.find((item) => item.headline.includes('Fake'));
+            const realArticle = data.items.find((item) => item.authenticity.status === 'authentic');
+            const fakeArticle = data.items.find((item) => item.authenticity.status === 'fake');
 
-            expect(realArticle.isFake).toBe(false);
-            expect(realArticle.fakeReason).toBeNull();
-            expect(fakeArticle.isFake).toBe(true);
-            expect(fakeArticle.fakeReason).toBe('Fabricated information');
+            expect(realArticle).toBeDefined();
+            expect(realArticle.headline).toContain('Real');
+            expect(realArticle.authenticity.status).toBe('authentic');
+            expect(realArticle.authenticity.reason).toBeUndefined();
+
+            expect(fakeArticle).toBeDefined();
+            expect(fakeArticle.headline).toContain('Fake');
+            expect(fakeArticle.authenticity.status).toBe('fake');
+            expect(fakeArticle.authenticity.reason).toBe('Fabricated information');
         });
     });
 
@@ -338,7 +308,7 @@ describe('HTTP - Get Articles - Integration Tests', () => {
 
             // Then
             expect(response.status).toBe(200);
-            expect(data.items[0]).toMatchObject({
+            expect(data.items[0].metadata).toMatchObject({
                 category: 'technology',
                 country: 'us',
                 language: 'en',

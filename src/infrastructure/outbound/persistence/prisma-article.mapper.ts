@@ -1,22 +1,27 @@
 import {
     type Article as PrismaArticle,
+    type ArticleVariant as PrismaArticleVariant,
     type Category as PrismaCategory,
     type Country as PrismaCountry,
+    type Discourse,
     type Language as PrismaLanguage,
+    type Prisma,
+    type Stance,
 } from '@prisma/client';
 
 import { Article } from '../../../domain/entities/article.entity.js';
+import { ArticleVariant } from '../../../domain/value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
-import { Summary } from '../../../domain/value-objects/article/summary.vo.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../domain/value-objects/language.vo.js';
+import { InterestTier } from '../../../domain/value-objects/story/interest-tier.vo.js';
 
 export class ArticleMapper {
     mapCategoryToPrisma(category: Category): PrismaCategory {
-        return category.toString().toUpperCase() as PrismaCategory;
+        return category.toString() as PrismaCategory;
     }
 
     mapCountryToPrisma(country: Country): PrismaCountry {
@@ -27,32 +32,67 @@ export class ArticleMapper {
         return language.toString();
     }
 
-    toDomain(prisma: PrismaArticle): Article {
+    toDomain(
+        prisma: PrismaArticle & {
+            stories?: { id: string; interestTier: string }[];
+            variants?: PrismaArticleVariant[];
+        },
+    ): Article {
+        const variants = prisma.variants?.map(
+            (variant) =>
+                new ArticleVariant({
+                    body: new Body(variant.body),
+                    discourse: variant.discourse,
+                    headline: new Headline(variant.headline),
+                    stance: variant.stance,
+                }),
+        );
+
         return new Article({
-            authenticity: new Authenticity(prisma.isFake, prisma.fakeReason),
-            body: new Body(prisma.article),
+            authenticity: new Authenticity(prisma.fakeStatus, prisma.fakeReason),
+            body: new Body(prisma.body),
             category: new Category(prisma.category),
             country: new Country(prisma.country),
             headline: new Headline(prisma.headline),
             id: prisma.id,
+            interestTier: prisma.stories?.[0]?.interestTier
+                ? new InterestTier(
+                      prisma.stories[0].interestTier as 'ARCHIVED' | 'NICHE' | 'STANDARD',
+                  )
+                : undefined,
             language: new Language(prisma.language),
-            publishedAt: prisma.createdAt,
-            summary: new Summary(prisma.summary),
+            publishedAt: prisma.publishedAt,
+            storyIds: prisma.stories?.map((story) => story.id),
+            variants,
         });
     }
 
-    toPrisma(domain: Article): PrismaArticle {
+    toPrisma(domain: Article): Prisma.ArticleCreateInput {
         return {
-            article: domain.body.value,
+            body: domain.body.value,
             category: this.mapCategoryToPrisma(domain.category),
             country: this.mapCountryToPrisma(domain.country),
-            createdAt: domain.publishedAt,
             fakeReason: domain.authenticity.reason,
+            fakeStatus: domain.isFake(),
             headline: domain.headline.value,
             id: domain.id,
-            isFake: domain.isFake(),
             language: this.mapLanguageToPrisma(domain.language),
-            summary: domain.summary.value,
+            publishedAt: domain.publishedAt,
+            stories: domain.storyIds
+                ? {
+                      connect: domain.storyIds.map((id) => ({ id })),
+                  }
+                : undefined,
+            variants: domain.variants
+                ? {
+                      create: domain.variants.map((variant) => ({
+                          body: variant.body.value,
+                          discourse: variant.discourse as Discourse,
+                          headline: variant.headline.value,
+                          stance: variant.stance as Stance,
+                      })),
+                  }
+                : undefined,
         };
     }
 }

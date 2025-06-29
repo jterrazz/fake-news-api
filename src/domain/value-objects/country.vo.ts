@@ -1,6 +1,10 @@
 import { z } from 'zod/v4';
 
-export const countrySchema = z.enum(['fr', 'us']);
+export const countrySchema = z
+    .enum(['fr', 'us', 'global'])
+    .describe(
+        "Identifies the target countries where the story is relevant and should be surfaced. Use a two-letter ISO code for specific countries. The value 'global' is for stories with broad international relevance and should not be combined with other country codes.",
+    );
 
 export type CountryEnum = z.infer<typeof countrySchema>;
 
@@ -18,6 +22,10 @@ export class Country {
         }
 
         this.value = result.data;
+    }
+
+    public isGlobal(): boolean {
+        return this.value === 'global';
     }
 
     public toString(): CountryEnum {

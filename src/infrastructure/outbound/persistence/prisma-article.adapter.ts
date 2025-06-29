@@ -1,3 +1,5 @@
+import { type Prisma } from '@prisma/client';
+
 import type {
     ArticleRepositoryPort,
     CountManyOptions,
@@ -35,12 +37,10 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
     }
 
     async createMany(articles: Article[]): Promise<void> {
-        const prismaArticles = articles.map((article) => this.mapper.toPrisma(article));
-
         await this.prisma.getPrismaClient().$transaction(
-            prismaArticles.map((article) =>
+            articles.map((article) =>
                 this.prisma.getPrismaClient().article.create({
-                    data: article,
+                    data: this.mapper.toPrisma(article),
                 }),
             ),
         );
@@ -64,35 +64,58 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
                 createdAt: 'desc',
             },
             select: {
+                body: true,
                 headline: true,
-                summary: true,
             },
             where,
         });
 
         return articles.map((article) => ({
             headline: article.headline,
-            summary: article.summary,
+            summary: article.body.substring(0, 200) + '...', // Generate summary from body // TODO FIx this
         }));
     }
 
-    async findMany(params: FindManyOptions): Promise<Article[]> {
-        const where = {
-            ...(params.language && { language: this.mapper.mapLanguageToPrisma(params.language) }),
-            ...(params.category && { category: this.mapper.mapCategoryToPrisma(params.category) }),
-            ...(params.country && { country: this.mapper.mapCountryToPrisma(params.country) }),
-            ...(params.cursor && {
+    async findMany(options: FindManyOptions): Promise<Article[]> {
+        const where: Prisma.ArticleWhereInput = {
+            ...(options.language && {
+                language: this.mapper.mapLanguageToPrisma(options.language),
+            }),
+            ...(options.category && {
+                category: this.mapper.mapCategoryToPrisma(options.category),
+            }),
+            ...(options.country && { country: this.mapper.mapCountryToPrisma(options.country) }),
+            ...(options.cursor && {
                 createdAt: {
-                    lt: params.cursor,
+                    lt: options.cursor,
+                },
+            }),
+            ...(options.interestTier && {
+                stories: {
+                    some: {
+                        interestTier: {
+                            in: options.interestTier,
+                        },
+                    },
                 },
             }),
         };
 
         const items = await this.prisma.getPrismaClient().article.findMany({
+            include: {
+                stories: {
+                    select: {
+                        id: true,
+                        interestTier: true,
+                    },
+                    take: 1, // We only need the tier from one story
+                },
+                variants: true,
+            },
             orderBy: {
                 createdAt: 'desc',
             },
-            take: params.limit + 1,
+            take: options.limit + 1,
             where,
         });
 

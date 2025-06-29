@@ -13,6 +13,7 @@ interface MockTopNewsResponse {
     language: string;
     top_news: Array<{
         news: Array<{
+            id: number;
             publish_date: string;
             text: string;
             title: string;
@@ -61,6 +62,7 @@ export const worldNewsResolver = http.get(
             language: params.language!,
             top_news: new Array(5).fill(null).map((_, index) => ({
                 news: new Array(5).fill(null).map((_, newsIndex) => ({
+                    id: (index + 1) * 1000 + (newsIndex + 1), // Generate deterministic IDs like 1001, 1002, etc.
                     publish_date: publishDate,
                     text: `Test article text ${index}-${newsIndex} for ${params.sourceCountry!} in ${params.language!}`,
                     title: `Test Article ${index}-${newsIndex} (${params.sourceCountry!.toUpperCase()}/${params.language!.toUpperCase()})`,
