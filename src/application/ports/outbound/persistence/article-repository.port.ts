@@ -28,6 +28,11 @@ export interface ArticleRepositoryPort {
      * Find articles matching the given criteria
      */
     findMany(params: FindManyOptions): Promise<Article[]>;
+
+    /**
+     * Update an article's publication tier
+     */
+    update(id: string, data: { publicationTier: 'ARCHIVED' | 'NICHE' | 'STANDARD' }): Promise<void>;
 }
 
 export interface CountManyOptions {
@@ -50,4 +55,7 @@ export interface FindManyOptions {
     cursor?: Date;
     language?: Language;
     limit: number;
+    where?: {
+        publicationTier?: 'PENDING_REVIEW';
+    };
 }

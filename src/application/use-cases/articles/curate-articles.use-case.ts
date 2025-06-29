@@ -18,30 +18,56 @@ export class CurateArticlesUseCase {
 
     public async execute(): Promise<void> {
         this.logger.info('Starting article curation process...');
+        let curatedCount = 0;
+        let failedCount = 0;
 
-        // In a real application, you would fetch articles with the
-        // `PENDING_REVIEW` status from the repository.
-        // For now, we are just defining the structure.
+        try {
+            const articlesToReview = await this.articleRepository.findMany({
+                limit: 50, // Process in batches
+                where: { publicationTier: 'PENDING_REVIEW' },
+            });
 
-        // const articlesToReview = await this.articleRepository.findMany({
-        //     where: { publicationTier: 'PENDING_REVIEW' },
-        // });
-        //
-        // for (const article of articlesToReview) {
-        //     const result = await this.articleCurationAgent.run({ article });
-        //
-        //     if (result) {
-        //         await this.articleRepository.update(article.id, {
-        //             publicationTier: result.publicationTier,
-        //         });
-        //         this.logger.info(`Article ${article.id} curated as ${result.publicationTier}: ${result.reason}`);
-        //     } else {
-        //         this.logger.warn(`Failed to curate article ${article.id}`);
-        //     }
-        // }
+            if (articlesToReview.length === 0) {
+                this.logger.info('No articles found pending review.');
+                return;
+            }
 
-        this.logger.info('Article curation process finished.');
+            this.logger.info(`Found ${articlesToReview.length} articles to curate.`);
 
-        return Promise.resolve();
+            for (const article of articlesToReview) {
+                try {
+                    const result = await this.articleCurationAgent.run({ article });
+
+                    if (result) {
+                        await this.articleRepository.update(article.id, {
+                            publicationTier: result.publicationTier,
+                        });
+                        this.logger.info(
+                            `Article ${article.id} curated as ${result.publicationTier}: ${result.reason}`,
+                        );
+                        curatedCount++;
+                    } else {
+                        this.logger.warn(
+                            `Failed to curate article ${article.id}: AI agent returned null.`,
+                        );
+                        failedCount++;
+                    }
+                } catch (error) {
+                    this.logger.error(`Error curating article ${article.id}`, { error });
+                    failedCount++;
+                }
+            }
+        } catch (error) {
+            this.logger.error('Article curation process failed with an unhandled error.', {
+                error,
+            });
+            throw error;
+        }
+
+        this.logger.info('Article curation process finished.', {
+            failed: failedCount,
+            successful: curatedCount,
+            totalReviewed: curatedCount + failedCount,
+        });
     }
 }

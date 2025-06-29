@@ -27,17 +27,12 @@ export class ArticleCurationAgentAdapter implements ArticleCurationAgentPort {
 
     static readonly SCHEMA = z.object({
         publicationTier: publicationTierSchema,
-        reason: z
-            .string()
-            .min(10)
-            .max(150)
-            .describe('A brief, clear justification for your tier selection.'),
+        reason: z.string().describe('A brief, clear justification for your tier selection.'),
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
         'You are an expert Senior Editor for a modern digital news platform. Your primary responsibility is to curate content to ensure quality, relevance, and proper placement within the app.',
         'You are discerning, have high standards, and understand what makes an article compelling for a broad audience versus a niche one.',
-        PROMPT_LIBRARY.PERSONAS.JOURNALIST,
         PROMPT_LIBRARY.FOUNDATIONS.CONTEXTUAL_ONLY,
         PROMPT_LIBRARY.TONES.NEUTRAL,
     );

@@ -164,6 +164,7 @@ describe('DigestStoriesUseCase', () => {
                 ...testNewsStories, // Valid stories with 4 articles each
             ];
             mockNewsProvider.fetchNews.mockResolvedValue(insufficientNewsStories);
+            mockStoryDigestAgent.run.mockResolvedValue(mockDigestResults[0]); // Ensure a valid return for all calls
 
             // When - executing the use case
             const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
@@ -190,7 +191,10 @@ describe('DigestStoriesUseCase', () => {
             // Given - agent returns null for some stories
             mockStoryDigestAgent.run.mockImplementation(async (params) => {
                 // Return null for first story, valid story for others
-                return params?.newsStory === testNewsStories[0] ? null : mockDigestResults[0];
+                if (params?.newsStory === testNewsStories[0]) {
+                    return null;
+                }
+                return mockDigestResults[0];
             });
 
             // When - executing the use case

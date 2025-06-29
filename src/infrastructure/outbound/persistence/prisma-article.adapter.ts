@@ -74,16 +74,17 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         }));
     }
 
-    async findMany(params: FindManyOptions): Promise<Article[]> {
+    async findMany(options: FindManyOptions): Promise<Article[]> {
         const where = {
-            ...(params.language && { language: this.mapper.mapLanguageToPrisma(params.language) }),
-            ...(params.category && { category: this.mapper.mapCategoryToPrisma(params.category) }),
-            ...(params.country && { country: this.mapper.mapCountryToPrisma(params.country) }),
-            ...(params.cursor && {
+            ...(options.language && { language: this.mapper.mapLanguageToPrisma(options.language) }),
+            ...(options.category && { category: this.mapper.mapCategoryToPrisma(options.category) }),
+            ...(options.country && { country: this.mapper.mapCountryToPrisma(options.country) }),
+            ...(options.cursor && {
                 createdAt: {
-                    lt: params.cursor,
+                    lt: options.cursor,
                 },
             }),
+            ...(options.where?.publicationTier && { publicationTier: options.where.publicationTier }),
         };
 
         const items = await this.prisma.getPrismaClient().article.findMany({
@@ -96,10 +97,22 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
             orderBy: {
                 createdAt: 'desc',
             },
-            take: params.limit + 1,
+            take: options.limit + 1,
             where,
         });
 
         return items.map((item) => this.mapper.toDomain(item));
+    }
+
+    async update(
+        id: string,
+        data: { publicationTier: 'ARCHIVED' | 'NICHE' | 'STANDARD' },
+    ): Promise<void> {
+        await this.prisma.getPrismaClient().article.update({
+            data: {
+                publicationTier: data.publicationTier,
+            },
+            where: { id },
+        });
     }
 }
