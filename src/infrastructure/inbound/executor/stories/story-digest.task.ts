@@ -3,8 +3,8 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { type StoryDigestTaskConfig } from '../../../../application/ports/inbound/configuration.port.js';
 
 import { type TaskPort } from '../../../../application/ports/inbound/executor.port.js';
-import { type ClassifyArticlesUseCase } from '../../../../application/use-cases/articles/classify-articles.use-case.js';
 import { type GenerateArticlesFromStoriesUseCase } from '../../../../application/use-cases/articles/generate-articles-from-stories.use-case.js';
+import { type ClassifyStoriesUseCase } from '../../../../application/use-cases/stories/classify-stories.use-case.js';
 import { type DigestStoriesUseCase } from '../../../../application/use-cases/stories/digest-stories.use-case.js';
 
 import { Country } from '../../../../domain/value-objects/country.vo.js';
@@ -18,7 +18,7 @@ export class StoryDigestTask implements TaskPort {
     constructor(
         private readonly digestStories: DigestStoriesUseCase,
         private readonly generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
-        private readonly classifyArticles: ClassifyArticlesUseCase,
+        private readonly classifyStories: ClassifyStoriesUseCase,
         private readonly taskConfigs: StoryDigestTaskConfig[],
         private readonly logger: LoggerPort,
     ) {}
@@ -48,9 +48,14 @@ export class StoryDigestTask implements TaskPort {
                 }),
             );
 
-            this.logger.info('Story digest completed, starting article generation');
+            this.logger.info('Story digest completed, starting story classification');
 
-            // Step 2: Generate articles from stories that don't have articles yet
+            // Step 2: Classify newly digested stories
+            await this.classifyStories.execute();
+
+            this.logger.info('Story classification completed, starting article generation');
+
+            // Step 3: Generate articles from stories that have been classified
             await Promise.all(
                 languages.map(async ({ country, language }) => {
                     this.logger.info('Generating articles from stories', {
@@ -61,13 +66,8 @@ export class StoryDigestTask implements TaskPort {
                 }),
             );
 
-            this.logger.info('Article generation completed, starting article classification');
-
-            // Step 3: Classify newly generated articles
-            await this.classifyArticles.execute();
-
             this.logger.info(
-                'Story digest, article generation, and classification task completed successfully',
+                'Story digest, classification, and article generation task completed successfully',
             );
         } catch (error) {
             this.logger.error('Story digest task failed', { error });

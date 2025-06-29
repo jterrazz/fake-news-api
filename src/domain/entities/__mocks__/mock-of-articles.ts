@@ -2,7 +2,6 @@ import { ArticleVariant } from '../../value-objects/article/article-variant.vo.j
 import { Authenticity } from '../../value-objects/article/authenticity.vo.js';
 import { Body } from '../../value-objects/article/body.vo.js';
 import { Headline } from '../../value-objects/article/headline.vo.js';
-import { PublicationTier } from '../../value-objects/article/publication-tier.vo.js';
 import { Category } from '../../value-objects/category.vo.js';
 import { type Country } from '../../value-objects/country.vo.js';
 import { type Language } from '../../value-objects/language.vo.js';
@@ -27,7 +26,6 @@ function createMockArticle(index: number, country: Country, language: Language):
         headline: createMockHeadline(index),
         id: crypto.randomUUID(),
         language,
-        publicationTier: new PublicationTier('STANDARD'),
         publishedAt: new Date(),
         storyIds: [], // Empty array for mock articles
         variants: createMockVariants(index),

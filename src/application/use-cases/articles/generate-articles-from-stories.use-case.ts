@@ -6,7 +6,6 @@ import { ArticleVariant } from '../../../domain/value-objects/article/article-va
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
-import { PublicationTier } from '../../../domain/value-objects/article/publication-tier.vo.js';
 import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
 
@@ -42,30 +41,27 @@ export class GenerateArticlesFromStoriesUseCase {
                 language: language.toString(),
             });
 
-            // Find stories that don't have any articles linked
-            const storiesWithoutArticles = await this.storyRepository.findStoriesWithoutArticles({
+            // Find stories that are ready for article generation
+            const storiesToProcess = await this.storyRepository.findStoriesWithoutArticles({
                 country: country.toString(),
+                interestTier: ['STANDARD', 'NICHE'],
                 limit: 20, // Process in batches to avoid overwhelming the AI agent
             });
 
-            if (storiesWithoutArticles.length === 0) {
-                this.logger.info('No stories found without articles', {
+            if (storiesToProcess.length === 0) {
+                this.logger.info('No stories found ready for article generation.', {
                     country: country.toString(),
                     language: language.toString(),
                 });
                 return [];
             }
 
-            this.logger.info('Found stories without articles', {
-                count: storiesWithoutArticles.length,
-                country: country.toString(),
-                language: language.toString(),
-            });
+            this.logger.info(`Found ${storiesToProcess.length} stories to process.`);
 
             // Generate articles for each story
             const generatedArticles: Article[] = [];
 
-            for (const story of storiesWithoutArticles) {
+            for (const story of storiesToProcess) {
                 try {
                     const compositionInput: ArticleCompositionInput = {
                         story,
@@ -116,7 +112,6 @@ export class GenerateArticlesFromStoriesUseCase {
                         headline: new Headline(compositionResult.headline),
                         id: randomUUID(),
                         language,
-                        publicationTier: new PublicationTier('PENDING_REVIEW'),
                         publishedAt: story.dateline, // Use story's dateline as article publication date
                         storyIds: [story.id], // Link back to the source story
                         variants, // Include the variants
@@ -150,7 +145,7 @@ export class GenerateArticlesFromStoriesUseCase {
                 country: country.toString(),
                 generatedCount: generatedArticles.length,
                 language: language.toString(),
-                processedCount: storiesWithoutArticles.length,
+                processedCount: storiesToProcess.length,
             });
 
             return generatedArticles;

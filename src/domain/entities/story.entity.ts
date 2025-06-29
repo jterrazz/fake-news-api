@@ -2,6 +2,7 @@ import { z } from 'zod/v4';
 
 import { Category } from '../value-objects/category.vo.js';
 import { Country } from '../value-objects/country.vo.js';
+import { InterestTier } from '../value-objects/story/interest-tier.vo.js';
 
 import { Perspective } from './perspective.entity.js';
 
@@ -19,6 +20,7 @@ export const storySchema = z.object({
         .date()
         .describe('The publication date of the story, typically based on the source articles.'),
     id: z.uuid().describe('The unique identifier for the story.'),
+    interestTier: z.instanceof(InterestTier),
     perspectives: z
         .array(z.instanceof(Perspective))
         .min(1, 'At least one perspective is required')
@@ -42,6 +44,7 @@ export class Story {
     public readonly createdAt: Date;
     public readonly dateline: Date;
     public readonly id: string;
+    public readonly interestTier: InterestTier;
     public readonly perspectives: Perspective[];
     public readonly sourceReferences: string[];
     public readonly synopsis: string;
@@ -64,6 +67,7 @@ export class Story {
         this.createdAt = validatedData.createdAt;
         this.updatedAt = validatedData.updatedAt;
         this.country = validatedData.country;
+        this.interestTier = validatedData.interestTier;
     }
 
     public getCountryCodes(): string[] {

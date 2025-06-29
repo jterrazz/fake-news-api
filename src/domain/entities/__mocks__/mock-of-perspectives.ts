@@ -15,10 +15,14 @@ export function mockPerspectives(count: number, storyId: string): Perspective[] 
 function createMockPerspective(index: number, storyId: string): Perspective {
     return new Perspective({
         createdAt: new Date(),
-        holisticDigest: generateMockHolisticDigest(index),
+        holisticDigest: new HolisticDigest(
+            `This is a detailed and complete holistic digest for perspective number ${index + 1}. It contains a comprehensive compilation of all information related to this specific viewpoint, including every argument, fact, and piece of evidence presented. This text is intentionally long to satisfy the minimum length validation requirements of the domain value object and to provide a realistic piece of text for testing purposes.`,
+        ),
         id: crypto.randomUUID(),
         storyId,
-        tags: generateMockPerspectiveTags(index),
+        tags: new PerspectiveTags({
+            stance: index % 2 === 0 ? 'critical' : 'supportive',
+        }),
         updatedAt: new Date(),
     });
 }

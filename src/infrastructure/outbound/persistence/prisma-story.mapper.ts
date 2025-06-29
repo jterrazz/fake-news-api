@@ -14,10 +14,7 @@ import { Category } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
 import { HolisticDigest } from '../../../domain/value-objects/perspective/holistic-digest.vo.js';
 import { PerspectiveTags } from '../../../domain/value-objects/perspective/perspective-tags.vo.js';
-
-type PrismaStoryWithPerspectives = PrismaStory & {
-    perspectives: PrismaPerspective[];
-};
+import { InterestTier } from '../../../domain/value-objects/story/interest-tier.vo.js';
 
 export class StoryMapper {
     mapCategoryToPrisma(category: Category): PrismaCategory {
@@ -52,35 +49,41 @@ export class StoryMapper {
         };
     }
 
-    toDomain(prismaStory: PrismaStoryWithPerspectives): Story {
-        const perspectives = prismaStory.perspectives.map((prismaPerspective) => {
-            const tags = new PerspectiveTags({
-                discourse_type: prismaPerspective.discourse || undefined,
-                stance: prismaPerspective.stance || undefined,
-            });
-
-            return new Perspective({
-                createdAt: prismaPerspective.createdAt,
-                holisticDigest: new HolisticDigest(prismaPerspective.holisticDigest),
-                id: prismaPerspective.id,
-                storyId: prismaPerspective.storyId,
-                tags,
-                updatedAt: prismaPerspective.updatedAt,
-            });
-        });
+    toDomain(
+        prisma: PrismaStory & {
+            perspectives: PrismaPerspective[];
+        },
+    ): Story {
+        const perspectives = prisma.perspectives.map(
+            (p) =>
+                new Perspective({
+                    createdAt: p.createdAt,
+                    holisticDigest: new HolisticDigest(p.holisticDigest),
+                    id: p.id,
+                    storyId: p.storyId,
+                    tags: new PerspectiveTags({
+                        discourse_type: p.discourse as PrismaDiscourse,
+                        stance: p.stance as PrismaStance,
+                    }),
+                    updatedAt: p.updatedAt,
+                }),
+        );
 
         return new Story({
-            category: new Category(prismaStory.category.toLowerCase()),
-            country: this.mapCountryFromPrisma(prismaStory.country),
-            createdAt: prismaStory.createdAt,
-            dateline: prismaStory.dateline,
-            id: prismaStory.id,
+            category: new Category(prisma.category),
+            country: new Country(prisma.country),
+            createdAt: prisma.createdAt,
+            dateline: prisma.dateline,
+            id: prisma.id,
+            interestTier: new InterestTier(
+                prisma.interestTier as 'ARCHIVED' | 'NICHE' | 'PENDING_REVIEW' | 'STANDARD',
+            ),
             perspectives,
-            sourceReferences: Array.isArray(prismaStory.sourceReferences)
-                ? (prismaStory.sourceReferences as string[])
+            sourceReferences: Array.isArray(prisma.sourceReferences)
+                ? (prisma.sourceReferences as string[])
                 : [],
-            synopsis: prismaStory.synopsis,
-            updatedAt: prismaStory.updatedAt,
+            synopsis: prisma.synopsis,
+            updatedAt: prisma.updatedAt,
         });
     }
 

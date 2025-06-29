@@ -4,7 +4,6 @@ import { ArticleVariant } from '../value-objects/article/article-variant.vo.js';
 import { Authenticity } from '../value-objects/article/authenticity.vo.js';
 import { Body } from '../value-objects/article/body.vo.js';
 import { Headline } from '../value-objects/article/headline.vo.js';
-import { PublicationTier } from '../value-objects/article/publication-tier.vo.js';
 import { Category } from '../value-objects/category.vo.js';
 import { Country } from '../value-objects/country.vo.js';
 import { Language } from '../value-objects/language.vo.js';
@@ -17,7 +16,6 @@ export const articleSchema = z.object({
     headline: z.instanceof(Headline),
     id: z.uuid(),
     language: z.instanceof(Language),
-    publicationTier: z.instanceof(PublicationTier),
     publishedAt: z.date(),
     storyIds: z.array(z.string()).optional(),
     variants: z.array(z.instanceof(ArticleVariant)).optional(),
@@ -33,7 +31,6 @@ export class Article {
     public readonly headline: Headline;
     public readonly id: string;
     public readonly language: Language;
-    public readonly publicationTier: PublicationTier;
     public readonly publishedAt: Date;
     public readonly storyIds?: string[];
     public readonly variants?: ArticleVariant[];
@@ -53,7 +50,6 @@ export class Article {
         this.headline = validatedData.headline;
         this.id = validatedData.id;
         this.language = validatedData.language;
-        this.publicationTier = validatedData.publicationTier;
         this.publishedAt = validatedData.publishedAt;
         this.storyIds = validatedData.storyIds;
         this.variants = validatedData.variants;

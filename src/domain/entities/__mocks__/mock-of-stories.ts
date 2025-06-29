@@ -1,34 +1,18 @@
+import { randomUUID } from 'crypto';
+
 import { Category } from '../../value-objects/category.vo.js';
 import { Country } from '../../value-objects/country.vo.js';
+import { InterestTier } from '../../value-objects/story/interest-tier.vo.js';
 import { type Perspective } from '../perspective.entity.js';
 import { Story } from '../story.entity.js';
 
 import { mockPerspectives } from './mock-of-perspectives.js';
 
-export function getMockStories(count: number = 3): Story[] {
-    return Array.from({ length: count }, (_, index) => {
-        const category = new Category(index % 2 === 0 ? 'politics' : 'technology');
-        const country = index % 2 === 0 ? new Country('us') : new Country('fr');
-        const storyId = crypto.randomUUID();
-        const perspectives = mockPerspectives(2, storyId);
-
-        const story = new Story({
-            category,
-            country,
-            createdAt: new Date(Date.now() - index * 1000 * 60 * 60 * 24),
-            dateline: new Date(Date.now() - index * 1000 * 60 * 60 * 24),
-            id: storyId,
-            perspectives,
-            sourceReferences: [
-                `worldnewsapi:article-${index}-1`,
-                `worldnewsapi:article-${index}-2`,
-            ],
-            synopsis: getMockStorySynopsis(index),
-            updatedAt: new Date(Date.now() - index * 1000 * 60 * 60 * 12),
-        });
-
-        return story;
-    });
+/**
+ * Creates an array of mock stories for testing purposes
+ */
+export function getMockStories(count: number): Story[] {
+    return Array.from({ length: count }, (_, index) => createMockStory(index));
 }
 
 export function getMockStory(options?: {
@@ -37,19 +21,44 @@ export function getMockStory(options?: {
     id?: string;
     perspectives?: Perspective[];
 }): Story {
-    const storyId = options?.id || crypto.randomUUID();
+    const storyId = options?.id || randomUUID();
     return new Story({
         category: options?.category || new Category('politics'),
         country: options?.country || new Country('us'),
         createdAt: new Date(),
         dateline: new Date(),
         id: storyId,
+        interestTier: new InterestTier('PENDING_REVIEW'),
         perspectives: options?.perspectives || mockPerspectives(1, storyId),
         sourceReferences: ['worldnewsapi:mock-article-1', 'worldnewsapi:mock-article-2'],
         synopsis:
             'Mock Story Synopsis: A comprehensive analysis of current political developments across multiple regions, examining the various perspectives and stakeholder positions that shape public discourse on this evolving situation.',
         updatedAt: new Date(),
     });
+}
+
+function createMockStory(index: number): Story {
+    const category = getMockStoryCategory(index);
+    const storyId = randomUUID();
+    return new Story({
+        category,
+        country: new Country('us'),
+        createdAt: new Date(),
+        dateline: new Date(),
+        id: storyId,
+        interestTier: new InterestTier('PENDING_REVIEW'),
+        perspectives: mockPerspectives(2, storyId),
+        sourceReferences: [`source-ref-${index}`],
+        synopsis: `This is a mock synopsis for story ${index}. It is about ${category.toString()} and provides a comprehensive overview of the key facts and events. This text is intentionally long enough to pass validation.`,
+        updatedAt: new Date(),
+    });
+}
+
+/**
+ * Determines the category for a story based on its index
+ */
+function getMockStoryCategory(index: number): Category {
+    return new Category(index % 2 === 0 ? 'politics' : 'technology');
 }
 
 /**

@@ -28,13 +28,14 @@ export class GetArticlesUseCase {
     async execute(params: GetArticlesParams): Promise<PaginatedResponse<Article>> {
         const { category, country, cursor, language, limit } = params;
 
-        const [items, total] = await Promise.all([
+        const [articles, total] = await Promise.all([
             this.articleRepository.findMany({
                 category,
                 country,
                 cursor,
+                interestTier: ['STANDARD', 'NICHE'],
                 language,
-                limit,
+                limit: limit + 1,
             }),
             this.articleRepository.countMany({
                 category,
@@ -43,8 +44,8 @@ export class GetArticlesUseCase {
             }),
         ]);
 
-        const hasMore = items.length > limit;
-        const results = hasMore ? items.slice(0, limit) : items;
+        const hasMore = articles.length > limit;
+        const results = hasMore ? articles.slice(0, limit) : articles;
 
         const lastItemDate =
             hasMore && results.length > 0 ? results[results.length - 1].publishedAt : null;

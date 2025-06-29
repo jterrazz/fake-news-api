@@ -25,6 +25,9 @@ export interface StoryRepositoryPort {
         limit?: number;
         offset?: number;
         startDate?: Date;
+        where?: {
+            interestTier?: 'PENDING_REVIEW';
+        };
     }): Promise<Story[]>;
 
     /**
@@ -34,6 +37,7 @@ export interface StoryRepositoryPort {
     findStoriesWithoutArticles(criteria?: {
         category?: string;
         country?: string;
+        interestTier?: Array<'NICHE' | 'PENDING_REVIEW' | 'STANDARD'>;
         limit?: number;
     }): Promise<Story[]>;
 
@@ -42,4 +46,9 @@ export interface StoryRepositoryPort {
      * Limited to 2000 most recent entries, optionally filtered by country
      */
     getAllSourceReferences(country?: Country): Promise<string[]>;
+
+    /**
+     * Update a story's interest tier
+     */
+    update(id: string, data: { interestTier: 'ARCHIVED' | 'NICHE' | 'STANDARD' }): Promise<void>;
 }

@@ -80,6 +80,7 @@ describe('GenerateArticlesFromStoriesUseCase', () => {
             // Then - it should find stories without articles
             expect(mockStoryRepository.findStoriesWithoutArticles).toHaveBeenCalledWith({
                 country: country.toString(),
+                interestTier: ['STANDARD', 'NICHE'],
                 limit: 20,
             });
 
@@ -172,6 +173,7 @@ describe('GenerateArticlesFromStoriesUseCase', () => {
             // Then - it should pass correct parameters to story repository
             expect(mockStoryRepository.findStoriesWithoutArticles).toHaveBeenCalledWith({
                 country: country.toString(),
+                interestTier: ['STANDARD', 'NICHE'],
                 limit: 20,
             });
 

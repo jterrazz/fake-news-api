@@ -64,6 +64,9 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
         limit?: number;
         offset?: number;
         startDate?: Date;
+        where?: {
+            interestTier?: 'PENDING_REVIEW';
+        };
     }): Promise<Story[]> {
         const where: Record<string, unknown> = {};
 
@@ -78,14 +81,16 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
         }
 
         // Date range filter
-        if (criteria.startDate || criteria.endDate) {
-            where.dateline = {};
-            if (criteria.startDate) {
-                (where.dateline as Record<string, unknown>).gte = criteria.startDate;
-            }
-            if (criteria.endDate) {
-                (where.dateline as Record<string, unknown>).lte = criteria.endDate;
-            }
+        if (criteria.startDate && criteria.endDate) {
+            where.dateline = {
+                gte: criteria.startDate,
+                lte: criteria.endDate,
+            };
+        }
+
+        // Interest Tier filter
+        if (criteria.where?.interestTier) {
+            where.interestTier = criteria.where.interestTier;
         }
 
         const stories = await this.prisma.getPrismaClient().story.findMany({
@@ -106,6 +111,7 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
     async findStoriesWithoutArticles(criteria?: {
         category?: string;
         country?: string;
+        interestTier?: Array<'NICHE' | 'PENDING_REVIEW' | 'STANDARD'>;
         limit?: number;
     }): Promise<Story[]> {
         const where: Record<string, unknown> = {
@@ -122,6 +128,11 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
         // Country filter
         if (criteria?.country) {
             where.country = criteria.country;
+        }
+
+        // Interest Tier filter
+        if (criteria?.interestTier && criteria.interestTier.length > 0) {
+            where.interestTier = { in: criteria.interestTier };
         }
 
         const stories = await this.prisma.getPrismaClient().story.findMany({
@@ -156,5 +167,17 @@ export class PrismaStoryRepository implements StoryRepositoryPort {
         const sourceReferences = stories.flatMap((story) => story.sourceReferences as string[]);
 
         return sourceReferences;
+    }
+
+    async update(
+        id: string,
+        data: { interestTier: 'ARCHIVED' | 'NICHE' | 'STANDARD' },
+    ): Promise<void> {
+        await this.prisma.getPrismaClient().story.update({
+            data: {
+                interestTier: data.interestTier,
+            },
+            where: { id },
+        });
     }
 }

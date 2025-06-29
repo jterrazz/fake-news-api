@@ -41,6 +41,13 @@ enum Stance {
   skeptical
 }
 
+enum InterestTier {
+  STANDARD
+  NICHE
+  PENDING_REVIEW
+  ARCHIVED
+}
+
 enum Discourse {
   mainstream
   alternative
@@ -48,17 +55,11 @@ enum Discourse {
   dubious
 }
 
-enum PublicationTier {
-  STANDARD
-  NICHE
-  PENDING_REVIEW
-  ARCHIVED
-}
-
 model Story {
-  id       String   @id @default(uuid())
-  synopsis String
-  category Category
+  id           String       @id @default(uuid())
+  synopsis     String
+  category     Category
+  interestTier InterestTier @default(PENDING_REVIEW)
 
   // Geographic and temporal context
   country  Country
@@ -101,24 +102,22 @@ model Perspective {
 }
 
 model Article {
-  id              String          @id @default(uuid())
-  headline        String
-  body            String // Main neutral article presenting only facts from all sides
-  category        Category
-  fakeStatus      Boolean // For game aspect - main article could be entirely fabricated
-  fakeReason      String? // Reason why the main article is fake (if applicable)
-  publicationTier PublicationTier @default(PENDING_REVIEW)
-  country         Country
-  language        Language
-  publishedAt     DateTime // When the original story was published
-  createdAt       DateTime        @default(now())
+  id          String   @id @default(uuid())
+  headline    String
+  body        String // Main neutral article presenting only facts from all sides
+  category    Category
+  fakeStatus  Boolean // For game aspect - main article could be entirely fabricated
+  fakeReason  String? // Reason why the main article is fake (if applicable)
+  country     Country
+  language    Language
+  publishedAt DateTime // When the original story was published
+  createdAt   DateTime @default(now())
 
   // Relations
   variants ArticleVariant[]
   stories  Story[]          @relation("StoryArticles")
 
   @@index([language, country])
-  @@index([publicationTier])
   @@index([createdAt])
   @@index([publishedAt])
 }

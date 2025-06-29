@@ -6,6 +6,7 @@ import { type Story } from '../../../domain/entities/story.entity.js';
 import { Story as StoryEntity } from '../../../domain/entities/story.entity.js';
 import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
+import { InterestTier } from '../../../domain/value-objects/story/interest-tier.vo.js';
 
 import { type StoryDigestAgentPort } from '../../ports/outbound/agents/story-digest.agent.js';
 import { type StoryRepositoryPort } from '../../ports/outbound/persistence/story-repository.port.js';
@@ -139,6 +140,7 @@ export class DigestStoriesUseCase {
                         createdAt: now,
                         dateline: newsStory.publishedAt, // Use the news story's published date
                         id: storyId,
+                        interestTier: new InterestTier('PENDING_REVIEW'),
                         perspectives: perspectives,
                         sourceReferences: newsStory.articles.map((article) => article.id),
                         synopsis: digestResult.synopsis,

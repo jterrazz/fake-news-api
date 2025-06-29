@@ -10,7 +10,6 @@ import { Article } from '../../src/domain/entities/article.entity.js';
 import { Authenticity } from '../../src/domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../src/domain/value-objects/article/body.vo.js';
 import { Headline } from '../../src/domain/value-objects/article/headline.vo.js';
-import { PublicationTier } from '../../src/domain/value-objects/article/publication-tier.vo.js';
 import { Category } from '../../src/domain/value-objects/category.vo.js';
 import { Country } from '../../src/domain/value-objects/country.vo.js';
 import { Language } from '../../src/domain/value-objects/language.vo.js';
@@ -28,7 +27,6 @@ export class ArticleFactory {
         headline: Headline;
         id: string;
         language: Language;
-        publicationTier: PublicationTier;
         publishedAt: Date;
         storyIds: string[];
     };
@@ -42,7 +40,6 @@ export class ArticleFactory {
             headline: new Headline('Default Test Article'),
             id: crypto.randomUUID(),
             language: new Language('en'),
-            publicationTier: new PublicationTier('STANDARD'),
             publishedAt: new Date('2024-03-01T12:00:00.000Z'),
             storyIds: [],
         };
@@ -77,6 +74,20 @@ export class ArticleFactory {
 
     async createInDatabase(prisma: PrismaClient): Promise<Article> {
         const article = this.build();
+
+        // Ensure a story exists for the article to be queryable
+        const story = await prisma.story.create({
+            data: {
+                category: article.category.toString() as PrismaCategory,
+                country: article.country.toString() as PrismaCountry,
+                dateline: article.publishedAt,
+                interestTier: 'STANDARD',
+                // Default to STANDARD for tests
+                sourceReferences: [],
+                synopsis: `This is a test synopsis for the story related to article ${article.headline.value}. It is long enough to pass validation.`,
+            },
+        });
+
         await prisma.article.create({
             data: {
                 body: article.body.value,
@@ -88,11 +99,10 @@ export class ArticleFactory {
                 headline: article.headline.value,
                 id: article.id,
                 language: article.language.toString() as PrismaLanguage,
-                publicationTier: article.publicationTier.value,
                 publishedAt: article.publishedAt,
-                stories: article.storyIds?.length
-                    ? { connect: article.storyIds.map((id) => ({ id })) }
-                    : undefined,
+                stories: {
+                    connect: { id: story.id },
+                },
             },
         });
         return article;
@@ -147,11 +157,6 @@ export class ArticleFactory {
 
     withLanguage(language: string): ArticleFactory {
         this.data.language = new Language(language);
-        return this;
-    }
-
-    withPublicationTier(tier: 'ARCHIVED' | 'NICHE' | 'STANDARD'): ArticleFactory {
-        this.data.publicationTier = new PublicationTier(tier);
         return this;
     }
 

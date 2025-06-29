@@ -1,3 +1,5 @@
+import { type Prisma } from '@prisma/client';
+
 import type {
     ArticleRepositoryPort,
     CountManyOptions,
@@ -75,7 +77,7 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
     }
 
     async findMany(options: FindManyOptions): Promise<Article[]> {
-        const where = {
+        const where: Prisma.ArticleWhereInput = {
             ...(options.language && {
                 language: this.mapper.mapLanguageToPrisma(options.language),
             }),
@@ -88,8 +90,14 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
                     lt: options.cursor,
                 },
             }),
-            ...(options.where?.publicationTier && {
-                publicationTier: options.where.publicationTier,
+            ...(options.interestTier && {
+                stories: {
+                    some: {
+                        interestTier: {
+                            in: options.interestTier,
+                        },
+                    },
+                },
             }),
         };
 
@@ -108,17 +116,5 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         });
 
         return items.map((item) => this.mapper.toDomain(item));
-    }
-
-    async update(
-        id: string,
-        data: { publicationTier: 'ARCHIVED' | 'NICHE' | 'STANDARD' },
-    ): Promise<void> {
-        await this.prisma.getPrismaClient().article.update({
-            data: {
-                publicationTier: data.publicationTier,
-            },
-            where: { id },
-        });
     }
 }
