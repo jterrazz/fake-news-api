@@ -42,10 +42,12 @@ export class DigestStoriesUseCase {
             });
 
             // Fetch news from external providers
-            const newsStories = await this.newsProvider.fetchNews({
+            let newsStories = await this.newsProvider.fetchNews({
                 country,
                 language,
             });
+
+            newsStories = newsStories.slice(0, 3);
 
             if (newsStories.length === 0) {
                 this.logger.warn('No news stories found', {
@@ -86,8 +88,7 @@ export class DigestStoriesUseCase {
             }
 
             // Filter and validate news stories
-            let validNewsStories = newNewsStories.filter((story) => story.articles.length >= 4);
-            validNewsStories = validNewsStories.slice(0, 4);
+            const validNewsStories = newNewsStories.filter((story) => story.articles.length >= 4);
 
             if (validNewsStories.length === 0) {
                 this.logger.warn('No valid news stories after filtering', {

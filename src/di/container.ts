@@ -14,10 +14,12 @@ import type { ExecutorPort } from '../application/ports/inbound/executor.port.js
 import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
 import { type ArticleComposerAgentPort } from '../application/ports/outbound/agents/article-composer.agent.js';
+import { type ArticleCurationAgentPort } from '../application/ports/outbound/agents/article-curation.agent.js';
 import { type StoryDigestAgentPort } from '../application/ports/outbound/agents/story-digest.agent.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import { type StoryRepositoryPort } from '../application/ports/outbound/persistence/story-repository.port.js';
 import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
+import { CurateArticlesUseCase } from '../application/use-cases/articles/curate-articles.use-case.js';
 import { GenerateArticlesFromStoriesUseCase } from '../application/use-cases/articles/generate-articles-from-stories.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 import { DigestStoriesUseCase } from '../application/use-cases/stories/digest-stories.use-case.js';
@@ -28,6 +30,7 @@ import { StoryDigestTask } from '../infrastructure/inbound/executor/stories/stor
 import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
 import { ArticleComposerAgentAdapter } from '../infrastructure/outbound/agents/article-composer.agent.js';
+import { ArticleCurationAgentAdapter } from '../infrastructure/outbound/agents/article-curation.agent.js';
 import { StoryDigestAgentAdapter } from '../infrastructure/outbound/agents/story-digest.agent.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
@@ -112,6 +115,12 @@ const articleComposerAgentFactory = Injectable(
     (model: ModelPort, logger: LoggerPort) => new ArticleComposerAgentAdapter(model, logger),
 );
 
+const articleCurationAgentFactory = Injectable(
+    'ArticleCurationAgent',
+    ['Model', 'Logger'] as const,
+    (model: ModelPort, logger: LoggerPort) => new ArticleCurationAgentAdapter(model, logger),
+);
+
 /**
  * Repository adapters
  */
@@ -172,6 +181,16 @@ const generateArticlesFromStoriesUseCaseFactory = Injectable(
         ),
 );
 
+const curateArticlesUseCaseFactory = Injectable(
+    'CurateArticles',
+    ['ArticleCurationAgent', 'ArticleRepository', 'Logger'] as const,
+    (
+        articleCurationAgent: ArticleCurationAgentPort,
+        articleRepository: ArticleRepositoryPort,
+        logger: LoggerPort,
+    ) => new CurateArticlesUseCase(articleCurationAgent, articleRepository, logger),
+);
+
 /**
  * Controller factories
  */
@@ -186,10 +205,17 @@ const getArticlesControllerFactory = Injectable(
  */
 const tasksFactory = Injectable(
     'Tasks',
-    ['DigestStories', 'GenerateArticlesFromStories', 'Configuration', 'Logger'] as const,
+    [
+        'DigestStories',
+        'GenerateArticlesFromStories',
+        'CurateArticles',
+        'Configuration',
+        'Logger',
+    ] as const,
     (
         digestStories: DigestStoriesUseCase,
         generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
+        curateArticles: CurateArticlesUseCase,
         configuration: ConfigurationPort,
         logger: LoggerPort,
     ): TaskPort[] => {
@@ -201,6 +227,7 @@ const tasksFactory = Injectable(
             new StoryDigestTask(
                 digestStories,
                 generateArticlesFromStories,
+                curateArticles,
                 storyDigestConfigs,
                 logger,
             ),
@@ -276,6 +303,7 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(modelFactory)
         .provides(storyDigestAgentFactory)
         .provides(articleComposerAgentFactory)
+        .provides(articleCurationAgentFactory)
         // Repositories
         .provides(articleRepositoryFactory)
         .provides(storyRepositoryFactory)
@@ -283,6 +311,7 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(getArticlesUseCaseFactory)
         .provides(digestStoriesUseCaseFactory)
         .provides(generateArticlesFromStoriesUseCaseFactory)
+        .provides(curateArticlesUseCaseFactory)
         // Controllers and tasks
         .provides(getArticlesControllerFactory)
         .provides(tasksFactory)

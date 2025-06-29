@@ -14,6 +14,7 @@ import { ArticleVariant } from '../../../domain/value-objects/article/article-va
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
+import { PublicationTier } from '../../../domain/value-objects/article/publication-tier.vo.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../domain/value-objects/language.vo.js';
@@ -50,6 +51,7 @@ export class ArticleMapper {
             headline: new Headline(prisma.headline),
             id: prisma.id,
             language: new Language(prisma.language),
+            publicationTier: new PublicationTier(prisma.publicationTier),
             publishedAt: prisma.publishedAt,
             storyIds: prisma.stories?.map((story) => story.id),
             variants,
@@ -66,6 +68,7 @@ export class ArticleMapper {
             headline: domain.headline.value,
             id: domain.id,
             language: this.mapLanguageToPrisma(domain.language),
+            publicationTier: domain.publicationTier.value,
             publishedAt: domain.publishedAt,
             stories: domain.storyIds
                 ? {

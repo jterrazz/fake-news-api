@@ -33,7 +33,9 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
         perspectives: z
             .array(
                 z.object({
-                    holisticDigest: holisticDigestSchema,
+                    holisticDigest: holisticDigestSchema.describe(
+                        'A complete compilation of all information for this viewpoint, NOT a summary. Must include every argument, fact, and piece of evidence presented for this side.',
+                    ),
                     tags: z.object({
                         discourse_type: discourseTypeSchema,
                         stance: stanceSchema,
@@ -47,6 +49,7 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
         'You are a master investigative journalist and media analyst. Your core mission is to analyze news articles and deconstruct them into a structured intelligence brief, identifying the core facts and the distinct perspectives presented.',
+        'Your analysis must be objective and based solely on the provided text. You do not judge viewpoints; you identify and categorize them.',
         PROMPT_LIBRARY.PERSONAS.JOURNALIST,
         PROMPT_LIBRARY.FOUNDATIONS.CONTEXTUAL_ONLY,
         PROMPT_LIBRARY.LANGUAGES.ENGLISH_NATIVE,
@@ -79,16 +82,17 @@ export class StoryDigestAgentAdapter implements StoryDigestAgentPort {
             'Your output MUST contain two parts:',
             '1.  **Synopsis:** A comprehensive, neutral summary of the core facts. What happened, who was involved, where, and when. Prioritize factual completeness.',
             '2.  **Perspectives:** Identify the 1 or 2 most dominant perspectives presented in the articles. For each perspective, provide:',
-            '    a.  **holisticDigest:** A detailed summary of that specific viewpoint.',
+            '    a.  **holisticDigest:** This is NOT a summary. It must be a **complete compilation of all information** for that specific viewpoint. Gather every argument, fact, and piece of evidence presented *for that side*.',
             "    b.  **tags:** Classify the perspective's `stance` and `discourse_type`.",
             '',
 
             // The "How" - Your Analysis Guidelines
             'Follow these analysis guidelines:',
             '•   **Be an Objective Analyst:** Do not judge the viewpoints, simply identify and categorize them based on the text.',
+            '•   **Analyze Inter-Perspective Dynamics:** To determine the `discourse_type` (MAINSTREAM vs. ALTERNATIVE), analyze how the sources interact. Pay attention to which viewpoint is presented as the default and which one is presented as a critic, a defender, or a dissenting voice.',
             '•   **Use These Discourse Definitions:**',
-            '    -   **MAINSTREAM:** The dominant narrative that is seen widely across most major media outlets.',
-            '    -   **ALTERNATIVE:** A viewpoint that is less defended or prevalent than the mainstream but still visible in public media.',
+            '    -   **MAINSTREAM:** The single, most dominant narrative presented across major media outlets. This is the default or primary storyline.',
+            '    -   **ALTERNATIVE:** A significant, competing narrative that is also present in mainstream sources but offers a contradictory or different angle. Think of this as a "mainstream alternative" viewpoint, not a fringe belief.',
             '    -   (Do not use other discourse types for now).',
             '',
 

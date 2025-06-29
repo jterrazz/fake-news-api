@@ -6,6 +6,7 @@ import { ArticleVariant } from '../../../domain/value-objects/article/article-va
 import { Authenticity } from '../../../domain/value-objects/article/authenticity.vo.js';
 import { Body } from '../../../domain/value-objects/article/body.vo.js';
 import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
+import { PublicationTier } from '../../../domain/value-objects/article/publication-tier.vo.js';
 import { type Country } from '../../../domain/value-objects/country.vo.js';
 import { type Language } from '../../../domain/value-objects/language.vo.js';
 
@@ -115,6 +116,7 @@ export class GenerateArticlesFromStoriesUseCase {
                         headline: new Headline(compositionResult.headline),
                         id: randomUUID(),
                         language,
+                        publicationTier: new PublicationTier('PENDING_REVIEW'),
                         publishedAt: story.dateline, // Use story's dateline as article publication date
                         storyIds: [story.id], // Link back to the source story
                         variants, // Include the variants
