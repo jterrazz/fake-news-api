@@ -146,14 +146,14 @@ describe('DigestStoriesUseCase', () => {
         test('should filter out news stories with insufficient articles', async () => {
             // Given - a story with 1 article (which is insufficient)
             const insufficientStory: NewsStory = {
-                articles: [
-                    {
-                        body: 'Single article body',
-                        headline: 'Single Headline',
-                        id: 'single-article-1',
-                    },
+                    articles: [
+                        {
+                            body: 'Single article body',
+                            headline: 'Single Headline',
+                            id: 'single-article-1',
+                        },
                 ], // Only 1 article - insufficient (need >= 2)
-                publishedAt: new Date('2024-01-01T10:00:00Z'),
+                    publishedAt: new Date('2024-01-01T10:00:00Z'),
             };
 
             // And a story with 2 articles (which is sufficient)

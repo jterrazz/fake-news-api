@@ -104,7 +104,11 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
         const items = await this.prisma.getPrismaClient().article.findMany({
             include: {
                 stories: {
-                    select: { id: true },
+                    select: {
+                        id: true,
+                        interestTier: true,
+                    },
+                    take: 1, // We only need the tier from one story
                 },
                 variants: true,
             },

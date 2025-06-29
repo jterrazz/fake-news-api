@@ -7,6 +7,7 @@ import { type Article } from '../../../../domain/entities/article.entity.js';
 type ArticleMetadata = {
     category: Category;
     country: Country;
+    interestTier?: 'ARCHIVED' | 'NICHE' | 'STANDARD';
     language: Language;
 };
 
@@ -84,6 +85,11 @@ export class GetArticlesResponsePresenter {
             metadata: {
                 category: article.category.toString() as Category,
                 country: article.country.toString() as Country,
+                interestTier: article.interestTier?.value as
+                    | 'ARCHIVED'
+                    | 'NICHE'
+                    | 'STANDARD'
+                    | undefined,
                 language: article.language.toString() as Language,
             },
             publishedAt: article.publishedAt.toISOString(),

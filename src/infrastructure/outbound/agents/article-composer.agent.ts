@@ -71,9 +71,9 @@ export class ArticleComposerAgentAdapter implements ArticleComposerAgentPort {
             '',
 
             // The Hierarchical Content Model (The "What")
-            'You will create two types of content in a complementary structure:',
-            '1.  **Main Article (The Foundation):** A neutral summary of the core facts that all sides would agree upon. This is the baseline "what happened" that is shown first.',
-            `2.  **Variants (The Perspectives):** Create **exactly ${expectedVariantCount}** complementary articles, one for each perspective provided. These should **NOT** repeat facts from the main article, but instead **INTERPRET** those facts from that viewpoint. Explain **WHY** that side sees the story the way they do.`,
+            'You will create two types of content that are **complementary and do not repeat information**:',
+            '1.  **Main Article (The Foundation):** A neutral summary of the core, undisputed facts. This is the baseline "what happened" that is shown first. It contains information all sides agree on.',
+            `2.  **Variants (The Perspectives):** Create **exactly ${expectedVariantCount}** complementary articles, one for each perspective. These must **build upon** the main article's facts, not repeat them. Your goal here is to explain **how that perspective interprets or emphasizes those facts**. Focus on the "why" behind their viewpoint.`,
             '',
 
             // Your Role as an Editor (The "How")
@@ -88,7 +88,7 @@ export class ArticleComposerAgentAdapter implements ArticleComposerAgentPort {
             'CRITICAL RULES:',
             `•   You **MUST** create **exactly ${expectedVariantCount}** variants, one for each perspective in the input. Do not combine or omit any.`,
             '•   Base all content **only** on the provided story data.',
-            '•   Ensure the Main Article is strictly neutral and the Variants are complementary (no repetition).',
+            '•   **NO REPETITION:** The Main Article contains the core facts. The Variants provide the interpretation. Do not repeat information between them. The user reads them together.',
             '',
 
             // Story data input

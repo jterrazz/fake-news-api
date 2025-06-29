@@ -17,6 +17,7 @@ import { Headline } from '../../../domain/value-objects/article/headline.vo.js';
 import { Category } from '../../../domain/value-objects/category.vo.js';
 import { Country } from '../../../domain/value-objects/country.vo.js';
 import { Language } from '../../../domain/value-objects/language.vo.js';
+import { InterestTier } from '../../../domain/value-objects/story/interest-tier.vo.js';
 
 export class ArticleMapper {
     mapCategoryToPrisma(category: Category): PrismaCategory {
@@ -33,7 +34,7 @@ export class ArticleMapper {
 
     toDomain(
         prisma: PrismaArticle & {
-            stories?: { id: string }[];
+            stories?: { id: string; interestTier: string }[];
             variants?: PrismaArticleVariant[];
         },
     ): Article {
@@ -54,6 +55,11 @@ export class ArticleMapper {
             country: new Country(prisma.country),
             headline: new Headline(prisma.headline),
             id: prisma.id,
+            interestTier: prisma.stories?.[0]?.interestTier
+                ? new InterestTier(
+                      prisma.stories[0].interestTier as 'ARCHIVED' | 'NICHE' | 'STANDARD',
+                  )
+                : undefined,
             language: new Language(prisma.language),
             publishedAt: prisma.publishedAt,
             storyIds: prisma.stories?.map((story) => story.id),
