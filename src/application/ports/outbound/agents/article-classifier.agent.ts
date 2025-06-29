@@ -4,19 +4,19 @@ import { z } from 'zod/v4';
 import { type Article } from '../../../../domain/entities/article.entity.js';
 
 /**
- * Defines the contract for the Article Curation Agent.
+ * Defines the contract for the Article Classifier Agent.
  * This agent is responsible for analyzing an article and assigning it a publication tier.
  */
-export type ArticleCurationAgentPort = AgentPort<
-    ArticleCurationInput,
-    ArticleCurationResult | null
+export type ArticleClassifierAgentPort = AgentPort<
+    ArticleClassifierInput,
+    ArticleClassifierResult | null
 >;
 
 /**
- * The input for the Article Curation Agent, which consists of the
+ * The input for the Article Classifier Agent, which consists of the
  * full article entity that needs to be evaluated.
  */
-export type ArticleCurationInput = {
+export type ArticleClassifierInput = {
     article: Article;
 };
 
@@ -33,10 +33,10 @@ export type PublicationTier = 'ARCHIVED' | 'NICHE' | 'STANDARD';
 export const publicationTierSchema = z.enum(['STANDARD', 'NICHE', 'ARCHIVED']);
 
 /**
- * The output of the Article Curation Agent, containing the assigned
+ * The output of the Article Classifier Agent, containing the assigned
  * publication tier and a brief justification for the decision.
  */
-export type ArticleCurationResult = {
+export type ArticleClassifierResult = {
     publicationTier: PublicationTier;
     reason: string;
 };

@@ -6,8 +6,8 @@ inbound:
     prettyPrint: true
   tasks:
     storyDigest:
-      - country: fr
-        language: fr
+      - country: us
+        language: en
 
 outbound:
   openRouter:

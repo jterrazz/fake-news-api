@@ -64,7 +64,7 @@ describe('DigestStoriesUseCase', () => {
 
         // Default mock responses
         mockNewsProvider.fetchNews.mockResolvedValue(testNewsStories);
-        mockStoryDigestAgent.run.mockImplementation(async () => mockDigestResults[0]);
+        // mockStoryDigestAgent.run is NOT mocked here; each test will define its own mock.
         mockStoryRepository.create.mockImplementation(async (story) => story);
         mockStoryRepository.getAllSourceReferences.mockResolvedValue([]);
     });
@@ -105,6 +105,11 @@ describe('DigestStoriesUseCase', () => {
             // Given - valid country and language parameters
             const country = DEFAULT_COUNTRY;
             const language = DEFAULT_LANGUAGE;
+            mockStoryDigestAgent.run.mockImplementation(async (params) => {
+                if (!params) return null;
+                const index = testNewsStories.findIndex((s) => s === params.newsStory);
+                return mockDigestResults[index];
+            });
 
             // When - executing the use case
             const result = await useCase.execute(language, country);
@@ -139,39 +144,45 @@ describe('DigestStoriesUseCase', () => {
         });
 
         test('should filter out news stories with insufficient articles', async () => {
-            // Given - news stories with insufficient article count (less than 4 articles)
-            const insufficientNewsStories: NewsStory[] = [
-                {
-                    articles: [
-                        {
-                            body: 'Single article body',
-                            headline: 'Single Headline',
-                            id: 'single-article-1',
-                        },
-                        {
-                            body: 'Second article body',
-                            headline: 'Second Headline',
-                            id: 'single-article-2',
-                        },
-                        {
-                            body: 'Third article body',
-                            headline: 'Third Headline',
-                            id: 'single-article-3',
-                        },
-                    ], // Only 3 articles - insufficient (need >= 4)
-                    publishedAt: new Date('2024-01-01T10:00:00Z'),
-                },
-                ...testNewsStories, // Valid stories with 4 articles each
-            ];
-            mockNewsProvider.fetchNews.mockResolvedValue(insufficientNewsStories);
-            mockStoryDigestAgent.run.mockResolvedValue(mockDigestResults[0]); // Ensure a valid return for all calls
+            // Given - a story with 1 article (which is insufficient)
+            const insufficientStory: NewsStory = {
+                articles: [
+                    {
+                        body: 'Single article body',
+                        headline: 'Single Headline',
+                        id: 'single-article-1',
+                    },
+                ], // Only 1 article - insufficient (need >= 2)
+                publishedAt: new Date('2024-01-01T10:00:00Z'),
+            };
+
+            // And a story with 2 articles (which is sufficient)
+            const sufficientStory: NewsStory = {
+                articles: [
+                    {
+                        body: 'First article body',
+                        headline: 'First Headline',
+                        id: 'sufficient-article-1',
+                    },
+                    {
+                        body: 'Second article body',
+                        headline: 'Second Headline',
+                        id: 'sufficient-article-2',
+                    },
+                ], // 2 articles - sufficient
+                publishedAt: new Date('2024-01-02T10:00:00Z'),
+            };
+
+            mockNewsProvider.fetchNews.mockResolvedValue([insufficientStory, sufficientStory]);
+            mockStoryDigestAgent.run.mockResolvedValue(mockDigestResults[0]);
 
             // When - executing the use case
             const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
 
-            // Then - it should only process valid stories (those with >= 4 articles)
-            expect(mockStoryDigestAgent.run).toHaveBeenCalledTimes(TEST_STORIES_COUNT);
-            expect(result).toHaveLength(TEST_STORIES_COUNT);
+            // Then - it should only process the valid story (the one with >= 2 articles)
+            expect(mockStoryDigestAgent.run).toHaveBeenCalledTimes(1);
+            expect(mockStoryDigestAgent.run).toHaveBeenCalledWith({ newsStory: sufficientStory });
+            expect(result).toHaveLength(1);
         });
 
         test('should handle empty news provider response', async () => {
@@ -188,13 +199,13 @@ describe('DigestStoriesUseCase', () => {
         });
 
         test('should handle null response from story digest agent', async () => {
-            // Given - agent returns null for some stories
+            // Given - agent returns null for the first story
             mockStoryDigestAgent.run.mockImplementation(async (params) => {
-                // Return null for first story, valid story for others
                 if (params?.newsStory === testNewsStories[0]) {
                     return null;
                 }
-                return mockDigestResults[0];
+                const index = testNewsStories.findIndex((s) => s === params?.newsStory);
+                return mockDigestResults[index];
             });
 
             // When - executing the use case
@@ -207,12 +218,13 @@ describe('DigestStoriesUseCase', () => {
         });
 
         test('should continue processing if individual story digestion fails', async () => {
-            // Given - agent throws error for one story
+            // Given - agent throws an error for the second story
             mockStoryDigestAgent.run.mockImplementation(async (params) => {
                 if (params?.newsStory === testNewsStories[1]) {
                     throw new Error('Agent processing failed');
                 }
-                return mockDigestResults[0];
+                const index = testNewsStories.findIndex((s) => s === params?.newsStory);
+                return mockDigestResults[index];
             });
 
             // When - executing the use case
@@ -257,6 +269,11 @@ describe('DigestStoriesUseCase', () => {
         test('should continue processing when story repository fails', async () => {
             // Given - story repository throws error on create
             mockStoryRepository.create.mockRejectedValue(new Error('Repository failed'));
+            mockStoryDigestAgent.run.mockImplementation(async (params) => {
+                if (!params) return null;
+                const index = testNewsStories.findIndex((s) => s === params.newsStory);
+                return mockDigestResults[index];
+            });
 
             // When - executing the use case
             const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);
@@ -336,6 +353,7 @@ describe('DigestStoriesUseCase', () => {
             ];
 
             mockNewsProvider.fetchNews.mockResolvedValue(newsWithDuplicates);
+            mockStoryDigestAgent.run.mockResolvedValue(mockDigestResults[0]);
 
             // When - executing the use case
             const result = await useCase.execute(DEFAULT_LANGUAGE, DEFAULT_COUNTRY);

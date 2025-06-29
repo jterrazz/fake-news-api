@@ -149,12 +149,6 @@ export class WorldNewsAdapter implements NewsProviderPort {
         return this.transformResponse(parsed);
     }
 
-    private selectMedianArticle(articles: WorldNewsArticle[]): WorldNewsArticle {
-        const sorted = [...articles].sort((a, b) => a.text.length - b.text.length);
-        const medianIndex = Math.floor((sorted.length - 1) / 2);
-        return sorted[medianIndex];
-    }
-
     private transformResponse(response: WorldNewsResponse): NewsStory[] {
         return response.top_news
             .map((section) => this.transformSection(section))

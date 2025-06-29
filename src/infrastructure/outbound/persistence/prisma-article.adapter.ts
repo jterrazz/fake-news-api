@@ -76,15 +76,21 @@ export class PrismaArticleRepository implements ArticleRepositoryPort {
 
     async findMany(options: FindManyOptions): Promise<Article[]> {
         const where = {
-            ...(options.language && { language: this.mapper.mapLanguageToPrisma(options.language) }),
-            ...(options.category && { category: this.mapper.mapCategoryToPrisma(options.category) }),
+            ...(options.language && {
+                language: this.mapper.mapLanguageToPrisma(options.language),
+            }),
+            ...(options.category && {
+                category: this.mapper.mapCategoryToPrisma(options.category),
+            }),
             ...(options.country && { country: this.mapper.mapCountryToPrisma(options.country) }),
             ...(options.cursor && {
                 createdAt: {
                     lt: options.cursor,
                 },
             }),
-            ...(options.where?.publicationTier && { publicationTier: options.where.publicationTier }),
+            ...(options.where?.publicationTier && {
+                publicationTier: options.where.publicationTier,
+            }),
         };
 
         const items = await this.prisma.getPrismaClient().article.findMany({

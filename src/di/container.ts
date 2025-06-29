@@ -13,13 +13,13 @@ import type { ConfigurationPort } from '../application/ports/inbound/configurati
 import type { ExecutorPort } from '../application/ports/inbound/executor.port.js';
 import { type TaskPort } from '../application/ports/inbound/executor.port.js';
 import type { ServerPort } from '../application/ports/inbound/server.port.js';
+import { type ArticleClassifierAgentPort } from '../application/ports/outbound/agents/article-classifier.agent.js';
 import { type ArticleComposerAgentPort } from '../application/ports/outbound/agents/article-composer.agent.js';
-import { type ArticleCurationAgentPort } from '../application/ports/outbound/agents/article-curation.agent.js';
 import { type StoryDigestAgentPort } from '../application/ports/outbound/agents/story-digest.agent.js';
 import type { ArticleRepositoryPort } from '../application/ports/outbound/persistence/article-repository.port.js';
 import { type StoryRepositoryPort } from '../application/ports/outbound/persistence/story-repository.port.js';
 import type { NewsProviderPort } from '../application/ports/outbound/providers/news.port.js';
-import { CurateArticlesUseCase } from '../application/use-cases/articles/curate-articles.use-case.js';
+import { ClassifyArticlesUseCase } from '../application/use-cases/articles/classify-articles.use-case.js';
 import { GenerateArticlesFromStoriesUseCase } from '../application/use-cases/articles/generate-articles-from-stories.use-case.js';
 import { GetArticlesUseCase } from '../application/use-cases/articles/get-articles.use-case.js';
 import { DigestStoriesUseCase } from '../application/use-cases/stories/digest-stories.use-case.js';
@@ -29,8 +29,8 @@ import { NodeCronAdapter } from '../infrastructure/inbound/executor/node-cron.ad
 import { StoryDigestTask } from '../infrastructure/inbound/executor/stories/story-digest.task.js';
 import { GetArticlesController } from '../infrastructure/inbound/server/articles/get-articles.controller.js';
 import { HonoServerAdapter } from '../infrastructure/inbound/server/hono.adapter.js';
+import { ArticleClassifierAgentAdapter } from '../infrastructure/outbound/agents/article-classifier.agent.js';
 import { ArticleComposerAgentAdapter } from '../infrastructure/outbound/agents/article-composer.agent.js';
-import { ArticleCurationAgentAdapter } from '../infrastructure/outbound/agents/article-curation.agent.js';
 import { StoryDigestAgentAdapter } from '../infrastructure/outbound/agents/story-digest.agent.js';
 import { PrismaAdapter } from '../infrastructure/outbound/persistence/prisma.adapter.js';
 import { PrismaArticleRepository } from '../infrastructure/outbound/persistence/prisma-article.adapter.js';
@@ -115,10 +115,10 @@ const articleComposerAgentFactory = Injectable(
     (model: ModelPort, logger: LoggerPort) => new ArticleComposerAgentAdapter(model, logger),
 );
 
-const articleCurationAgentFactory = Injectable(
-    'ArticleCurationAgent',
+const articleClassifierAgentFactory = Injectable(
+    'ArticleClassifierAgent',
     ['Model', 'Logger'] as const,
-    (model: ModelPort, logger: LoggerPort) => new ArticleCurationAgentAdapter(model, logger),
+    (model: ModelPort, logger: LoggerPort) => new ArticleClassifierAgentAdapter(model, logger),
 );
 
 /**
@@ -181,14 +181,14 @@ const generateArticlesFromStoriesUseCaseFactory = Injectable(
         ),
 );
 
-const curateArticlesUseCaseFactory = Injectable(
-    'CurateArticles',
-    ['ArticleCurationAgent', 'ArticleRepository', 'Logger'] as const,
+const classifyArticlesUseCaseFactory = Injectable(
+    'ClassifyArticles',
+    ['ArticleClassifierAgent', 'ArticleRepository', 'Logger'] as const,
     (
-        articleCurationAgent: ArticleCurationAgentPort,
+        articleClassifierAgent: ArticleClassifierAgentPort,
         articleRepository: ArticleRepositoryPort,
         logger: LoggerPort,
-    ) => new CurateArticlesUseCase(articleCurationAgent, articleRepository, logger),
+    ) => new ClassifyArticlesUseCase(articleClassifierAgent, articleRepository, logger),
 );
 
 /**
@@ -208,14 +208,14 @@ const tasksFactory = Injectable(
     [
         'DigestStories',
         'GenerateArticlesFromStories',
-        'CurateArticles',
+        'ClassifyArticles',
         'Configuration',
         'Logger',
     ] as const,
     (
         digestStories: DigestStoriesUseCase,
         generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
-        curateArticles: CurateArticlesUseCase,
+        classifyArticles: ClassifyArticlesUseCase,
         configuration: ConfigurationPort,
         logger: LoggerPort,
     ): TaskPort[] => {
@@ -227,7 +227,7 @@ const tasksFactory = Injectable(
             new StoryDigestTask(
                 digestStories,
                 generateArticlesFromStories,
-                curateArticles,
+                classifyArticles,
                 storyDigestConfigs,
                 logger,
             ),
@@ -303,7 +303,7 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(modelFactory)
         .provides(storyDigestAgentFactory)
         .provides(articleComposerAgentFactory)
-        .provides(articleCurationAgentFactory)
+        .provides(articleClassifierAgentFactory)
         // Repositories
         .provides(articleRepositoryFactory)
         .provides(storyRepositoryFactory)
@@ -311,7 +311,7 @@ export const createContainer = (overrides?: ContainerOverrides) =>
         .provides(getArticlesUseCaseFactory)
         .provides(digestStoriesUseCaseFactory)
         .provides(generateArticlesFromStoriesUseCaseFactory)
-        .provides(curateArticlesUseCaseFactory)
+        .provides(classifyArticlesUseCaseFactory)
         // Controllers and tasks
         .provides(getArticlesControllerFactory)
         .provides(tasksFactory)

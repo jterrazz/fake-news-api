@@ -9,21 +9,15 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { z } from 'zod/v4';
 
 import {
-    type ArticleCurationAgentPort,
-    type ArticleCurationInput,
-    type ArticleCurationResult,
+    type ArticleClassifierAgentPort,
+    type ArticleClassifierInput,
+    type ArticleClassifierResult,
     type PublicationTier,
     publicationTierSchema,
-} from '../../../application/ports/outbound/agents/article-curation.agent.js';
+} from '../../../application/ports/outbound/agents/article-classifier.agent.js';
 
-/**
- * @description
- * This is a placeholder implementation for the Article Curation Agent.
- * In a real application, this would connect to a language model to perform
- * the analysis. For now, it returns a default value for dependency injection.
- */
-export class ArticleCurationAgentAdapter implements ArticleCurationAgentPort {
-    static readonly NAME = 'ArticleCurationAgent';
+export class ArticleClassifierAgentAdapter implements ArticleClassifierAgentPort {
+    static readonly NAME = 'ArticleClassifierAgent';
 
     static readonly SCHEMA = z.object({
         publicationTier: publicationTierSchema,
@@ -31,27 +25,27 @@ export class ArticleCurationAgentAdapter implements ArticleCurationAgentPort {
     });
 
     static readonly SYSTEM_PROMPT = new SystemPromptAdapter(
-        'You are an expert Senior Editor for a modern digital news platform. Your primary responsibility is to curate content to ensure quality, relevance, and proper placement within the app.',
+        'You are an expert Senior Editor for a modern digital news platform. Your primary responsibility is to classify content to ensure quality, relevance, and proper placement within the app.',
         'You are discerning, have high standards, and understand what makes an article compelling for a broad audience versus a niche one.',
         PROMPT_LIBRARY.FOUNDATIONS.CONTEXTUAL_ONLY,
         PROMPT_LIBRARY.TONES.NEUTRAL,
     );
 
-    private readonly agent: BasicAgentAdapter<z.infer<typeof ArticleCurationAgentAdapter.SCHEMA>>;
+    private readonly agent: BasicAgentAdapter<z.infer<typeof ArticleClassifierAgentAdapter.SCHEMA>>;
 
     constructor(
         private readonly model: ModelPort,
         private readonly logger: LoggerPort,
     ) {
-        this.agent = new BasicAgentAdapter(ArticleCurationAgentAdapter.NAME, {
+        this.agent = new BasicAgentAdapter(ArticleClassifierAgentAdapter.NAME, {
             logger: this.logger,
             model: this.model,
-            schema: ArticleCurationAgentAdapter.SCHEMA,
-            systemPrompt: ArticleCurationAgentAdapter.SYSTEM_PROMPT,
+            schema: ArticleClassifierAgentAdapter.SCHEMA,
+            systemPrompt: ArticleClassifierAgentAdapter.SYSTEM_PROMPT,
         });
     }
 
-    static readonly USER_PROMPT = (input: ArticleCurationInput) => {
+    static readonly USER_PROMPT = (input: ArticleClassifierInput) => {
         const { article } = input;
         const articleData = {
             body: article.body.value,
@@ -92,17 +86,17 @@ export class ArticleCurationAgentAdapter implements ArticleCurationAgentPort {
         );
     };
 
-    async run(input: ArticleCurationInput): Promise<ArticleCurationResult | null> {
+    async run(input: ArticleClassifierInput): Promise<ArticleClassifierResult | null> {
         try {
-            this.logger.info(`[${ArticleCurationAgentAdapter.NAME}] Curating article...`, {
+            this.logger.info(`[${ArticleClassifierAgentAdapter.NAME}] Classifying article...`, {
                 articleId: input.article.id,
             });
 
-            const result = await this.agent.run(ArticleCurationAgentAdapter.USER_PROMPT(input));
+            const result = await this.agent.run(ArticleClassifierAgentAdapter.USER_PROMPT(input));
 
             if (!result) {
                 this.logger.warn(
-                    `[${ArticleCurationAgentAdapter.NAME}] Curation failed. No result from AI model.`,
+                    `[${ArticleClassifierAgentAdapter.NAME}] Classification failed. No result from AI model.`,
                     {
                         articleId: input.article.id,
                     },
@@ -111,7 +105,7 @@ export class ArticleCurationAgentAdapter implements ArticleCurationAgentPort {
             }
 
             this.logger.info(
-                `[${ArticleCurationAgentAdapter.NAME}] Article curated successfully.`,
+                `[${ArticleClassifierAgentAdapter.NAME}] Article classified successfully.`,
                 {
                     articleId: input.article.id,
                     publicationTier: result.publicationTier,
@@ -125,7 +119,7 @@ export class ArticleCurationAgentAdapter implements ArticleCurationAgentPort {
             };
         } catch (error) {
             this.logger.error(
-                `[${ArticleCurationAgentAdapter.NAME}] An error occurred during curation.`,
+                `[${ArticleClassifierAgentAdapter.NAME}] An error occurred during classification.`,
                 {
                     articleId: input.article.id,
                     error,

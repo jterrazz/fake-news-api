@@ -3,7 +3,7 @@ import { type LoggerPort } from '@jterrazz/logger';
 import { type StoryDigestTaskConfig } from '../../../../application/ports/inbound/configuration.port.js';
 
 import { type TaskPort } from '../../../../application/ports/inbound/executor.port.js';
-import { type CurateArticlesUseCase } from '../../../../application/use-cases/articles/curate-articles.use-case.js';
+import { type ClassifyArticlesUseCase } from '../../../../application/use-cases/articles/classify-articles.use-case.js';
 import { type GenerateArticlesFromStoriesUseCase } from '../../../../application/use-cases/articles/generate-articles-from-stories.use-case.js';
 import { type DigestStoriesUseCase } from '../../../../application/use-cases/stories/digest-stories.use-case.js';
 
@@ -18,7 +18,7 @@ export class StoryDigestTask implements TaskPort {
     constructor(
         private readonly digestStories: DigestStoriesUseCase,
         private readonly generateArticlesFromStories: GenerateArticlesFromStoriesUseCase,
-        private readonly curateArticles: CurateArticlesUseCase,
+        private readonly classifyArticles: ClassifyArticlesUseCase,
         private readonly taskConfigs: StoryDigestTaskConfig[],
         private readonly logger: LoggerPort,
     ) {}
@@ -61,13 +61,13 @@ export class StoryDigestTask implements TaskPort {
                 }),
             );
 
-            this.logger.info('Article generation completed, starting article curation');
+            this.logger.info('Article generation completed, starting article classification');
 
-            // Step 3: Curate newly generated articles
-            await this.curateArticles.execute();
+            // Step 3: Classify newly generated articles
+            await this.classifyArticles.execute();
 
             this.logger.info(
-                'Story digest, article generation, and curation task completed successfully',
+                'Story digest, article generation, and classification task completed successfully',
             );
         } catch (error) {
             this.logger.error('Story digest task failed', { error });

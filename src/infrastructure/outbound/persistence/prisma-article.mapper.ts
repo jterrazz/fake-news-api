@@ -32,7 +32,9 @@ export class ArticleMapper {
         return language.toString();
     }
 
-    toDomain(prisma: PrismaArticle & { stories?: { id: string }[]; variants?: PrismaArticleVariant[] }): Article {
+    toDomain(
+        prisma: PrismaArticle & { stories?: { id: string }[]; variants?: PrismaArticleVariant[] },
+    ): Article {
         const variants = prisma.variants?.map(
             (variant) =>
                 new ArticleVariant({
